@@ -1,0 +1,1050 @@
+/* ==============================================
+   AnimeEngine v4 - Style Sheet
+   Neo-Brutalist Design System
+   ============================================== */
+
+/* --- CSS VARIABLES / THEMING --- */
+:root,
+:root[data-theme="default"] {
+  /* Default Theme (Light Neo-Brutalist) */
+  --bg-primary: #e0e7ff;
+  --bg-dots: #a5b4fc;
+  --bg-secondary: #f3f4f6;
+  --text-primary: #000000;
+  --text-secondary: #6b7280;
+  --accent-pink: #ec4899;
+  --accent-yellow: #fbbf24;
+  --accent-blue: #06b6d4;
+  --surface: #ffffff;
+  --surface-alt: #f9fafb;
+  --border: #000000;
+  --shadow: #000000;
+  --calendar-top: #ef4444;
+}
+
+/* Cyberpunk Theme (Dark Neon - High Contrast) */
+:root[data-theme="cyberpunk"] {
+  --bg-primary: #050508;
+  --bg-dots: #1f1f3a;
+  --bg-secondary: #0f0f1a;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0c0;
+  --accent-pink: #ff2a6d;
+  --accent-yellow: #f5d300;
+  --accent-blue: #05d9e8;
+  --surface: #10101a;
+  --surface-alt: #1a1a2e;
+  --border: #05d9e8;
+  --shadow: #ff2a6d;
+  --calendar-top: #ff2a6d;
+}
+
+/* Manga Theme (Black & White Paper) */
+:root[data-theme="manga"] {
+  --bg-primary: #f5f5dc;
+  --bg-dots: #e8e8c8;
+  --bg-secondary: #ebebd3;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --accent-pink: #333333;
+  --accent-yellow: #666666;
+  --accent-blue: #444444;
+  --surface: #faf8f0;
+  --surface-alt: #f0ede0;
+  --border: #1a1a1a;
+  --shadow: #1a1a1a;
+  --calendar-top: #333333;
+}
+
+/* --- BASE STYLES --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(var(--bg-dots) 1px, transparent 1px);
+  background-size: 24px 24px;
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+}
+
+/* --- TYPOGRAPHY --- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-display {
+  font-family: "Archivo Black", sans-serif;
+}
+
+/* --- NEO-BRUTALIST COMPONENTS --- */
+.neo-box {
+  background-color: var(--surface);
+  border: 3px solid var(--border);
+  box-shadow: 6px 6px 0px 0px var(--shadow);
+  transition: all 0.15s ease-in-out;
+}
+
+.neo-box:hover {
+  box-shadow: 8px 8px 0px 0px var(--shadow);
+  transform: translate(-1px, -1px);
+}
+
+.neo-box-static {
+  background-color: var(--surface);
+  border: 3px solid var(--border);
+  box-shadow: 6px 6px 0px 0px var(--shadow);
+}
+
+.neo-input {
+  border: 3px solid var(--border);
+  box-shadow: 4px 4px 0px 0px var(--shadow);
+  font-weight: bold;
+  transition: all 0.1s;
+}
+
+.neo-input:focus {
+  outline: none;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px var(--shadow);
+}
+
+.neo-btn {
+  border: 3px solid var(--border);
+  font-family: "Archivo Black", sans-serif;
+  text-transform: uppercase;
+  box-shadow: 5px 5px 0px 0px var(--shadow);
+  transition: all 0.1s;
+  cursor: pointer;
+}
+
+.neo-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0px 0px var(--shadow);
+}
+
+.neo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px var(--shadow);
+}
+
+.neo-shadow {
+  box-shadow: 6px 6px 0px 0px var(--shadow);
+}
+
+.neo-shadow-hover:hover {
+  box-shadow: 8px 8px 0px 0px var(--shadow);
+  transform: translate(-2px, -2px);
+}
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-pink);
+  border: 2px solid var(--border);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-yellow);
+}
+
+/* --- CUSTOM INPUTS --- */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 24px;
+  width: 24px;
+  border: 3px solid var(--border);
+  background: var(--accent-pink);
+  cursor: pointer;
+  margin-top: -10px;
+  box-shadow: 2px 2px 0px 0px var(--shadow);
+  transition: background 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent-yellow);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: var(--surface);
+  border: 2px solid var(--border);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* --- ANIMATIONS --- */
+.glitch-wrapper {
+  position: relative;
+}
+
+.glitch-wrapper::before {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 3px;
+  color: var(--accent-pink);
+  z-index: -1;
+  mix-blend-mode: multiply;
+}
+
+.glitch-wrapper::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: -3px;
+  color: var(--accent-blue);
+  z-index: -2;
+  mix-blend-mode: multiply;
+}
+
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--border);
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-enter {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* --- RADAR ANIMATION (Idle State) --- */
+.radar-grid {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.tech-ring {
+  animation: techPulse 2s ease-in-out infinite;
+}
+
+@keyframes techPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+.radar-scan {
+  position: absolute;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-pink));
+  top: 50%;
+  left: 50%;
+  transform-origin: left center;
+  animation: radarSweep 3s linear infinite;
+}
+
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- BENTO GRID --- */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.bento-item {
+  aspect-ratio: 2/3;
+  overflow: hidden;
+}
+
+/* --- CALENDAR CARD --- */
+.neo-card-calendar {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  box-shadow: 5px 5px 0px 0px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.neo-card-calendar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background: #ef4444;
+  border-bottom: 3px solid var(--border);
+}
+
+/* --- UTILITIES --- */
+.text-shadow {
+  text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+}
+
+.text-neo-pink {
+  color: var(--accent-pink);
+}
+
+.text-neo-blue {
+  color: var(--accent-blue);
+}
+
+.bg-neo-yellow {
+  background-color: var(--accent-yellow);
+}
+
+.bg-neo-pink {
+  background-color: var(--accent-pink);
+}
+
+/* --- SAVE INDICATOR --- */
+.save-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #10b981;
+  color: white;
+  padding: 8px 16px;
+  border: 2px solid black;
+  box-shadow: 3px 3px 0 black;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.save-indicator.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- ACHIEVEMENTS SYSTEM --- */
+
+/* Level Badge in Header */
+.level-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  box-shadow: 3px 3px 0 var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.level-badge:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--shadow);
+}
+
+.level-icon {
+  font-size: 1.5rem;
+}
+
+.level-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.level-name {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.level-progress-bar {
+  width: 60px;
+  height: 4px;
+  background: #e5e7eb;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.level-progress-fill {
+  height: 100%;
+  background: var(--accent-pink);
+  transition: width 0.3s ease;
+}
+
+.level-xp {
+  font-size: 8px;
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+/* Achievement Notification */
+.achievement-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border: 3px solid var(--border);
+  box-shadow: 6px 6px 0 var(--shadow);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.achievement-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.achievement-icon {
+  font-size: 2.5rem;
+  animation: bounce 0.6s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.achievement-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.achievement-title {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.achievement-name {
+  font-family: "Archivo Black", sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.achievement-xp {
+  font-size: 12px;
+  font-weight: bold;
+  color: #166534;
+  background: #dcfce7;
+  padding: 2px 6px;
+  display: inline-block;
+  margin-top: 4px;
+  border: 1px solid #166534;
+}
+
+/* Achievements Modal */
+.achievements-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 9998;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.achievements-modal.open {
+  display: flex;
+}
+
+.achievements-modal-content {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  box-shadow: 10px 10px 0 var(--shadow);
+  max-width: 700px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.achievements-modal-header {
+  background: var(--border);
+  color: var(--surface);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.achievements-modal-title {
+  font-family: "Archivo Black", sans-serif;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+
+.achievements-modal-close {
+  background: var(--surface);
+  color: var(--border);
+  border: none;
+  width: 30px;
+  height: 30px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.achievements-modal-close:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.achievements-stats {
+  padding: 12px 20px;
+  background: #f3f4f6;
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 20px;
+}
+
+.achievement-card {
+  padding: 16px;
+  border: 2px solid var(--border);
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.achievement-card.unlocked {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+
+.achievement-card.locked {
+  background: #f3f4f6;
+  opacity: 0.6;
+}
+
+.achievement-card.unlocked:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--shadow);
+}
+
+.achievement-card-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.achievement-card-name {
+  font-weight: bold;
+  font-size: 11px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.achievement-card-desc {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.achievement-card-xp {
+  font-size: 10px;
+  font-weight: bold;
+  color: #166534;
+}
+
+/* ================================================
+   THEME SELECTOR
+   ================================================ */
+
+.theme-selector-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  box-shadow: 3px 3px 0 var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.theme-option:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--shadow);
+}
+
+.theme-option.active {
+  background: var(--accent-pink);
+  color: white;
+}
+
+.theme-option-icon {
+  font-size: 1rem;
+}
+
+.theme-option-name {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .theme-option-name {
+    display: inline;
+  }
+}
+
+/* ================================================
+   CYBERPUNK THEME SPECIAL EFFECTS
+   ================================================ */
+
+.theme-cyberpunk body {
+  background-image: 
+    radial-gradient(var(--bg-dots) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 0, 255, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px, 50px 50px, 50px 50px;
+}
+
+.theme-cyberpunk .neo-box,
+.theme-cyberpunk .neo-btn {
+  box-shadow: 4px 4px 0 var(--shadow), 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+.theme-cyberpunk .neo-box:hover {
+  box-shadow: 6px 6px 0 var(--shadow), 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+.theme-cyberpunk .glitch-wrapper::before {
+  color: var(--accent-pink);
+  text-shadow: 0 0 10px var(--accent-pink);
+}
+
+.theme-cyberpunk .glitch-wrapper::after {
+  color: var(--accent-blue);
+  text-shadow: 0 0 10px var(--accent-blue);
+}
+
+.theme-cyberpunk .radar-scan {
+  background: linear-gradient(90deg, transparent, var(--accent-blue));
+  box-shadow: 0 0 10px var(--accent-blue);
+}
+
+.theme-cyberpunk .level-progress-fill,
+.theme-cyberpunk #progress-bar {
+  background: linear-gradient(90deg, var(--accent-pink), var(--accent-blue));
+}
+
+.theme-cyberpunk .achievement-notification {
+  background: linear-gradient(135deg, #1a1a2e 0%, #2a2a4e 100%);
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+/* ================================================
+   MANGA THEME SPECIAL EFFECTS
+   ================================================ */
+
+.theme-manga body {
+  background-image: none;
+  background-color: var(--bg-primary);
+  position: relative;
+}
+
+.theme-manga body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.theme-manga .neo-box,
+.theme-manga .neo-btn {
+  box-shadow: 4px 4px 0 var(--shadow);
+  border-width: 2px;
+}
+
+.theme-manga .glitch-wrapper::before,
+.theme-manga .glitch-wrapper::after {
+  display: none;
+}
+
+.theme-manga .radar-scan {
+  background: linear-gradient(90deg, transparent, #333);
+}
+
+.theme-manga img {
+  filter: grayscale(100%) contrast(1.1);
+}
+
+.theme-manga img:hover {
+  filter: grayscale(0%) contrast(1);
+}
+
+/* ================================================
+   NAV / FUTURE PAGES STRUCTURE
+   ================================================ */
+
+.app-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  padding: 4px;
+}
+
+.app-nav-item {
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-primary);
+}
+
+.app-nav-item:hover {
+  background: var(--bg-secondary);
+}
+
+.app-nav-item.active {
+  background: var(--border);
+  color: var(--surface);
+}
+
+.app-nav-item i {
+  margin-right: 6px;
+}
+
+/* Page container for future multi-page */
+/* Page container for future multi-page */
+.page-container {
+  /* Logic moved to Tailwind classes (hidden/grid) */
+}
+
+.page-container.active {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+/* ================================================
+   SHARE MODAL
+   ================================================ */
+
+.share-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 9998;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.share-modal.open {
+  display: flex;
+}
+
+.share-modal-content {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  box-shadow: 10px 10px 0 var(--shadow);
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.share-modal-header {
+  background: var(--border);
+  color: var(--surface);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.share-modal-title {
+  font-family: "Archivo Black", sans-serif;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+
+.share-modal-close {
+  background: var(--surface);
+  color: var(--border);
+  border: none;
+  width: 30px;
+  height: 30px;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.share-preview {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-secondary);
+}
+
+.share-actions {
+  padding: 16px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  border-top: 2px solid var(--border);
+}
+
+.share-btn {
+  padding: 12px 24px;
+  font-family: "Archivo Black", sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  border: 3px solid var(--border);
+  box-shadow: 4px 4px 0 var(--shadow);
+  cursor: pointer;
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--shadow);
+}
+
+.share-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--shadow);
+}
+
+.share-btn-download {
+  background: #10b981;
+  color: white;
+}
+
+.share-btn-copy {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Share Notification */
+.share-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #10b981;
+  color: white;
+  padding: 12px 24px;
+  border: 3px solid black;
+  box-shadow: 4px 4px 0 black;
+  font-weight: bold;
+  font-size: 14px;
+  z-index: 9999;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.share-notification.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Share Button in Stack Header */
+.share-stack-btn {
+  background: var(--accent-pink);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.share-stack-btn:hover {
+  background: var(--accent-yellow);
+  color: black;
+}
+
+/* ================================================
+   RATING MODAL & STAR SYSTEM
+   ================================================ */
+
+.rating-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.rating-modal.open {
+  display: flex;
+}
+
+.rating-content {
+  background: var(--surface);
+  border: 3px solid var(--border);
+  box-shadow: 10px 10px 0 var(--shadow);
+  max-width: 400px;
+  width: 100%;
+  padding: 24px;
+  text-align: center;
+}
+
+.rating-stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0;
+  flex-direction: row-reverse; /* Tricks for CSS hover */
+}
+
+.rating-stars input {
+  display: none;
+}
+
+.rating-stars label {
+  cursor: pointer;
+  font-size: 32px;
+  color: #d1d5db;
+  transition: all 0.2s;
+}
+
+/* Stars logic: fill when checked/hovered */
+.rating-stars label:hover,
+.rating-stars label:hover ~ label,
+.rating-stars input:checked ~ label {
+  color: var(--accent-yellow);
+  text-shadow: 2px 2px 0 var(--border);
+}
+
+.rating-favorite-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.rating-favorite-label input {
+  display: none;
+}
+
+.rating-favorite-icon {
+  font-size: 24px;
+  color: #d1d5db;
+  transition: all 0.2s;
+}
+
+.rating-favorite-label input:checked ~ .rating-favorite-icon {
+  color: #ef4444;
+  transform: scale(1.2);
+}
+
+/* ================================================
+   LISTS & GRIDS (History/Favorites)
+   ================================================ */
+
+.anime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}

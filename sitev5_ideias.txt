@@ -1,0 +1,503 @@
+# AnimeEngine v5 - Ideias e Planejamento
+## Inspiração: MyAnimeList + Crunchyroll + Netflix
+
+---
+
+# VISÃO GERAL
+
+O AnimeEngine v5 será uma plataforma completa de tracking de animes, inspirada no MyAnimeList, 
+mas com visual Neo-Brutalist moderno. A calculadora do v4 será integrada como uma ferramenta dentro do ecossistema.
+
+---
+
+# TELA INICIAL (HOME) - DETALHAMENTO COMPLETO
+
+## Layout Geral
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  [LOGO]  ANIME.ENGINE v5       [🔍 Busca]    [👤 Perfil] [🔔 Notif] │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                    ANIME EM DESTAQUE                         │   │
+│  │     Grande banner com anime popular/em lançamento            │   │
+│  │     [▶ Ver Detalhes]  [+ Minha Lista]  [⭐ Favoritar]        │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ══════════════════════════════════════════════════════════════════│
+│                                                                     │
+│  📺 CONTINUAR ASSISTINDO                              [Ver Tudo →] │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                          │
+│  │     │ │     │ │     │ │     │ │     │  ← Scroll horizontal     │
+│  │ EP5 │ │ EP12│ │ EP3 │ │ EP8 │ │ EP1 │                          │
+│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                          │
+│                                                                     │
+│  🔥 EM ALTA ESTA SEMANA                               [Ver Tudo →] │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                          │
+│  │     │ │     │ │     │ │     │ │     │                          │
+│  │ #1  │ │ #2  │ │ #3  │ │ #4  │ │ #5  │                          │
+│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                          │
+│                                                                     │
+│  🌸 TEMPORADA ATUAL (Winter 2024)                     [Ver Tudo →] │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                          │
+│  │     │ │     │ │     │ │     │ │     │                          │
+│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                          │
+│                                                                     │
+│  ⭐ MAIS BEM AVALIADOS                                [Ver Tudo →] │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                          │
+│  │9.1★ │ │9.0★ │ │8.9★ │ │8.8★ │ │8.7★ │                          │
+│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                          │
+│                                                                     │
+│  📚 POR GÊNERO                                                      │
+│  [Shounen] [Isekai] [Romance] [Slice of Life] [Action] [+ Mais]    │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## Componentes da Home
+
+### 1. Header Fixo
+- Logo com animação hover
+- Barra de busca com autocomplete
+- Ícone de notificações (novos episódios, conquistas)
+- Avatar do usuário (clicável para perfil)
+- Nível/XP visível
+
+### 2. Banner Hero (Destaque)
+- Ocupa largura total
+- Imagem de fundo do anime
+- Título grande
+- Descrição curta (1-2 linhas)
+- Botões de ação:
+  - Ver Detalhes
+  - Adicionar à Lista
+  - Favoritar
+  - Ir para Calculadora
+- Auto-rotação a cada 8 segundos
+
+### 3. Seção "Continuar Assistindo"
+- Mostra animes do usuário em progresso
+- Card mostra: capa, título, episódio atual, barra de progresso
+- Clique leva para detalhes ou calculadora
+- Apenas aparece se houver animes em progresso
+
+### 4. Carrosséis de Animes
+Cada carrossel tem:
+- Título da seção
+- Botão "Ver Tudo" que leva para listagem completa
+- Scroll horizontal com setas
+- 5-8 cards visíveis por vez
+
+### 5. Card de Anime (Componente Reutilizável)
+```
+┌─────────────────┐
+│   [Imagem]      │
+│                 │
+│   ⭐ Favorito   │ ← Overlay no hover
+├─────────────────┤
+│ Título do Anime │
+│ ★ 8.5  │ 24 eps │
+│ [+ Lista] [🧮]  │
+└─────────────────┘
+```
+
+Ações do Card:
+- Hover: mostra overlay com botões
+- Click: vai para página de detalhes
+- Quick Actions:
+  - ⭐ Favoritar
+  - + Adicionar à "Minha Lista" (Quero Assistir)
+  - ✓ Marcar como Completo (abre rating)
+  - 🧮 Adicionar à Calculadora
+
+---
+
+# NAVEGAÇÃO PRINCIPAL
+
+## Barra Lateral (Desktop) / Bottom Nav (Mobile)
+
+1. **🏠 Home** - Hub de descoberta
+2. **🔍 Explorar** - Busca avançada com filtros
+3. **📋 Minha Lista** - Animes para assistir
+4. **📺 Assistindo** - Em progresso
+5. **✅ Completos** - Histórico com ratings
+6. **⭐ Favoritos** - Destaques pessoais
+7. **🧮 Calculadora** - Ferramenta do v4
+8. **📊 Stats** - Estatísticas e conquistas
+9. **⚙️ Config** - Configurações e perfil
+
+---
+
+# PÁGINA DE DETALHES DO ANIME (ESTILO MAL)
+
+## Layout
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ ← Voltar                                                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌───────────┐  TÍTULO DO ANIME                                    │
+│  │           │  ★★★★☆ 8.5 (1.2M avaliações)                        │
+│  │   CAPA    │                                                      │
+│  │           │  [+ Minha Lista] [⭐ Favoritar] [🧮 Calcular]        │
+│  │           │                                                      │
+│  │           │  ▸ Status: Finalizado                               │
+│  │           │  ▸ Episódios: 24                                    │
+│  │           │  ▸ Duração: 24 min/ep                               │
+│  │           │  ▸ Estúdio: Studio Bones                            │
+│  │           │  ▸ Ano: 2019                                        │
+│  └───────────┘  ▸ Gêneros: [Action] [Fantasy] [Shounen]            │
+│                                                                     │
+│  ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│  📖 SINOPSE                                                         │
+│  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do   │
+│  eiusmod tempor incididunt ut labore et dolore magna aliqua...     │
+│  [Ler mais]                                                         │
+│                                                                     │
+│  ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│  🎬 TRAILER                                                         │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                     [▶ YouTube Embed]                        │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│  📺 EPISÓDIOS                                                       │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ EP 1: Título do Episódio                    [✓ Assistido]    │  │
+│  │ EP 2: Título do Episódio                    [✓ Assistido]    │  │
+│  │ EP 3: Título do Episódio                    [ ] Não Assistido│  │
+│  │ ...                                                          │  │
+│  └──────────────────────────────────────────────────────────────┘  │
+│                                                                     │
+│  ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│  📊 ESTATÍSTICAS                                                    │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐       │
+│  │ Rank #45   │ │ Popular #12│ │ 1.2M membros│ │ 500K favs  │       │
+│  └────────────┘ └────────────┘ └────────────┘ └────────────┘       │
+│                                                                     │
+│  ═══════════════════════════════════════════════════════════════   │
+│                                                                     │
+│  💡 RECOMENDAÇÕES                                                   │
+│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                          │
+│  │     │ │     │ │     │ │     │ │     │                          │
+│  └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# SISTEMA DE LISTAS (ESTILO MAL)
+
+## Status de Anime para Usuário
+1. **Assistindo** - Em progresso
+2. **Completo** - Finalizado (com rating)
+3. **Pausado** - Em pausa
+4. **Dropado** - Abandonado
+5. **Quero Assistir** - Na lista para futuro
+
+## Modal de Adicionar/Editar Status
+```
+┌─────────────────────────────────────────┐
+│ [Capa] Título do Anime                  │
+├─────────────────────────────────────────┤
+│                                         │
+│  Status:  [▼ Assistindo        ]        │
+│                                         │
+│  Episódios: [12] / 24                   │
+│                                         │
+│  Minha Nota: ★★★★★★★★☆☆ (8)            │
+│                                         │
+│  [x] Adicionar aos Favoritos            │
+│                                         │
+│  Notas pessoais:                        │
+│  ┌─────────────────────────────────┐    │
+│  │                                 │    │
+│  └─────────────────────────────────┘    │
+│                                         │
+│  Data Início: [  /  /    ]              │
+│  Data Fim:    [  /  /    ]              │
+│                                         │
+│  [Cancelar]              [Salvar]       │
+└─────────────────────────────────────────┘
+```
+
+---
+
+# PERFIL DO USUÁRIO
+
+## Informações
+- Avatar customizável
+- Nome/Apelido
+- Bio
+- Data de entrada
+- Badges/Conquistas em destaque
+
+## Estatísticas Públicas
+- Total de animes assistidos
+- Total de episódios
+- Tempo total assistido
+- Nota média dada
+- Gênero favorito
+- Estúdio favorito
+
+## Visualização de Listas
+- Abas: Todos | Assistindo | Completos | Pausados | Dropados | Quero Ver
+- Ordenação: Título, Nota, Data, Progresso
+
+---
+
+# GAMIFICAÇÃO EXPANDIDA
+
+## Conquistas por Categoria
+
+### Tempo
+- 🕐 10 Horas - Iniciante
+- 🕑 100 Horas - Dedicado
+- 🕒 500 Horas - Veterano
+- 🕓 1000 Horas - Lenda
+
+### Episódios
+- 📺 100 Episódios
+- 📺 500 Episódios
+- 📺 1000 Episódios
+- 📺 5000 Episódios
+
+### Gêneros (assistir X animes do gênero)
+- ⚔️ Rei do Shounen
+- 🌸 Mestre do Romance
+- 🌀 Explorador de Isekai
+- 😂 Fã de Comédia
+- 🔮 Amante de Fantasy
+
+### Estúdios
+- 🎬 Fã de [Estúdio X]
+
+### Especiais
+- 🌙 Coruja Noturna (assistir de madrugada)
+- 🔥 Maratonista (10+ eps em um dia)
+- 💯 Perfeccionista (100% de um anime longo)
+- ⭐ Crítico (avaliar 50 animes)
+
+## Sistema de Níveis
+- Níveis 1-100
+- XP ganho por episódio, avaliação, conquista
+- Títulos desbloqueáveis por nível
+
+---
+
+# FUNCIONALIDADES SOCIAIS (FUTURO)
+
+## Fase 1 (Local)
+- Tudo salvo localmente
+- Exportar/Importar dados
+
+## Fase 2 (Opcional - Backend)
+- Criar conta
+- Sincronizar entre dispositivos
+- Compartilhar perfil público
+- Ver listas de amigos
+
+---
+
+# TECNOLOGIAS SUGERIDAS
+
+## Frontend
+- HTML5 + CSS3 (Neo-Brutalist)
+- JavaScript Vanilla ou React/Vue
+- TailwindCSS ou CSS Custom
+
+## API
+- Jikan API (MyAnimeList dados)
+- AniList API (alternativa)
+
+## Storage
+- LocalStorage (básico)
+- IndexedDB (para cache de imagens)
+
+## PWA
+- Service Worker
+- Manifest.json
+- Offline básico
+
+---
+
+# ROADMAP DE DESENVOLVIMENTO
+
+## Sprint 1 - Fundação
+- [ ] Estrutura de pastas sitev5
+- [ ] Layout base (header, nav, footer)
+- [ ] Sistema de rotas/páginas
+- [ ] Componente Card de Anime
+
+## Sprint 2 - Home
+- [ ] Hero Banner
+- [ ] Carrosséis de categorias
+- [ ] Integração com API Jikan
+- [ ] Cache de dados
+
+## Sprint 3 - Detalhes
+- [ ] Página de detalhes do anime
+- [ ] Player de trailer
+- [ ] Lista de episódios
+
+## Sprint 4 - Listas
+- [ ] Sistema de status (assistindo, completo, etc)
+- [ ] Modal de edição
+- [ ] Páginas de listas
+
+## Sprint 5 - Integração
+- [ ] Migrar calculadora do v4
+- [ ] Conectar todas as funcionalidades
+- [ ] Sincronizar dados
+
+## Sprint 6 - Polish
+- [ ] Animações e transições
+- [ ] PWA
+- [ ] Modo offline
+- [ ] Performance
+
+---
+
+# NOTAS FINAIS
+
+---
+
+# INTEGRAÇÃO COM STREAMING (ASSISTIR EPISÓDIOS)
+
+## Opções de Redirecionamento
+
+### 1. Crunchyroll (Oficial/Legal)
+- **URL**: https://www.crunchyroll.com/search?q={nome_do_anime}
+- **Prós**: Legal, boa qualidade, legendas oficiais
+- **Contras**: Requer assinatura para alguns conteúdos
+- **API**: Não tem API pública, apenas redirecionamento
+
+### 2. Funimation (Oficial/Legal)
+- **URL**: https://www.funimation.com/search/?q={nome_do_anime}
+- **Prós**: Legal, dublagens em PT-BR
+- **Contras**: Biblioteca menor no Brasil
+
+### 3. Netflix Anime
+- **URL**: https://www.netflix.com/search?q={nome_do_anime}
+- **Prós**: Qualidade excelente, alguns exclusivos
+- **Contras**: Biblioteca limitada de anime
+
+### 4. Amazon Prime Video
+- **URL**: https://www.amazon.com.br/s?k={nome_do_anime}&i=instant-video
+- **Prós**: Alguns exclusivos como Vinland Saga
+- **Contras**: Biblioteca pequena
+
+### 5. AniWatch / Zoro.to (Não oficial)
+- **URL**: https://aniwatch.to/search?keyword={nome_do_anime}
+- **Prós**: Catálogo completo, grátis
+- **Contras**: Não é oficial, pode sair do ar
+- **Nota**: Usar por conta e risco do usuário
+
+### 6. 9anime (Não oficial)
+- **URL**: https://9anime.to/search?keyword={nome_do_anime}
+- Similar ao AniWatch
+
+### 7. AnimeFire (PT-BR, Não oficial)
+- **URL**: https://animefire.net/pesquisar/{nome_do_anime}
+- **Prós**: Legendas em português
+- **Contras**: Não oficial
+
+### 8. Better Anime (PT-BR, Não oficial)
+- **URL**: https://betteranime.net/pesquisa?titulo={nome_do_anime}
+- **Prós**: Interface limpa, legendas PT-BR, catálogo grande
+- **Contras**: Não oficial
+- **Nota**: Popular no Brasil, boa opção para conteúdo legendado
+
+---
+
+## Implementação Sugerida
+
+### Abordagem 1: Multi-Link (Recomendada)
+Mostrar várias opções para o usuário escolher:
+
+```
+┌─────────────────────────────────────────┐
+│ 📺 Onde Assistir: Naruto EP 45          │
+├─────────────────────────────────────────┤
+│                                         │
+│  [🟠 Crunchyroll]  ← Oficial            │
+│  [🔴 Netflix]       ← Oficial           │
+│  [🟣 Funimation]    ← Oficial           │
+│                                         │
+│  ─────────────────────────────────      │
+│  Outras opções:                         │
+│  [AniWatch] [9anime] [AnimeFire]        │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+### Abordagem 2: Preferência do Usuário
+- Usuário configura sua plataforma preferida
+- Botão "Assistir" vai direto para ela
+- Pode trocar nas configurações
+
+### Abordagem 3: Verificação de Disponibilidade
+- Usar APIs quando disponíveis para verificar se o anime está na plataforma
+- Mostrar apenas links válidos
+- Mais complexo de implementar
+
+---
+
+## Código Exemplo de Redirecionamento
+
+```javascript
+const STREAMING_SERVICES = {
+    crunchyroll: {
+        name: 'Crunchyroll',
+        icon: '🟠',
+        official: true,
+        getUrl: (anime) => `https://www.crunchyroll.com/search?q=${encodeURIComponent(anime)}`
+    },
+    netflix: {
+        name: 'Netflix',
+        icon: '🔴',
+        official: true,
+        getUrl: (anime) => `https://www.netflix.com/search?q=${encodeURIComponent(anime)}`
+    },
+    aniwatch: {
+        name: 'AniWatch',
+        icon: '🔵',
+        official: false,
+        getUrl: (anime) => `https://aniwatch.to/search?keyword=${encodeURIComponent(anime)}`
+    },
+    animefire: {
+        name: 'AnimeFire',
+        icon: '🟢',
+        official: false,
+        getUrl: (anime) => `https://animefire.net/pesquisar/${encodeURIComponent(anime)}`
+    }
+};
+
+function openStreamingOptions(animeTitle) {
+    // Abre modal com opções
+    // ou redireciona direto se usuário tem preferência salva
+}
+```
+
+---
+
+## Considerações Legais
+
+⚠️ **IMPORTANTE**: 
+- Sempre priorizar links para serviços OFICIAIS (Crunchyroll, Netflix, etc)
+- Sites não oficiais devem ser apresentados como "alternativas" 
+- Deixar claro que o uso é por conta do usuário
+- Não hospedar conteúdo, apenas redirecionar
+
+---
+
+- Priorizar UX mobile-first
+- Manter estilo Neo-Brutalist consistente
+- Compatibilidade com dados do v4
+- Progressive enhancement (funciona sem JS avançado)
+- Acessibilidade (ARIA, contraste, keyboard nav)

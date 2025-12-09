@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes - ANIME.ENGINE v5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version">v5</span>
+            </a>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar anime...">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="user-area">
+                <div class="level-badge" id="level-badge">
+                    <span class="level-icon">🌱</span>
+                    <span class="level-text">Lv.1</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="explorar.html" class="nav-item"><i class="fas fa-search"></i><span>Explorar</span></a>
+        <a href="lista.html" class="nav-item"><i class="fas fa-list"></i><span>Minha Lista</span></a>
+        <a href="assistindo.html" class="nav-item"><i class="fas fa-play-circle"></i><span>Assistindo</span></a>
+        <a href="historico.html" class="nav-item"><i class="fas fa-check-circle"></i><span>Histórico</span></a>
+        <a href="favoritos.html" class="nav-item"><i class="fas fa-star"></i><span>Favoritos</span></a>
+        <a href="calculadora.html" class="nav-item"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
+    </nav>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item"><i class="fas fa-home"></i></a>
+        <a href="explorar.html" class="bottom-nav-item"><i class="fas fa-search"></i></a>
+        <a href="lista.html" class="bottom-nav-item"><i class="fas fa-list"></i></a>
+        <a href="favoritos.html" class="bottom-nav-item"><i class="fas fa-star"></i></a>
+        <a href="calculadora.html" class="bottom-nav-item"><i class="fas fa-calculator"></i></a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- BACK BUTTON -->
+        <a href="javascript:history.back()" class="back-link">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+
+        <!-- ANIME DETAILS -->
+        <div class="anime-details" id="anime-details">
+            <div class="details-loading">
+                <div class="loader"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL -->
+    <div id="modal-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/pages/detalhes.js"></script>
+</body>
+</html>

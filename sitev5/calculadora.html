@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora - ANIME.ENGINE v5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version">v5</span>
+            </a>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar anime...">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="user-area">
+                <div class="level-badge" id="level-badge">
+                    <span class="level-icon">🌱</span>
+                    <span class="level-text">Lv.1</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="explorar.html" class="nav-item"><i class="fas fa-search"></i><span>Explorar</span></a>
+        <a href="lista.html" class="nav-item"><i class="fas fa-list"></i><span>Minha Lista</span></a>
+        <a href="assistindo.html" class="nav-item"><i class="fas fa-play-circle"></i><span>Assistindo</span></a>
+        <a href="historico.html" class="nav-item"><i class="fas fa-check-circle"></i><span>Histórico</span></a>
+        <a href="favoritos.html" class="nav-item"><i class="fas fa-star"></i><span>Favoritos</span></a>
+        <a href="calculadora.html" class="nav-item active"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
+    </nav>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item"><i class="fas fa-home"></i></a>
+        <a href="explorar.html" class="bottom-nav-item"><i class="fas fa-search"></i></a>
+        <a href="lista.html" class="bottom-nav-item"><i class="fas fa-list"></i></a>
+        <a href="favoritos.html" class="bottom-nav-item"><i class="fas fa-star"></i></a>
+        <a href="calculadora.html" class="bottom-nav-item active"><i class="fas fa-calculator"></i></a>
+    </nav>
+
+    <main class="main-content">
+        <div class="calculator-layout">
+            <!-- LEFT: Stack -->
+            <div class="calc-stack">
+                <div class="calc-section">
+                    <h3 class="calc-section-title">🔍 ADD TO STACK</h3>
+                    <div class="calc-search">
+                        <input type="text" id="calc-search" class="calc-input" placeholder="SEARCH ANIME...">
+                        <div id="calc-results" class="calc-results"></div>
+                    </div>
+                </div>
+
+                <div class="calc-section">
+                    <h3 class="calc-section-title">📚 BUILD STACK <span id="stack-count" class="stack-badge">0</span></h3>
+                    <div id="stack-list" class="stack-list">
+                        <p class="empty-message">Adicione animes para calcular</p>
+                    </div>
+                    <div class="stack-total">
+                        <span>Total Stack Size</span>
+                        <span id="stack-total-eps" class="stack-total-number">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Calculator -->
+            <div class="calc-main">
+                <!-- Active Anime Display - HERO AREA -->
+                <div class="calc-hero" id="calc-hero">
+                    <!-- Cover -->
+                    <div class="calc-hero-cover" id="calc-hero-cover">
+                        <img src="" alt="" id="calc-hero-img">
+                    </div>
+                    
+                    <!-- Info -->
+                    <div class="calc-hero-info">
+                        <div class="calc-hero-badge">NOW WATCHING</div>
+                        <h2 class="calc-hero-title" id="calc-hero-title">...</h2>
+                        <div class="calc-hero-eps">
+                            SEASON PROGRESS: 
+                            <span id="calc-hero-progress" class="calc-hero-progress-num">0 / 0</span>
+                        </div>
+                        
+                        <!-- PROGRESS CONTROLS - V4 STYLE -->
+                        <div class="v4-progress-box">
+                            <label class="v4-progress-label">Current Episode</label>
+                            
+                            <div class="v4-ep-controls">
+                                <button class="v4-ep-btn v4-btn-minus" id="btn-minus">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" id="global-ep-input" class="v4-ep-input" value="0" min="0">
+                                <button class="v4-ep-btn v4-btn-plus" id="btn-plus">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- V4 PROGRESS BAR -->
+                            <div id="progress-container" class="v4-progress-container">
+                                <div id="progress-bar" class="v4-progress-bar">
+                                    <div class="v4-progress-stripes"></div>
+                                </div>
+                            </div>
+                            <div class="v4-progress-labels">
+                                <span>START</span>
+                                <span id="progress-percent" class="v4-progress-percent">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Calendar Card -->
+                        <div class="calc-calendar">
+                            <div class="calc-calendar-ring left"></div>
+                            <div class="calc-calendar-ring right"></div>
+                            <p class="calc-calendar-label">Estimated Completion</p>
+                            <h3 class="calc-calendar-date" id="calc-finish-date">...</h3>
+                            <p class="calc-calendar-days" id="calc-days-left">Calculating...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- IDLE OVERLAY -->
+                    <div class="calc-idle-overlay" id="calc-idle">
+                        <div class="radar-container">
+                            <div class="radar-ring"></div>
+                            <div class="radar-ring-dashed"></div>
+                            <div class="radar-scan"></div>
+                            <i class="fas fa-satellite-dish radar-icon"></i>
+                        </div>
+                        <div class="idle-status">
+                            <h3 class="idle-title">SYSTEM IDLE</h3>
+                            <div class="idle-pulse"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats & Configuration -->
+                <div class="calc-bottom">
+                    <!-- Configuration -->
+                    <div class="calc-config">
+                        <h3 class="calc-config-title">CONFIGURATION</h3>
+                        
+                        <!-- Pace Slider -->
+                        <div class="calc-pace">
+                            <div class="calc-pace-header">
+                                <span>Daily Pace (eps/day)</span>
+                                <span id="pace-display" class="calc-pace-value">3</span>
+                            </div>
+                            <input type="range" id="pace-slider" min="1" max="24" value="3" class="calc-slider">
+                        </div>
+                        
+                        <!-- Toggle Options -->
+                        <div class="calc-toggles">
+                            <!-- Skip Fillers -->
+                            <div class="calc-toggle-item" onclick="CalculadoraPage.toggleOption('skipFillers')">
+                                <div class="toggle-info">
+                                    <div class="toggle-label">
+                                        <i class="fas fa-ban toggle-icon toggle-icon-red"></i>
+                                        Skip Fillers
+                                    </div>
+                                    <div class="toggle-hint">DB Check Required</div>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="toggle-fillers" class="toggle-input">
+                                    <div class="toggle-track"></div>
+                                    <div class="toggle-thumb"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Speedrun -->
+                            <div class="calc-toggle-item" onclick="CalculadoraPage.toggleOption('speedrun')">
+                                <div class="toggle-info">
+                                    <div class="toggle-label">
+                                        <i class="fas fa-forward toggle-icon toggle-icon-blue"></i>
+                                        Speedrun
+                                    </div>
+                                    <div class="toggle-hint">Skip OP/ED (-4m)</div>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="toggle-speedrun" class="toggle-input">
+                                    <div class="toggle-track"></div>
+                                    <div class="toggle-thumb"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div class="calc-results-panel">
+                        <div class="calc-result-item">
+                            <span class="result-label">REMAINING</span>
+                            <span class="result-value" id="result-remaining">0</span>
+                            <span class="result-unit">EPS</span>
+                        </div>
+                        <div class="calc-result-divider"></div>
+                        <div class="calc-result-item">
+                            <span class="result-label">TIME COST</span>
+                            <span class="result-value" id="result-hours">0</span>
+                            <span class="result-unit result-unit-blue">HOURS</span>
+                        </div>
+                        
+                        <div class="calc-saved" id="calc-saved">
+                            <span class="saved-badge">SAVED 0h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/pages/calculadora.js"></script>
+</body>
+</html>

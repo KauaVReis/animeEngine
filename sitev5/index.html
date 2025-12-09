@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANIME.ENGINE // v5</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <!-- Logo -->
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version">v5</span>
+            </a>
+
+            <!-- Search -->
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar anime...">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+
+            <!-- User Area -->
+            <div class="user-area">
+                <div class="level-badge" id="level-badge">
+                    <span class="level-icon">🌱</span>
+                    <span class="level-text">Lv.1</span>
+                </div>
+                <button class="icon-btn" id="notifications-btn">
+                    <i class="fas fa-bell"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item active" data-page="home">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="explorar.html" class="nav-item" data-page="explorar">
+            <i class="fas fa-search"></i>
+            <span>Explorar</span>
+        </a>
+        <a href="lista.html" class="nav-item" data-page="lista">
+            <i class="fas fa-list"></i>
+            <span>Minha Lista</span>
+        </a>
+        <a href="assistindo.html" class="nav-item" data-page="assistindo">
+            <i class="fas fa-play-circle"></i>
+            <span>Assistindo</span>
+        </a>
+        <a href="historico.html" class="nav-item" data-page="historico">
+            <i class="fas fa-check-circle"></i>
+            <span>Histórico</span>
+        </a>
+        <a href="favoritos.html" class="nav-item" data-page="favoritos">
+            <i class="fas fa-star"></i>
+            <span>Favoritos</span>
+        </a>
+        <a href="calculadora.html" class="nav-item" data-page="calculadora">
+            <i class="fas fa-calculator"></i>
+            <span>Calculadora</span>
+        </a>
+        
+        <div class="nav-divider"></div>
+        
+        <div class="theme-selector" id="theme-selector"></div>
+    </nav>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <a href="index.html" class="bottom-nav-item active"><i class="fas fa-home"></i></a>
+        <a href="explorar.html" class="bottom-nav-item"><i class="fas fa-search"></i></a>
+        <a href="lista.html" class="bottom-nav-item"><i class="fas fa-list"></i></a>
+        <a href="favoritos.html" class="bottom-nav-item"><i class="fas fa-star"></i></a>
+        <a href="calculadora.html" class="bottom-nav-item"><i class="fas fa-calculator"></i></a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- HERO BANNER -->
+        <section class="hero-banner" id="hero-banner">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <span class="hero-badge">🔥 EM DESTAQUE</span>
+                <h1 class="hero-title" id="hero-title">Carregando...</h1>
+                <p class="hero-synopsis" id="hero-synopsis"></p>
+                <div class="hero-meta">
+                    <span class="hero-score"><i class="fas fa-star"></i> <span id="hero-score">-</span></span>
+                    <span class="hero-eps"><i class="fas fa-tv"></i> <span id="hero-eps">-</span> eps</span>
+                </div>
+                <div class="hero-actions">
+                    <a href="#" class="btn btn-primary" id="hero-details-btn">
+                        <i class="fas fa-info-circle"></i> Ver Detalhes
+                    </a>
+                    <button class="btn btn-secondary" id="hero-list-btn">
+                        <i class="fas fa-plus"></i> Minha Lista
+                    </button>
+                    <button class="btn btn-icon" id="hero-fav-btn">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: CONTINUAR ASSISTINDO -->
+        <section class="anime-section" id="section-watching">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-play-circle"></i> Continuar Assistindo</h2>
+                <a href="assistindo.html" class="section-link">Ver Tudo →</a>
+            </div>
+            <div class="carousel" id="carousel-watching">
+                <!-- Cards serão injetados via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION: EM ALTA -->
+        <section class="anime-section" id="section-trending">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-fire"></i> Em Alta Esta Semana</h2>
+                <a href="explorar.html?filter=trending" class="section-link">Ver Tudo →</a>
+            </div>
+            <div class="carousel" id="carousel-trending">
+                <div class="carousel-loading">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: TEMPORADA ATUAL -->
+        <section class="anime-section" id="section-seasonal">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-snowflake"></i> Temporada Atual</h2>
+                <a href="explorar.html?filter=seasonal" class="section-link">Ver Tudo →</a>
+            </div>
+            <div class="carousel" id="carousel-seasonal">
+                <div class="carousel-loading">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: MAIS BEM AVALIADOS -->
+        <section class="anime-section" id="section-top">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-trophy"></i> Mais Bem Avaliados</h2>
+                <a href="explorar.html?filter=top" class="section-link">Ver Tudo →</a>
+            </div>
+            <div class="carousel" id="carousel-top">
+                <div class="carousel-loading">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODALS -->
+    <div id="modal-container"></div>
+
+    <!-- SCRIPTS -->
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/pages/home.js"></script>
+</body>
+</html>

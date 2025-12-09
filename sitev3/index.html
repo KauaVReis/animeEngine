@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANIME.ENGINE // v3 (BEST-OF)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <!-- HEADER -->
+    <nav class="w-full max-w-7xl mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="neo-box px-6 py-2 bg-white -rotate-2 transform hover:rotate-0 transition">
+            <h1 class="text-3xl md:text-5xl font-display tracking-tighter italic glitch-wrapper" data-text="ANIME.ENGINE">ANIME.ENGINE</h1>
+        </div>
+        <div class="flex gap-4">
+            <div class="neo-box px-3 py-1 bg-neo-yellow text-xs font-bold uppercase">v3.0 MERGED</div>
+            <div class="neo-box px-3 py-1 bg-green-300 text-xs font-bold uppercase">System: Online</div>
+        </div>
+    </nav>
+
+    <main class="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- ================= LEFT COLUMN: STACK (4 Cols) ================= -->
+        <div class="lg:col-span-4 flex flex-col gap-6 relative z-20">
+            
+            <!-- SEARCH -->
+            <div class="neo-box p-4 bg-white">
+                <div class="bg-black text-white px-2 py-1 text-xs font-bold font-mono inline-block mb-3 transform -rotate-1">ADD TO STACK</div>
+                <div class="relative group">
+                    <input type="text" id="search-input" 
+                        class="neo-input w-full p-3 text-lg bg-gray-50 placeholder-gray-400 uppercase" 
+                        placeholder="SEARCH ANIME..." autocomplete="off">
+                    <div id="loader" class="absolute right-3 top-3 hidden"><span class="loader"></span></div>
+                </div>
+                <!-- Results Container -->
+                <div id="search-results" class="hidden mt-3 max-h-80 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- PLAYLIST / STACK -->
+            <div class="neo-box p-0 bg-white min-h-[400px] flex flex-col relative overflow-hidden">
+                <div class="bg-black p-3 flex justify-between items-center text-white border-b-2 border-white">
+                    <h2 class="font-display text-xl uppercase tracking-wide">Build Stack</h2>
+                    <span id="stack-count" class="bg-white text-black text-xs font-bold px-2 py-1">0</span>
+                </div>
+                
+                <div id="playlist-container" class="p-4 space-y-2 flex-1 overflow-y-auto max-h-[500px]">
+                    <div id="empty-state" class="text-center py-12 opacity-40">
+                        <i class="fas fa-cubes text-5xl mb-3"></i>
+                        <p class="font-bold text-sm uppercase">No Anime In Stack</p>
+                    </div>
+                </div>
+
+                <div class="border-t-3 border-black p-4 bg-gray-100 flex justify-between items-center">
+                    <span class="font-bold uppercase text-xs">Total Stack Size</span>
+                    <span class="font-display text-2xl" id="global-total-display">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RIGHT COLUMN: VISUAL DASHBOARD (8 Cols) ================= -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- HERO / ACTIVE ANIME DISPLAY (The v1 Soul) -->
+            <div class="neo-box p-0 bg-white grid grid-cols-1 md:grid-cols-5 relative overflow-hidden min-h-[350px]">
+                
+                <!-- COVER ART -->
+                <div class="md:col-span-2 relative border-b-3 md:border-b-0 md:border-r-3 border-black bg-gray-200 group overflow-hidden">
+                    <img id="active-cover" src="" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition duration-700">
+                    
+                    <!-- Overlay if empty -->
+                    <!-- Overlay if empty -->
+
+                </div>
+
+                <!-- INFO & CONTROLS -->
+                <div class="md:col-span-3 p-6 md:p-8 flex flex-col justify-between bg-white relative">
+                    <!-- Background Decos -->
+                    <div class="absolute top-4 right-4 text-9xl text-gray-50 opacity-10 font-display italic pointer-events-none">NOW</div>
+
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="bg-pink-500 text-white text-xs font-bold px-2 py-1 border-2 border-black shadow-[2px_2px_0_0_black]">NOW WATCHING</span>
+                            <span id="active-status" class="font-mono text-xs font-bold text-gray-500">...</span>
+                        </div>
+                        <h2 id="active-title" class="font-display text-3xl md:text-5xl uppercase leading-none mb-4 line-clamp-2">...</h2>
+                        
+                        <div class="flex items-baseline gap-2 font-mono text-sm border-b-2 border-black pb-4 mb-4">
+                            <span class="font-bold">SEASON PROGRESS:</span>
+                            <span id="active-eps" class="text-xl font-bold bg-black text-white px-2 transform -rotate-1">0 / 0</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- PROGRESS CONTROLS -->
+                        <div class="neo-box-static p-4 bg-gray-50 border-2 border-dashed border-black">
+                            <label class="block font-bold text-xs uppercase mb-2 text-gray-500 tracking-widest text-center truncate">Current Episode</label>
+                            
+                            <div class="flex items-center gap-3">
+                                <button id="btn-minus" class="w-12 h-12 neo-btn bg-white hover:bg-red-200 flex items-center justify-center text-xl font-bold rounded-lg active:scale-95 transition">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                
+                                <input type="number" id="global-ep-input" 
+                                    class="flex-1 min-w-0 text-center py-2 text-2xl md:text-3xl font-display bg-white border-2 border-black shadow-inner focus:outline-none focus:ring-2 focus:ring-neo-pink rounded-lg" 
+                                    value="0" min="0">
+                                
+                                <button id="btn-plus" class="w-12 h-12 neo-btn bg-white hover:bg-green-200 flex items-center justify-center text-xl font-bold rounded-lg active:scale-95 transition">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <!-- Styled Progress Bar -->
+                            <div id="progress-container" class="mt-4 w-full h-4 border-2 border-black bg-white rounded-full overflow-hidden relative cursor-pointer hover:bg-gray-100 transition-colors">
+                                <div id="progress-bar" class="h-full bg-neo-pink border-r-2 border-black w-0 transition-all duration-75 relative">
+                                     <div class="absolute inset-0 w-full h-full pointer-events-none" style="background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.3) 4px, rgba(255,255,255,0.3) 8px);"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-[10px] font-mono font-bold mt-1 text-gray-400">
+                                <span>START</span>
+                                <span id="progress-percent" class="text-neo-pink">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- ESTIMATED COMPLETION (Redesigned) -->
+                        <div class="neo-card-calendar p-6 pt-8 flex flex-col items-center justify-center text-center group hover:-translate-y-1 transition duration-300">
+                            <p class="font-mono text-xs text-gray-400 uppercase tracking-widest mb-1">Estimated Completion</p>
+                            
+                            <div class="relative z-10">
+                                <h3 id="stat-date" class="text-4xl md:text-5xl font-display text-neo-black leading-none mt-1 group-hover:scale-105 transition-transform">...</h3>
+                                <p id="stat-days-left" class="text-xs font-bold text-neo-blue mt-1 uppercase">Calculating...</p>
+                            </div>
+
+                            <!-- Decorative Calendar Rings -->
+                            <div class="absolute top-2 left-4 w-3 h-3 rounded-full bg-gray-300 border border-black z-20"></div>
+                            <div class="absolute top-2 right-4 w-3 h-3 rounded-full bg-gray-300 border border-black z-20"></div>
+                        </div>
+                    </div>
+                </div>
+            
+            <!-- GLOBAL IDLE OVERLAY -->
+            <div id="active-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-white z-50 text-center radar-grid">
+                
+                <!-- Radar Graphic -->
+                <div class="relative w-48 h-48 flex items-center justify-center mb-6">
+                    <div class="absolute inset-0 border-2 border-black rounded-full opacity-20"></div>
+                    <div class="absolute inset-4 border-2 border-dashed border-black rounded-full tech-ring"></div>
+                    <div class="radar-scan"></div>
+                    <i class="fas fa-satellite-dish absolute text-4xl text-black"></i>
+                </div>
+
+                <!-- Text at Bottom -->
+                <div class="absolute bottom-10 w-full flex items-center justify-center gap-3">
+                     <h3 class="font-display text-2xl uppercase tracking-tighter glitch-wrapper whitespace-nowrap" data-text="SYSTEM IDLE">SYSTEM IDLE</h3>
+                     <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                </div>
+            </div>
+        </div>
+            
+
+
+
+            <!-- CALCULATOR STATS PANEL -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- LEFT: PACE & SETTINGS -->
+                <div class="neo-box p-6 bg-neo-yellow relative">
+                    <h3 class="font-display text-xl uppercase mb-6 border-b-3 border-black inline-block">Configuration</h3>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-xs uppercase">Daily Pace (eps/day)</span>
+                            <span id="pace-display" class="font-display text-3xl bg-white border-2 border-black px-2 transform rotate-2">3</span>
+                        </div>
+                        <input type="range" id="pace-slider" min="1" max="24" value="3">
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <!-- SKIP FILLERS -->
+                        <div class="border-2 border-black p-3 bg-white flex items-center justify-between hover:bg-gray-50 transition cursor-pointer group" onclick="document.getElementById('filler-toggle').click()">
+                            <div>
+                                <div class="font-bold flex items-center gap-2 text-xs uppercase">
+                                    <i class="fas fa-ban text-red-500 group-hover:scale-110 transition-transform"></i> Skip Fillers
+                                </div>
+                                <div class="text-[10px] text-gray-400 font-mono mt-0.5">DB Check Required</div>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" id="filler-toggle" class="peer sr-only">
+                                <div class="w-10 h-6 bg-gray-200 border-2 border-black peer-checked:bg-green-400 transition-all"></div>
+                                <div class="absolute left-0 top-0 w-5 h-6 bg-white border-2 border-black transition-all peer-checked:left-5"></div>
+                            </div>
+                        </div>
+
+                        <!-- SKIP OP/ED -->
+                        <div class="border-2 border-black p-3 bg-white flex items-center justify-between hover:bg-gray-50 transition cursor-pointer group" onclick="document.getElementById('op-toggle').click()">
+                            <div>
+                                <div class="font-bold flex items-center gap-2 text-xs uppercase">
+                                    <i class="fas fa-forward text-blue-500 group-hover:scale-110 transition-transform"></i> Speedrun
+                                </div>
+                                <div class="text-[10px] text-gray-400 font-mono mt-0.5">Skip OP/ED (-4m)</div>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" id="op-toggle" class="peer sr-only">
+                                <div class="w-10 h-6 bg-gray-200 border-2 border-black peer-checked:bg-blue-400 transition-all"></div>
+                                <div class="absolute left-0 top-0 w-5 h-6 bg-white border-2 border-black transition-all peer-checked:left-5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: RESULTS -->
+                <!-- RIGHT: RESULTS (Neo-Brutalist Light) -->
+                <div class="neo-box p-4 bg-white text-black flex flex-col justify-center border-2 border-black neo-shadow">
+                    <div class="flex justify-around items-center h-full gap-4">
+                        <div class="text-center group">
+                            <div class="text-gray-500 text-[10px] font-mono mb-1 uppercase tracking-widest font-bold">Remaining</div>
+                            <div id="stat-remaining" class="text-4xl md:text-5xl font-display text-neo-black group-hover:scale-110 transition-transform">0</div>
+                            <div class="text-[10px] font-bold bg-black text-white px-2 py-0.5 inline-block -rotate-2">EPS</div>
+                        </div>
+                        
+                        <!-- Divider -->
+                        <div class="h-12 w-0.5 bg-gray-200"></div>
+                        
+                        <div class="text-center group">
+                            <div class="text-gray-500 text-[10px] font-mono mb-1 uppercase tracking-widest font-bold">Time Cost</div>
+                            <div id="stat-hours" class="text-4xl md:text-5xl font-display text-neo-black group-hover:scale-110 transition-transform">0</div>
+                            <div class="text-[10px] font-bold bg-neo-blue text-white px-2 py-0.5 inline-block rotate-2">HOURS</div>
+                        </div>
+                    </div>
+                     
+                    <div id="stat-saved" class="hidden mt-4 text-center border-t-2 border-dashed border-gray-300 pt-2 text-xs font-mono text-green-600 font-bold">
+
+                        <span class="inline-block bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white">
+                            SAVED 0h (FILLER)
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="mt-16 mb-8 text-center opacity-40 font-mono text-xs uppercase">
+        <p>Anime.Engine v3 • Merged Build • Jikan API</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

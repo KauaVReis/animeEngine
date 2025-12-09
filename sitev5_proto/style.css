@@ -1,0 +1,326 @@
+:root {
+    --bg: #ffffff;
+    --text: #000000;
+    --primary: #FF5E5E; /* Vibrant Red/Pink */
+    --secondary: #5EAAFF; /* Vibrant Blue */
+    --accent: #CCFF00; /* Neon Lime */
+    --border: 3px solid #000000;
+    --shadow: 6px 6px 0px #000000;
+    --card-bg: #f0f0f0;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    padding-bottom: 50px;
+}
+
+h1, h2, h3, .logo {
+    font-family: 'Archivo Black', sans-serif;
+    text-transform: uppercase;
+}
+
+/* Header */
+.neo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.5rem;
+}
+
+.version {
+    background: var(--accent);
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    border: 2px solid #000;
+}
+
+.search-bar {
+    display: flex;
+    gap: 10px;
+}
+
+.search-bar input {
+    border: var(--border);
+    padding: 10px;
+    font-family: inherit;
+    font-weight: bold;
+    box-shadow: 4px 4px 0px #000;
+    outline: none;
+}
+
+.search-bar button {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 10px 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--secondary);
+    border: var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Main Layout */
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Hero Section */
+.hero {
+    display: flex;
+    justify-content: space-between;
+    border: var(--border);
+    background: var(--accent);
+    box-shadow: var(--shadow);
+    margin-bottom: 40px;
+    overflow: hidden;
+}
+
+.hero-content {
+    padding: 40px;
+    flex: 1;
+}
+
+.hero .tag {
+    background: #000;
+    color: #fff;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin: 20px 0;
+    text-shadow: 2px 2px 0px #fff;
+}
+
+.hero p {
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    max-width: 500px;
+    background: #fff;
+    border: 2px solid #000;
+    padding: 10px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+button {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.1s;
+}
+
+button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000 !important;
+}
+
+.btn-primary {
+    background: var(--primary);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 15px 30px;
+    font-size: 1rem;
+}
+
+.btn-secondary {
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 15px 30px;
+    font-size: 1rem;
+}
+
+.hero-image {
+    width: 400px;
+    background: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 2rem;
+    font-weight: bold;
+    border-left: var(--border);
+}
+
+/* Horizontal Sections */
+.h-list-section {
+    margin-bottom: 40px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    border-bottom: 4px solid #000;
+    padding-bottom: 5px;
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+}
+
+.view-all {
+    color: #000;
+    font-weight: bold;
+    text-decoration: none;
+    border: 2px solid #000;
+    padding: 5px 10px;
+    background: var(--secondary);
+    box-shadow: 3px 3px 0px #000;
+}
+
+.h-scroll {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+}
+
+/* Anime Cards */
+.anime-card {
+    border: var(--border);
+    background: #fff;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.anime-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 8px 8px 0px #000;
+}
+
+.card-img {
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #777;
+    border-bottom: var(--border);
+}
+
+.anime-card.sm { width: 200px; }
+.anime-card.sm .card-img { height: 120px; }
+
+.anime-card.md { width: 240px; }
+.anime-card.md .card-img { height: 320px; }
+
+.card-info {
+    padding: 15px;
+}
+
+.card-info h3 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rating {
+    background: #000;
+    color: var(--accent);
+    padding: 2px 5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.progress-bar {
+    height: 10px;
+    border: 2px solid #000;
+    background: #fff;
+    margin-top: 5px;
+}
+
+.progress-bar .fill {
+    height: 100%;
+    background: var(--primary);
+}
+
+.rank {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    background: var(--accent);
+    border: 2px solid #000;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 2px 2px 0px #000;
+    z-index: 10;
+}
+
+/* Genre Tags */
+.genres-section {
+    border: var(--border);
+    padding: 30px;
+    background: #eee;
+}
+
+.tags-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.genre-tag {
+    background: #fff;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    font-size: 1rem;
+    box-shadow: 4px 4px 0px #000;
+}
+
+.genre-tag:hover {
+    background: var(--secondary);
+    color: #fff;
+}

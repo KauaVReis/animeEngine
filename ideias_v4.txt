@@ -1,0 +1,42 @@
+# Idéias para o AnimeEngine v4 (O Futuro)
+
+Aqui estão algumas sugestões para levar o projeto para o próximo nível, baseadas em tendências modernas e no documento de UI/UX que analisamos.
+
+## 1. Persistência de Dados (Local Storage / Backend)
+*   **Problema Atual:** Se recarregar a página, a Stack some (baseado no código atual).
+*   **Ideia v4:** Usar `localStorage` para salvar sua lista e progresso automaticamente.
+*   **Ideia v4.5 (+Complexo):** Criar um login real (PHP/MySQL) para salvar na nuvem e acessar do celular.
+
+## 2. Gamificação (Achievements)
+*   **Conceito:** Transformar o ato de assistir em um jogo.
+*   **Exemplos:**
+    *   *Medalha "Maratonista":* Assistir 10 episódios no mesmo dia.
+    *   *Medalha "Shounen Hero":* Completar Naruto, One Piece e Bleach.
+    *   *Nível de Otaku:* XP baseado em minutos assistidos.
+
+## 3. Integração com IA (Agentic UI) {depois}
+*   **Recomendador Inteligente:** Um botão "O que eu assisto agora?" que analisa sua Stack e sugere algo do Jikan API baseado nos gêneros que você gosta.
+*   **Resumos de Episódio:** (Teria que ver ver se a API suporta ou usar uma externa) Mostrar um mini-resumo do episódio atual sem spoilers.
+
+## 4. Personalização Visual (Temas)
+*   **Modo Cyberpunk:** Cores neon (Roxo/Ciano) em fundo escuro.
+*   **Modo "Papel":** Estilo mangá, preto e branco com texturas de papel.
+*   **Interface Modular:** Permitir que o usuário arraste os "cards" (Stats, Player, Stack) e mude a ordem da página (Drag & Drop real).
+
+## 5. Funcionalidades Sociais
+*   **Compartilhar Stack:** Um botão que gera uma imagem bonita da sua lista atual para postar no Twitter/Instagram.
+*   **Desafios:** "Desafio de Outubro: Assistir apenas animes de terror".
+
+## 6. PWA (Progressive Web App) {depois}
+*   Transformar o site em um aplicativo instalável no celular e PC.
+*   Notificações push avisando quando sai episódio novo de algo na sua lista.
+
+## 7. Melhora na "Calculadora" {depois}
+*   **Simulador de Rotina:** Você coloca "Tenho 2 horas livres por dia" e ele monta um calendário exato: "Se começar One Piece hoje, você termina dia 14 de Março de 2026".
+
+## 8.  Area para ver animes assistidos e aba de favoritos e total temp
+---
+**Minha recomendação de prioridade:**
+1. Salvar dados (Local Storage) - Essencial para não perder tudo.
+2. Recomendador IA - Muito útil.
+3. Temas - Divertido e visual.
