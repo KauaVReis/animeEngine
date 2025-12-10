@@ -38,6 +38,7 @@
         <a href="assistindo.html" class="nav-item" data-page="assistindo"><i class="fas fa-play-circle"></i><span>Assistindo</span></a>
         <a href="historico.html" class="nav-item" data-page="historico"><i class="fas fa-check-circle"></i><span>Histórico</span></a>
         <a href="favoritos.html" class="nav-item" data-page="favoritos"><i class="fas fa-star"></i><span>Favoritos</span></a>
+        <a href="calendario.html" class="nav-item" data-page="calendario"><i class="fas fa-calendar-alt"></i><span>Calendário</span></a>
         <a href="calculadora.html" class="nav-item" data-page="calculadora"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
     </nav>
 
@@ -46,8 +47,16 @@
         <a href="index.html" class="bottom-nav-item"><i class="fas fa-home"></i></a>
         <a href="explorar.html" class="bottom-nav-item active"><i class="fas fa-search"></i></a>
         <a href="lista.html" class="bottom-nav-item"><i class="fas fa-list"></i></a>
-        <a href="favoritos.html" class="bottom-nav-item"><i class="fas fa-star"></i></a>
-        <a href="calculadora.html" class="bottom-nav-item"><i class="fas fa-calculator"></i></a>
+        <a href="calendario.html" class="bottom-nav-item"><i class="fas fa-calendar-alt"></i></a>
+        <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
+            <i class="fas fa-ellipsis-h"></i>
+            <div class="bottom-nav-popup" id="bottom-nav-popup">
+                <a href="favoritos.html"><i class="fas fa-star"></i> Favoritos</a>
+                <a href="assistindo.html"><i class="fas fa-play-circle"></i> Assistindo</a>
+                <a href="historico.html"><i class="fas fa-check-circle"></i> Histórico</a>
+                <a href="calculadora.html"><i class="fas fa-calculator"></i> Calculadora</a>
+            </div>
+        </div>
     </nav>
 
     <!-- MAIN CONTENT -->
@@ -60,6 +69,18 @@
         <!-- FILTERS -->
         <div class="filters-bar">
             <div class="filter-group">
+                <label>Tipo</label>
+                <select id="filter-type" onchange="ExplorePage.applyFilters()">
+                    <option value="">Todos</option>
+                    <option value="tv">📺 TV</option>
+                    <option value="movie">🎬 Filme</option>
+                    <option value="ova">📀 OVA</option>
+                    <option value="ona">🌐 ONA</option>
+                    <option value="special">⭐ Especial</option>
+                    <option value="music">🎵 Música</option>
+                </select>
+            </div>
+            <div class="filter-group">
                 <label>Gênero</label>
                 <select id="filter-genre" onchange="ExplorePage.applyFilters()">
                     <option value="">Todos</option>
@@ -69,18 +90,25 @@
                 <label>Status</label>
                 <select id="filter-status" onchange="ExplorePage.applyFilters()">
                     <option value="">Todos</option>
-                    <option value="airing">Em Exibição</option>
-                    <option value="complete">Completo</option>
-                    <option value="upcoming">Em Breve</option>
+                    <option value="airing">🟢 Em Exibição</option>
+                    <option value="complete">✅ Completo</option>
+                    <option value="upcoming">📅 Em Breve</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Ano</label>
+                <select id="filter-year" onchange="ExplorePage.applyFilters()">
+                    <option value="">Todos</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label>Ordenar</label>
                 <select id="filter-order" onchange="ExplorePage.applyFilters()">
-                    <option value="score">Nota</option>
-                    <option value="popularity">Popularidade</option>
-                    <option value="title">Título</option>
-                    <option value="start_date">Data</option>
+                    <option value="score">⭐ Nota</option>
+                    <option value="popularity">🔥 Popularidade</option>
+                    <option value="title">🔤 Título</option>
+                    <option value="start_date">📅 Data</option>
+                    <option value="episodes">📺 Episódios</option>
                 </select>
             </div>
             <button class="btn btn-secondary" onclick="ExplorePage.clearFilters()">
@@ -130,6 +158,7 @@
     <script src="js/storage.js"></script>
     <script src="js/themes.js"></script>
     <script src="js/achievements.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="js/common.js"></script>
     <script src="js/pages/explorar.js"></script>
 </body>

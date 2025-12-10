@@ -18,104 +18,54 @@ const Achievements = {
         { level: 10, name: "Otaku Supremo", xpRequired: 3500, icon: "🐉" }
     ],
 
-    // Lista de achievements
+    // Lista de achievements (expandida)
     badges: [
-        {
-            id: "first_step",
-            name: "Primeiro Passo",
-            description: "Adicione seu primeiro anime",
-            icon: "🚀",
-            xp: 10,
-            condition: (stats) => stats.totalAnimes >= 1
-        },
-        {
-            id: "collector",
-            name: "Colecionador",
-            description: "Tenha 5 animes na lista",
-            icon: "📚",
-            xp: 25,
-            condition: (stats) => stats.totalAnimes >= 5
-        },
-        {
-            id: "dedicated_viewer",
-            name: "Espectador Dedicado",
-            description: "Assista 50 episódios",
-            icon: "🎬",
-            xp: 50,
-            condition: (stats) => stats.totalEpisodes >= 50
-        },
-        {
-            id: "centurion",
-            name: "Centurião",
-            description: "Assista 100 episódios",
-            icon: "💯",
-            xp: 100,
-            condition: (stats) => stats.totalEpisodes >= 100
-        },
-        {
-            id: "time_10h",
-            name: "10 Horas",
-            description: "Acumule 10 horas de anime",
-            icon: "⏰",
-            xp: 30,
-            condition: (stats) => stats.totalHours >= 10
-        },
-        {
-            id: "time_50h",
-            name: "50 Horas",
-            description: "Acumule 50 horas de anime",
-            icon: "⏳",
-            xp: 75,
-            condition: (stats) => stats.totalHours >= 50
-        },
-        {
-            id: "shounen_hero",
-            name: "Shounen Hero",
-            description: "Tenha Naruto, One Piece ou Bleach",
-            icon: "⚔️",
-            xp: 50,
-            condition: (stats) => stats.hasShounen
-        },
-        {
-            id: "critic",
-            name: "Crítico",
-            description: "Avalie 5 animes",
-            icon: "📝",
-            xp: 50,
-            condition: (stats) => stats.ratedCount >= 5
-        },
-        {
-            id: "curator",
-            name: "Curador",
-            description: "Adicione 5 animes aos favoritos",
-            icon: "⭐",
-            xp: 75,
-            condition: (stats) => stats.favoritesCount >= 5
-        },
-        {
-            id: "completionist",
-            name: "Complecionista",
-            description: "Complete 10 animes",
-            icon: "🏁",
-            xp: 150,
-            condition: (stats) => stats.completedCount >= 10
-        },
-        {
-            id: "night_owl",
-            name: "Coruja Noturna",
-            description: "Use o app entre 00h e 5h",
-            icon: "🦉",
-            xp: 15,
-            condition: (stats) => stats.isNightTime
-        },
-        {
-            id: "theme_changer",
-            name: "Estilista",
-            description: "Mude o tema do app",
-            icon: "🎨",
-            xp: 10,
-            condition: (stats) => stats.changedTheme
-        }
+        // === PRIMEIROS PASSOS ===
+        { id: "first_step", name: "Primeiro Passo", description: "Adicione seu primeiro anime", icon: "🚀", xp: 10, condition: (stats) => stats.totalAnimes >= 1 },
+        { id: "explorer", name: "Explorador", description: "Adicione 3 animes", icon: "🧭", xp: 15, condition: (stats) => stats.totalAnimes >= 3 },
+        { id: "collector", name: "Colecionador", description: "Tenha 5 animes na lista", icon: "📚", xp: 25, condition: (stats) => stats.totalAnimes >= 5 },
+        { id: "hoarder", name: "Acumulador", description: "Tenha 15 animes", icon: "🗄️", xp: 50, condition: (stats) => stats.totalAnimes >= 15 },
+        { id: "library", name: "Biblioteca Viva", description: "Tenha 30 animes", icon: "🏛️", xp: 100, condition: (stats) => stats.totalAnimes >= 30 },
+        
+        // === EPISÓDIOS ===
+        { id: "started", name: "Começando", description: "Assista 10 episódios", icon: "▶️", xp: 15, condition: (stats) => stats.totalEpisodes >= 10 },
+        { id: "dedicated_viewer", name: "Espectador Dedicado", description: "Assista 50 episódios", icon: "🎬", xp: 50, condition: (stats) => stats.totalEpisodes >= 50 },
+        { id: "centurion", name: "Centurião", description: "Assista 100 episódios", icon: "💯", xp: 100, condition: (stats) => stats.totalEpisodes >= 100 },
+        { id: "marathon", name: "Maratonista", description: "Assista 200 episódios", icon: "🏃", xp: 150, condition: (stats) => stats.totalEpisodes >= 200 },
+        { id: "binge_master", name: "Mestre da Maratona", description: "Assista 500 episódios", icon: "🏆", xp: 300, condition: (stats) => stats.totalEpisodes >= 500 },
+        { id: "legend", name: "Lenda", description: "Assista 1000 episódios", icon: "👑", xp: 500, condition: (stats) => stats.totalEpisodes >= 1000 },
+        
+        // === TEMPO ===
+        { id: "time_5h", name: "5 Horas", description: "Acumule 5 horas de anime", icon: "🕐", xp: 15, condition: (stats) => stats.totalHours >= 5 },
+        { id: "time_10h", name: "10 Horas", description: "Acumule 10 horas", icon: "⏰", xp: 30, condition: (stats) => stats.totalHours >= 10 },
+        { id: "time_24h", name: "Um Dia Inteiro", description: "24 horas de anime!", icon: "🌍", xp: 50, condition: (stats) => stats.totalHours >= 24 },
+        { id: "time_50h", name: "50 Horas", description: "Meio centenário", icon: "⏳", xp: 75, condition: (stats) => stats.totalHours >= 50 },
+        { id: "time_100h", name: "Centenário", description: "100 horas de anime", icon: "💎", xp: 150, condition: (stats) => stats.totalHours >= 100 },
+        
+        // === COMPLETOS ===
+        { id: "finisher", name: "Finalizador", description: "Complete 1 anime", icon: "🎯", xp: 20, condition: (stats) => stats.completedCount >= 1 },
+        { id: "dedicated", name: "Dedicado", description: "Complete 5 animes", icon: "🏅", xp: 75, condition: (stats) => stats.completedCount >= 5 },
+        { id: "completionist", name: "Complecionista", description: "Complete 10 animes", icon: "🏁", xp: 150, condition: (stats) => stats.completedCount >= 10 },
+        { id: "master", name: "Mestre", description: "Complete 25 animes", icon: "🎖️", xp: 300, condition: (stats) => stats.completedCount >= 25 },
+        
+        // === FAVORITOS ===
+        { id: "first_love", name: "Primeiro Amor", description: "Adicione 1 favorito", icon: "💕", xp: 10, condition: (stats) => stats.favoritesCount >= 1 },
+        { id: "curator", name: "Curador", description: "5 animes favoritos", icon: "⭐", xp: 75, condition: (stats) => stats.favoritesCount >= 5 },
+        { id: "top_fan", name: "Super Fã", description: "10 animes favoritos", icon: "💖", xp: 100, condition: (stats) => stats.favoritesCount >= 10 },
+        
+        // === AVALIAÇÕES ===
+        { id: "first_review", name: "Primeira Opinião", description: "Avalie 1 anime", icon: "✍️", xp: 10, condition: (stats) => stats.ratedCount >= 1 },
+        { id: "critic", name: "Crítico", description: "Avalie 5 animes", icon: "📝", xp: 50, condition: (stats) => stats.ratedCount >= 5 },
+        { id: "expert", name: "Especialista", description: "Avalie 15 animes", icon: "🎓", xp: 100, condition: (stats) => stats.ratedCount >= 15 },
+        
+        // === GÊNEROS ===
+        { id: "shounen_hero", name: "Shounen Hero", description: "Naruto, One Piece ou Bleach", icon: "⚔️", xp: 50, condition: (stats) => stats.hasShounen },
+        
+        // === ESPECIAIS ===
+        { id: "night_owl", name: "Coruja Noturna", description: "Use entre 00h e 5h", icon: "🦉", xp: 15, condition: (stats) => stats.isNightTime },
+        { id: "theme_changer", name: "Estilista", description: "Mude o tema do app", icon: "🎨", xp: 10, condition: (stats) => stats.changedTheme },
+        { id: "calculator", name: "Calculista", description: "Use a calculadora", icon: "🧮", xp: 15, condition: (stats) => stats.usedCalculator },
+        { id: "weekender", name: "Fim de Semana", description: "Use no sábado ou domingo", icon: "🎉", xp: 10, condition: (stats) => stats.isWeekend }
     ],
 
     /**
@@ -189,7 +139,9 @@ const Achievements = {
             ratedCount: uniqueAnimes.filter(a => a.rating > 0).length,
             hasShounen,
             isNightTime: hour >= 0 && hour < 5,
-            changedTheme: localStorage.getItem('animeengine_theme') !== null
+            changedTheme: localStorage.getItem('animeengine_theme') !== null,
+            usedCalculator: localStorage.getItem('animeengine_calcStack') !== null,
+            isWeekend: new Date().getDay() === 0 || new Date().getDay() === 6
         };
     },
 

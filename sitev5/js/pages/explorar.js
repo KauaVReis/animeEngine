@@ -45,8 +45,27 @@ const ExplorePage = {
             });
             
             this.genres = genres;
+            
+            // Popular anos (últimos 30 anos)
+            this.populateYears();
         } catch (error) {
             console.error('Erro ao carregar gêneros:', error);
+        }
+    },
+
+    /**
+     * Popular select de anos
+     */
+    populateYears() {
+        const select = document.getElementById('filter-year');
+        if (!select) return;
+        
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear + 1; year >= 1980; year--) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            select.appendChild(option);
         }
     },
 
@@ -112,29 +131,42 @@ const ExplorePage = {
     },
 
     async applyFilters() {
-        const genre = document.getElementById('filter-genre').value;
-        const status = document.getElementById('filter-status').value;
-        const order = document.getElementById('filter-order').value;
+        const type = document.getElementById('filter-type')?.value || '';
+        const genre = document.getElementById('filter-genre')?.value || '';
+        const status = document.getElementById('filter-status')?.value || '';
+        const year = document.getElementById('filter-year')?.value || '';
+        const order = document.getElementById('filter-order')?.value || 'score';
         
         this.showLoading();
         
         try {
             let endpoint = '/anime?limit=24';
+            if (type) endpoint += `&type=${type}`;
             if (genre) endpoint += `&genres=${genre}`;
             if (status) endpoint += `&status=${status}`;
+            if (year) endpoint += `&start_date=${year}-01-01&end_date=${year}-12-31`;
             if (order) endpoint += `&order_by=${order}&sort=desc`;
             
             const data = await API.fetch(endpoint);
             this.renderResults(data);
-            this.updateResultsInfo(data.length, 'Filtrado');
+            
+            // Construir texto de contexto
+            const typeLabels = { tv: 'TV', movie: 'Filmes', ova: 'OVA', ona: 'ONA', special: 'Especiais', music: 'Música' };
+            let context = 'Filtrado';
+            if (type) context = typeLabels[type] || type;
+            if (year) context += ` (${year})`;
+            
+            this.updateResultsInfo(data.length, context);
         } catch (error) {
             this.showError();
         }
     },
 
     clearFilters() {
+        document.getElementById('filter-type').value = '';
         document.getElementById('filter-genre').value = '';
         document.getElementById('filter-status').value = '';
+        document.getElementById('filter-year').value = '';
         document.getElementById('filter-order').value = 'score';
         this.quickFilter('trending');
     },

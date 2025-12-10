@@ -10,16 +10,115 @@ const HomePage = {
     async init() {
         console.log('🏠 Loading Home Page...');
         
+        // Renderizar widget de metas (síncrono)
+        this.renderGoalsWidget();
+        
         // Carregar dados em paralelo
         await Promise.all([
             this.loadHeroBanner(),
             this.loadWatching(),
+            this.loadAnimeOfDay(),
             this.loadTrending(),
             this.loadSeasonal(),
             this.loadTopAnime()
         ]);
         
         console.log('✅ Home Page loaded!');
+    },
+
+    /**
+     * Renderizar widget de metas
+     */
+    renderGoalsWidget() {
+        const container = document.getElementById('goals-container');
+        if (container && typeof Goals !== 'undefined') {
+            container.innerHTML = Goals.renderWidget();
+        }
+    },
+
+    /**
+     * Carregar Anime do Dia (random baseado na data)
+     */
+    async loadAnimeOfDay() {
+        const container = document.getElementById('anime-of-day-container');
+        if (!container) return;
+        
+        try {
+            // Usar data como seed para "random" consistente no dia
+            const today = new Date().toDateString();
+            const storedDate = localStorage.getItem('animeOfDay_date');
+            const storedAnime = localStorage.getItem('animeOfDay_anime');
+            
+            let anime;
+            
+            // Se já tem anime salvo para hoje, usar ele
+            if (storedDate === today && storedAnime) {
+                anime = JSON.parse(storedAnime);
+            } else {
+                // Buscar anime random da temporada
+                await API.delay();
+                const seasonal = await API.getSeasonNow(25);
+                
+                if (seasonal && seasonal.length > 0) {
+                    // Usar hash da data para selecionar o mesmo anime o dia todo
+                    const hash = today.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
+                    const index = Math.abs(hash) % seasonal.length;
+                    anime = API.formatAnime(seasonal[index]);
+                    
+                    // Salvar no localStorage
+                    localStorage.setItem('animeOfDay_date', today);
+                    localStorage.setItem('animeOfDay_anime', JSON.stringify(anime));
+                }
+            }
+            
+            if (anime) {
+                this.renderAnimeOfDay(anime);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar anime do dia:', error);
+        }
+    },
+
+    /**
+     * Renderizar widget de anime do dia
+     */
+    renderAnimeOfDay(anime) {
+        const container = document.getElementById('anime-of-day-container');
+        if (!container) return;
+        
+        const isFav = Storage.isFavorite(anime.id);
+        const status = Storage.getAnimeStatus(anime.id);
+        
+        container.innerHTML = `
+            <div class="anime-of-day">
+                <div class="anime-of-day-header">
+                    <span class="anime-of-day-badge">🎲 ANIME DO DIA</span>
+                    <span class="anime-of-day-date">${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
+                </div>
+                <div class="anime-of-day-content" onclick="window.location='detalhes.html?id=${anime.id}'">
+                    <div class="anime-of-day-image">
+                        <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                    </div>
+                    <div class="anime-of-day-info">
+                        <h3 class="anime-of-day-title">${anime.title}</h3>
+                        <p class="anime-of-day-synopsis">${anime.synopsis ? anime.synopsis.slice(0, 150) + '...' : 'Sem sinopse disponível.'}</p>
+                        <div class="anime-of-day-meta">
+                            <span class="anime-of-day-score"><i class="fas fa-star"></i> ${anime.score || '-'}</span>
+                            <span><i class="fas fa-tv"></i> ${anime.episodes || '?'} eps</span>
+                            ${anime.genres && anime.genres.length > 0 ? `<span class="anime-of-day-genre">${anime.genres[0]}</span>` : ''}
+                        </div>
+                        <div class="anime-of-day-actions">
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); Common.addToList(${anime.id}, 'watching')">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                            <button class="btn btn-secondary btn-sm ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); Common.toggleFavorite(${anime.id})">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     },
 
     /**
@@ -114,6 +213,7 @@ const HomePage = {
         const progress = anime.progress || 0;
         const total = anime.episodes || 0;
         const percent = total > 0 ? Math.round((progress / total) * 100) : 0;
+        const canAddMore = total === 0 || progress < total;
         
         const card = document.createElement('div');
         card.className = 'anime-card anime-card-watching';
@@ -125,18 +225,69 @@ const HomePage = {
                 <div class="watching-progress">
                     <div class="watching-progress-bar" style="width: ${percent}%"></div>
                 </div>
-                <span class="watching-ep">EP ${progress}/${total}</span>
+                <span class="watching-ep">EP ${progress}/${total || '?'}</span>
+                ${canAddMore ? `
+                    <button class="quick-action-btn" onclick="event.stopPropagation(); HomePage.incrementEpisode(${anime.id})" title="+1 Episódio">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                ` : ''}
             </div>
             <div class="anime-card-info">
                 <h3 class="anime-card-title" title="${anime.title}">${anime.title}</h3>
             </div>
         `;
         
-        card.addEventListener('click', () => {
-            window.location.href = `detalhes.html?id=${anime.id}`;
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+                window.location.href = `detalhes.html?id=${anime.id}`;
+            }
         });
         
         return card;
+    },
+
+    /**
+     * Incrementar episódio diretamente da home
+     */
+    incrementEpisode(animeId) {
+        const lists = Storage.getLists();
+        const anime = lists.watching?.find(a => a.id === animeId);
+        
+        if (anime) {
+            anime.progress = (anime.progress || 0) + 1;
+            anime.updatedAt = new Date().toISOString();
+            
+            // Atualizar metas
+            if (typeof Goals !== 'undefined') {
+                Goals.updateProgress('episodes', 1);
+                Goals.updateProgress('minutes', 24); // ~24min por episódio
+            }
+            
+            // Verificar se completou
+            if (anime.episodes && anime.progress >= anime.episodes) {
+                // Mover para completed
+                Storage.moveToList(animeId, 'watching', 'completed');
+                Common.showNotification(`🎉 "${anime.title}" completo!`);
+                
+                // Atualizar meta de completados
+                if (typeof Goals !== 'undefined') {
+                    Goals.updateProgress('completed', 1);
+                }
+            } else {
+                Storage.save('lists', lists);
+                Common.showNotification(`EP ${anime.progress}/${anime.episodes || '?'} ✓`);
+            }
+            
+            // Dar XP
+            Storage.addXP(2);
+            Common.updateLevelBadge();
+            
+            // Atualizar seção
+            this.loadWatching();
+            
+            // Atualizar widget de metas se existir
+            this.renderGoalsWidget();
+        }
     },
 
     /**

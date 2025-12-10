@@ -125,6 +125,15 @@ const API = {
     },
 
     /**
+     * Animes de uma temporada específica (para o calendário)
+     */
+    async getSeasonAnimes(year, season) {
+        // Retornar objeto com data array para manter compatibilidade
+        const data = await this.fetch(`/seasons/${year}/${season}?limit=25`);
+        return { data: data };
+    },
+
+    /**
      * Top animes de todos os tempos
      */
     async getTopAnime(limit = 10) {

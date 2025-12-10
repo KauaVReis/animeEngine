@@ -36,6 +36,7 @@
         <a href="assistindo.html" class="nav-item"><i class="fas fa-play-circle"></i><span>Assistindo</span></a>
         <a href="historico.html" class="nav-item"><i class="fas fa-check-circle"></i><span>Histórico</span></a>
         <a href="favoritos.html" class="nav-item"><i class="fas fa-star"></i><span>Favoritos</span></a>
+        <a href="calendario.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Calendário</span></a>
         <a href="calculadora.html" class="nav-item"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
     </nav>
 
@@ -43,8 +44,16 @@
         <a href="index.html" class="bottom-nav-item"><i class="fas fa-home"></i></a>
         <a href="explorar.html" class="bottom-nav-item"><i class="fas fa-search"></i></a>
         <a href="lista.html" class="bottom-nav-item active"><i class="fas fa-list"></i></a>
-        <a href="favoritos.html" class="bottom-nav-item"><i class="fas fa-star"></i></a>
-        <a href="calculadora.html" class="bottom-nav-item"><i class="fas fa-calculator"></i></a>
+        <a href="calendario.html" class="bottom-nav-item"><i class="fas fa-calendar-alt"></i></a>
+        <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
+            <i class="fas fa-ellipsis-h"></i>
+            <div class="bottom-nav-popup" id="bottom-nav-popup">
+                <a href="favoritos.html"><i class="fas fa-star"></i> Favoritos</a>
+                <a href="assistindo.html"><i class="fas fa-play-circle"></i> Assistindo</a>
+                <a href="historico.html"><i class="fas fa-check-circle"></i> Histórico</a>
+                <a href="calculadora.html"><i class="fas fa-calculator"></i> Calculadora</a>
+            </div>
+        </div>
     </nav>
 
     <main class="main-content">
@@ -74,6 +83,27 @@
             </button>
         </div>
 
+        <!-- FILTERS TOOLBAR -->
+        <div class="list-toolbar">
+            <div class="list-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="list-search-input" placeholder="Buscar na lista..." oninput="ListaPage.filterList()">
+            </div>
+            <div class="list-filters">
+                <select id="list-sort" onchange="ListaPage.filterList()">
+                    <option value="recent">📅 Mais Recentes</option>
+                    <option value="alpha">🔤 A-Z</option>
+                    <option value="alpha-desc">🔤 Z-A</option>
+                    <option value="score">⭐ Maior Score</option>
+                    <option value="episodes">📺 Mais Episódios</option>
+                    <option value="progress">📊 Progresso</option>
+                </select>
+                <button class="btn btn-icon" id="view-toggle" onclick="ListaPage.toggleView()" title="Alterar visualização">
+                    <i class="fas fa-th-large"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- LIST -->
         <div class="anime-list" id="anime-list">
             <p class="empty-message">Sua lista está vazia. <a href="explorar.html">Explore animes</a> para adicionar!</p>
@@ -86,6 +116,7 @@
     <script src="js/storage.js"></script>
     <script src="js/themes.js"></script>
     <script src="js/achievements.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="js/common.js"></script>
     <script src="js/pages/lista.js"></script>
 </body>

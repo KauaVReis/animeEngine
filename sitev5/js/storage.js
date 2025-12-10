@@ -141,11 +141,14 @@ const Storage = {
             newLists[listName] = [];
         }
         
+        // Se for completed, setar progresso igual ao total de episódios
+        const progress = listName === 'completed' ? (anime.episodes || 0) : 0;
+        
         // Adicionar com metadados extras
         newLists[listName].unshift({
             ...anime,
             addedAt: new Date().toISOString(),
-            progress: 0,
+            progress: progress,
             rating: 0,
             notes: ''
         });
@@ -201,6 +204,11 @@ const Storage = {
         if (index > -1) {
             const [anime] = lists[fromList].splice(index, 1);
             anime.movedAt = new Date().toISOString();
+            
+            // Se movendo para completed, setar progresso como total
+            if (toList === 'completed' && anime.episodes) {
+                anime.progress = anime.episodes;
+            }
             
             if (!lists[toList]) lists[toList] = [];
             lists[toList].unshift(anime);

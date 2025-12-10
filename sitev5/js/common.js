@@ -12,6 +12,8 @@ const Common = {
         this.setupSearch();
         this.markActiveNav();
         this.createSettingsButton();
+        this.createNotificationsButton();
+        this.initNotifications();
         this.checkAchievements();
         console.log('🚀 AnimeEngine v5 loaded!');
     },
@@ -31,6 +33,10 @@ const Common = {
                 <span class="level-icon">${icon}</span>
                 <span class="level-text">Lv.${user.level}</span>
             `;
+            
+            // Click para abrir modal de achievements
+            badge.style.cursor = 'pointer';
+            badge.onclick = () => this.openAchievementsModal();
         }
     },
 
@@ -156,6 +162,45 @@ const Common = {
         });
     },
 
+    /**
+     * Renderizar skeleton cards para loading
+     */
+    renderSkeletonCards(containerId, count = 6) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = Array(count).fill('').map(() => `
+            <div class="skeleton-card">
+                <div class="skeleton-card-image">
+                    <div class="skeleton"></div>
+                </div>
+                <div class="skeleton-card-info">
+                    <div class="skeleton skeleton-card-title"></div>
+                    <div class="skeleton skeleton-card-meta"></div>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    /**
+     * Renderizar loader melhorado
+     */
+    renderLoader(containerId, text = 'Carregando...') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="loader-container">
+                <div class="loader-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="loader-text">${text}</span>
+            </div>
+        `;
+    },
+
     // ========================================
     // AÇÕES
     // ========================================
@@ -267,6 +312,54 @@ const Common = {
             container.classList.remove('open');
             document.body.style.overflow = '';
         }
+    },
+
+    /**
+     * Abrir modal de conquistas/achievements
+     */
+    openAchievementsModal() {
+        const user = Storage.getUser();
+        const badges = Achievements.getAllBadges();
+        const currentLevel = Achievements.getLevel(user.xp);
+        const nextLevel = Achievements.getNextLevel(user.xp);
+        const progressPercent = Achievements.getLevelProgress(user.xp);
+        
+        const unlockedCount = badges.filter(b => b.unlocked).length;
+        
+        const badgesHtml = badges.map(badge => `
+            <div class="achievement-card-mini ${badge.unlocked ? 'unlocked' : 'locked'}" title="${badge.description}">
+                <div class="achievement-mini-icon">${badge.icon}</div>
+                <div class="achievement-mini-name">${badge.name}</div>
+                <div class="achievement-mini-xp">+${badge.xp}</div>
+            </div>
+        `).join('');
+        
+        const content = `
+            <div class="achievements-header">
+                <div class="achievements-level">
+                    <div class="level-big-icon">${currentLevel.icon}</div>
+                    <div class="level-details">
+                        <div class="level-name">${currentLevel.name}</div>
+                        <div class="level-number">Nível ${currentLevel.level}</div>
+                    </div>
+                </div>
+                <div class="achievements-xp">
+                    <div class="xp-current">${user.xp} XP</div>
+                    ${nextLevel ? `
+                        <div class="xp-progress-bar">
+                            <div class="xp-progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                        <div class="xp-next">Próximo nível: ${nextLevel.xpRequired} XP</div>
+                    ` : '<div class="xp-max">Nível Máximo! 🏆</div>'}
+                </div>
+            </div>
+            <div class="achievements-count">${unlockedCount}/${badges.length} conquistas desbloqueadas</div>
+            <div class="achievements-list">
+                ${badgesHtml}
+            </div>
+        `;
+        
+        this.openModal(content, { title: '🏆 Conquistas' });
     },
 
     // ========================================
@@ -386,8 +479,6 @@ const Common = {
      */
     openSettings() {
         const themes = Themes ? Themes.getAll() : [];
-        const badges = Achievements ? Achievements.getAllBadges() : [];
-        const user = Storage.getUser();
         
         const themesHTML = themes.map(t => `
             <div class="theme-card ${t.active ? 'active' : ''}" onclick="Common.setTheme('${t.id}')">
@@ -397,43 +488,14 @@ const Common = {
             </div>
         `).join('');
         
-        const badgesHTML = badges.map(b => `
-            <div class="achievement-card ${b.unlocked ? 'unlocked' : 'locked'}">
-                <div class="achievement-card-icon">${b.unlocked ? b.icon : '🔒'}</div>
-                <div class="achievement-card-name">${b.name}</div>
-                <div class="achievement-card-desc">${b.description}</div>
-                <div class="achievement-card-xp">${b.xp} XP</div>
-            </div>
-        `).join('');
-        
-        const unlockedCount = badges.filter(b => b.unlocked).length;
-        
         const content = `
-            <div class="modal-header">
-                <h3 class="modal-title">⚙️ SETTINGS</h3>
-                <button class="modal-close" onclick="Common.closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="settings-section">
-                    <h4 class="settings-section-title">🎨 Tema</h4>
-                    <div class="theme-grid">${themesHTML}</div>
-                </div>
-                
-                <div class="settings-section">
-                    <h4 class="settings-section-title">🏆 Conquistas</h4>
-                    <div class="achievements-stats">
-                        <span>${user.xp} XP</span>
-                        <span>•</span>
-                        <span>Lv.${user.level}</span>
-                        <span>•</span>
-                        <span>${unlockedCount}/${badges.length} Medalhas</span>
-                    </div>
-                    <div class="achievements-grid">${badgesHTML}</div>
-                </div>
+            <div class="settings-section">
+                <h4 class="settings-section-title">🎨 Tema</h4>
+                <div class="theme-grid">${themesHTML}</div>
             </div>
         `;
         
-        this.openModal(content, { title: '⚙️ SETTINGS' });
+        this.openModal(content, { title: '⚙️ Configurações' });
     },
 
     /**
@@ -453,6 +515,87 @@ const Common = {
     checkAchievements() {
         if (Achievements) {
             setTimeout(() => Achievements.checkAchievements(), 1000);
+        }
+    },
+
+    // ========================================
+    // NOTIFICATIONS
+    // ========================================
+
+    /**
+     * Inicializar sistema de notificações
+     */
+    initNotifications() {
+        if (typeof Notifications !== 'undefined') {
+            Notifications.init();
+        }
+    },
+
+    /**
+     * Criar botão de notificações no header
+     */
+    createNotificationsButton() {
+        const userArea = document.querySelector('.user-area');
+        if (!userArea || document.getElementById('notifications-btn')) return;
+        
+        const btn = document.createElement('div');
+        btn.className = 'notifications-wrapper';
+        btn.innerHTML = `
+            <button class="notifications-btn" id="notifications-btn" onclick="Common.toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="notifications-count" id="notifications-count" style="display: none;">0</span>
+            </button>
+            <div class="notifications-dropdown" id="notifications-dropdown"></div>
+        `;
+        
+        userArea.insertBefore(btn, userArea.firstChild);
+        
+        // Atualizar badge
+        if (typeof Notifications !== 'undefined') {
+            setTimeout(() => Notifications.updateBadge(), 100);
+        }
+        
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('notifications-dropdown');
+            const btn = document.getElementById('notifications-btn');
+            if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+    },
+
+    /**
+     * Toggle dropdown de notificações
+     */
+    toggleNotifications() {
+        const dropdown = document.getElementById('notifications-dropdown');
+        if (!dropdown) return;
+        
+        dropdown.classList.toggle('open');
+        
+        if (dropdown.classList.contains('open')) {
+            this.renderNotificationsDropdown();
+        }
+    },
+
+    /**
+     * Renderizar dropdown de notificações
+     */
+    renderNotificationsDropdown() {
+        const dropdown = document.getElementById('notifications-dropdown');
+        if (!dropdown || typeof Notifications === 'undefined') return;
+        
+        dropdown.innerHTML = Notifications.renderDropdown();
+    },
+
+    /**
+     * Toggle popup do menu "Mais" na bottom-nav
+     */
+    toggleBottomNavMore() {
+        const popup = document.getElementById('bottom-nav-popup');
+        if (popup) {
+            popup.classList.toggle('open');
         }
     }
 };

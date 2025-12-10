@@ -5,12 +5,103 @@
 
 const ListaPage = {
     currentTab: 'all',
+    viewMode: 'list', // 'list' ou 'grid'
 
     init() {
         console.log('📋 Loading Lista Page...');
+        
+        // Carregar viewMode salvo
+        this.viewMode = localStorage.getItem('lista_viewMode') || 'list';
+        this.updateViewModeUI();
+        
         this.updateCounts();
         this.switchTab('all');
         console.log('✅ Lista Page loaded!');
+    },
+
+    /**
+     * Atualizar UI do botão de view mode
+     */
+    updateViewModeUI() {
+        const btn = document.getElementById('view-toggle');
+        const list = document.getElementById('anime-list');
+        if (btn) {
+            btn.innerHTML = this.viewMode === 'list' 
+                ? '<i class="fas fa-th-large"></i>' 
+                : '<i class="fas fa-list"></i>';
+        }
+        if (list) {
+            list.classList.toggle('grid-view', this.viewMode === 'grid');
+        }
+    },
+
+    /**
+     * Alternar entre modo lista e grid
+     */
+    toggleView() {
+        this.viewMode = this.viewMode === 'list' ? 'grid' : 'list';
+        localStorage.setItem('lista_viewMode', this.viewMode);
+        this.updateViewModeUI();
+        this.renderList();
+    },
+
+    /**
+     * Filtrar e ordenar lista
+     */
+    filterList() {
+        this.renderList();
+    },
+
+    /**
+     * Obter animes filtrados e ordenados
+     */
+    getFilteredAnimes() {
+        const lists = Storage.getLists();
+        const searchTerm = document.getElementById('list-search-input')?.value?.toLowerCase() || '';
+        const sortBy = document.getElementById('list-sort')?.value || 'recent';
+        
+        let animes = [];
+        
+        if (this.currentTab === 'all') {
+            ['watching', 'planToWatch', 'completed', 'paused', 'dropped'].forEach(key => {
+                if (lists[key]) {
+                    animes = animes.concat(lists[key].map(a => ({ ...a, listType: key })));
+                }
+            });
+        } else {
+            animes = (lists[this.currentTab] || []).map(a => ({ ...a, listType: this.currentTab }));
+        }
+        
+        // Filtrar por busca
+        if (searchTerm) {
+            animes = animes.filter(a => 
+                a.title?.toLowerCase().includes(searchTerm) ||
+                a.titleEnglish?.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // Ordenar
+        animes.sort((a, b) => {
+            switch (sortBy) {
+                case 'alpha':
+                    return (a.title || '').localeCompare(b.title || '');
+                case 'alpha-desc':
+                    return (b.title || '').localeCompare(a.title || '');
+                case 'score':
+                    return (b.score || 0) - (a.score || 0);
+                case 'episodes':
+                    return (b.episodes || 0) - (a.episodes || 0);
+                case 'progress':
+                    const progA = a.episodes ? ((a.progress || 0) / a.episodes) : 0;
+                    const progB = b.episodes ? ((b.progress || 0) / b.episodes) : 0;
+                    return progB - progA;
+                case 'recent':
+                default:
+                    return new Date(b.addedAt || 0) - new Date(a.addedAt || 0);
+            }
+        });
+        
+        return animes;
     },
 
     updateCounts() {
@@ -26,7 +117,8 @@ const ListaPage = {
             }
         });
         
-        document.getElementById('count-all').textContent = total;
+        const countAllEl = document.getElementById('count-all');
+        if (countAllEl) countAllEl.textContent = total;
     },
 
     switchTab(tabName) {
@@ -42,26 +134,17 @@ const ListaPage = {
     },
 
     renderList() {
-        const lists = Storage.getLists();
         const container = document.getElementById('anime-list');
+        const animes = this.getFilteredAnimes();
         
-        let animes = [];
-        
-        if (this.currentTab === 'all') {
-            // Combinar todas as listas (exceto favoritos)
-            ['watching', 'planToWatch', 'completed', 'paused', 'dropped'].forEach(key => {
-                if (lists[key]) {
-                    animes = animes.concat(lists[key].map(a => ({ ...a, listType: key })));
-                }
-            });
-        } else {
-            animes = (lists[this.currentTab] || []).map(a => ({ ...a, listType: this.currentTab }));
-        }
+        // Atualizar classe de view mode
+        this.updateViewModeUI();
         
         if (animes.length === 0) {
+            const searchTerm = document.getElementById('list-search-input')?.value || '';
             container.innerHTML = `
                 <p class="empty-message">
-                    Nenhum anime nesta lista. 
+                    ${searchTerm ? 'Nenhum anime encontrado para "' + searchTerm + '"' : 'Nenhum anime nesta lista.'} 
                     <a href="explorar.html">Explore animes</a> para adicionar!
                 </p>
             `;

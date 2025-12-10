@@ -431,11 +431,11 @@ const DetalhesPage = {
     // ========================================
     
     /**
-     * Renderiza estrelas de avaliação
+     * Renderiza estrelas de avaliação (10 estrelas)
      */
     renderStars(rating = 0) {
         let html = '';
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 10; i++) {
             const filled = i <= rating;
             html += `<i class="fas fa-star star-btn ${filled ? 'filled' : ''}" onclick="DetalhesPage.setRating(${i})"></i>`;
         }

@@ -38,6 +38,7 @@
         <a href="assistindo.html" class="nav-item"><i class="fas fa-play-circle"></i><span>Assistindo</span></a>
         <a href="historico.html" class="nav-item"><i class="fas fa-check-circle"></i><span>Histórico</span></a>
         <a href="favoritos.html" class="nav-item"><i class="fas fa-star"></i><span>Favoritos</span></a>
+        <a href="calendario.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Calendário</span></a>
         <a href="calculadora.html" class="nav-item"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
     </nav>
 
@@ -46,8 +47,16 @@
         <a href="index.html" class="bottom-nav-item"><i class="fas fa-home"></i></a>
         <a href="explorar.html" class="bottom-nav-item"><i class="fas fa-search"></i></a>
         <a href="lista.html" class="bottom-nav-item"><i class="fas fa-list"></i></a>
-        <a href="favoritos.html" class="bottom-nav-item"><i class="fas fa-star"></i></a>
-        <a href="calculadora.html" class="bottom-nav-item"><i class="fas fa-calculator"></i></a>
+        <a href="calendario.html" class="bottom-nav-item"><i class="fas fa-calendar-alt"></i></a>
+        <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
+            <i class="fas fa-ellipsis-h"></i>
+            <div class="bottom-nav-popup" id="bottom-nav-popup">
+                <a href="favoritos.html"><i class="fas fa-star"></i> Favoritos</a>
+                <a href="assistindo.html"><i class="fas fa-play-circle"></i> Assistindo</a>
+                <a href="historico.html"><i class="fas fa-check-circle"></i> Histórico</a>
+                <a href="calculadora.html"><i class="fas fa-calculator"></i> Calculadora</a>
+            </div>
+        </div>
     </nav>
 
     <!-- MAIN CONTENT -->
@@ -74,6 +83,7 @@
     <script src="js/storage.js"></script>
     <script src="js/themes.js"></script>
     <script src="js/achievements.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="js/common.js"></script>
     <script src="js/pages/detalhes.js"></script>
 </body>

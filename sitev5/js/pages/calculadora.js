@@ -305,12 +305,21 @@ const CalculadoraPage = {
             
             const statusClass = isCompleted ? 'completed' : (isActive ? 'active' : '');
             
+            // Buscar dados de filler usando AnimeData
+            let fillerInfo = '';
+            if (typeof AnimeData !== 'undefined') {
+                const data = AnimeData.formatAnimeInfo(anime.title);
+                if (data.found && data.fillerCount > 0) {
+                    fillerInfo = `<span class="filler-badge">${data.fillerCount} fillers (${data.fillerPercent}%)</span>`;
+                }
+            }
+            
             return `
                 <div class="stack-item ${statusClass}">
                     <img src="${anime.image}" alt="${anime.title}">
                     <div class="stack-item-info">
                         <p class="stack-item-title">${anime.title}</p>
-                        <p class="stack-item-meta">${animeProgress}/${animeEps} eps ${isCompleted ? '✅' : ''}</p>
+                        <p class="stack-item-meta">${animeProgress}/${animeEps} eps ${isCompleted ? '✅' : ''} ${fillerInfo}</p>
                     </div>
                     <button class="btn-remove" onclick="event.stopPropagation(); CalculadoraPage.removeFromStack(${index})">
                         <i class="fas fa-times"></i>
