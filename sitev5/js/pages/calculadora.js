@@ -1,11 +1,12 @@
 /**
  * AnimeEngine v5 - Calculadora Page
  * Progress bar e lógica exatamente como no v4
+ * Contador global contínuo: percorre todos animes sequencialmente
  */
 
 const CalculadoraPage = {
     stack: [],
-    activeIndex: -1,
+    globalEp: 0,  // Contador GLOBAL (soma de todos animes)
     settings: {
         epsPerDay: 3,
         skipFillers: false,
@@ -83,8 +84,13 @@ const CalculadoraPage = {
         });
     },
 
+    // Total de eps de toda a stack
+    getTotalStackEps() {
+        return this.stack.reduce((acc, a) => acc + (a.episodes || 0), 0);
+    },
+
     setupEpisodeControls() {
-        // Input de episódio
+        // Input de episódio global
         this.elements.globalEpInput.addEventListener('change', (e) => {
             const value = parseInt(e.target.value) || 0;
             this.setGlobalEpisode(value);
@@ -97,13 +103,11 @@ const CalculadoraPage = {
         
         // Botões +/-
         this.elements.btnMinus.addEventListener('click', () => {
-            const current = parseInt(this.elements.globalEpInput.value) || 0;
-            this.setGlobalEpisode(Math.max(0, current - 1));
+            this.setGlobalEpisode(Math.max(0, this.globalEp - 1));
         });
         
         this.elements.btnPlus.addEventListener('click', () => {
-            const current = parseInt(this.elements.globalEpInput.value) || 0;
-            this.setGlobalEpisode(current + 1);
+            this.setGlobalEpisode(this.globalEp + 1);
         });
     },
 
@@ -119,14 +123,19 @@ const CalculadoraPage = {
         const saved = Storage.load('calcStack');
         if (saved && saved.length > 0) {
             this.stack = saved;
-            this.activeIndex = 0;
             this.renderStack();
             this.updateIdleState();
+        }
+        // Carregar posição global salva
+        const savedEp = Storage.load('calcGlobalEp');
+        if (savedEp) {
+            this.globalEp = savedEp;
         }
     },
 
     saveStack() {
         Storage.save('calcStack', this.stack);
+        Storage.save('calcGlobalEp', this.globalEp);
     },
 
     // ========================================
@@ -134,7 +143,7 @@ const CalculadoraPage = {
     // ========================================
     updateIdleState() {
         const idle = document.getElementById('calc-idle');
-        if (this.activeIndex === -1 || this.stack.length === 0) {
+        if (this.stack.length === 0) {
             idle.classList.remove('hidden');
             this.elements.globalEpInput.value = 0;
         } else {
@@ -215,13 +224,8 @@ const CalculadoraPage = {
             const anime = API.formatAnime(data);
             
             this.stack.push({
-                ...anime,
-                currentEp: 0
+                ...anime
             });
-            
-            if (this.activeIndex === -1) {
-                this.activeIndex = 0;
-            }
             
             this.renderStack();
             this.saveStack();
@@ -237,26 +241,26 @@ const CalculadoraPage = {
     },
 
     removeFromStack(index) {
+        // Recalcular globalEp se necessário (descontar eps do anime removido)
+        let cumulative = 0;
+        for (let i = 0; i < index; i++) {
+            cumulative += this.stack[i].episodes || 0;
+        }
+        const removedAnimeEps = this.stack[index].episodes || 0;
+        
+        // Se globalEp estava além deste anime, descontar os eps dele
+        if (this.globalEp > cumulative + removedAnimeEps) {
+            this.globalEp -= removedAnimeEps;
+        } else if (this.globalEp > cumulative) {
+            // Se estava no meio do anime removido, voltar pro início dele
+            this.globalEp = cumulative;
+        }
+        
         this.stack.splice(index, 1);
-        
-        if (this.activeIndex >= this.stack.length) {
-            this.activeIndex = Math.max(0, this.stack.length - 1);
-        }
-        
-        if (this.stack.length === 0) {
-            this.activeIndex = -1;
-        }
         
         this.renderStack();
         this.saveStack();
         this.updateIdleState();
-        this.calculate();
-    },
-
-    setActive(index) {
-        this.activeIndex = index;
-        this.renderStack();
-        this.renderHero();
         this.calculate();
     },
 
@@ -267,8 +271,7 @@ const CalculadoraPage = {
         
         countEl.textContent = this.stack.length;
         
-        let totalEps = 0;
-        this.stack.forEach(a => totalEps += (a.episodes || 0));
+        const totalEps = this.getTotalStackEps();
         totalEl.textContent = totalEps;
         
         if (this.stack.length === 0) {
@@ -276,55 +279,108 @@ const CalculadoraPage = {
             return;
         }
         
-        container.innerHTML = this.stack.map((anime, index) => `
-            <div class="stack-item ${index === this.activeIndex ? 'active' : ''}" onclick="CalculadoraPage.setActive(${index})">
-                <img src="${anime.image}" alt="${anime.title}">
-                <div class="stack-item-info">
-                    <p class="stack-item-title">${anime.title}</p>
-                    <p class="stack-item-meta">${anime.currentEp}/${anime.episodes || '?'} eps</p>
+        // Calcular qual anime está ativo e progresso de cada um
+        let cumulative = 0;
+        container.innerHTML = this.stack.map((anime, index) => {
+            const animeEps = anime.episodes || 0;
+            const startEp = cumulative;
+            const endEp = cumulative + animeEps;
+            
+            // Calcular progresso deste anime baseado no globalEp
+            let animeProgress = 0;
+            let isActive = false;
+            let isCompleted = false;
+            
+            if (this.globalEp >= endEp) {
+                // Anime completo
+                animeProgress = animeEps;
+                isCompleted = true;
+            } else if (this.globalEp > startEp) {
+                // Anime em progresso (ativo)
+                animeProgress = this.globalEp - startEp;
+                isActive = true;
+            }
+            
+            cumulative = endEp;
+            
+            const statusClass = isCompleted ? 'completed' : (isActive ? 'active' : '');
+            
+            return `
+                <div class="stack-item ${statusClass}">
+                    <img src="${anime.image}" alt="${anime.title}">
+                    <div class="stack-item-info">
+                        <p class="stack-item-title">${anime.title}</p>
+                        <p class="stack-item-meta">${animeProgress}/${animeEps} eps ${isCompleted ? '✅' : ''}</p>
+                    </div>
+                    <button class="btn-remove" onclick="event.stopPropagation(); CalculadoraPage.removeFromStack(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <button class="btn-remove" onclick="event.stopPropagation(); CalculadoraPage.removeFromStack(${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     },
 
     // ========================================
-    // HERO DISPLAY
+    // HERO DISPLAY - Mostra anime ativo atual
     // ========================================
+    getCurrentAnime() {
+        let cumulative = 0;
+        for (let i = 0; i < this.stack.length; i++) {
+            const anime = this.stack[i];
+            const animeEps = anime.episodes || 0;
+            if (this.globalEp < cumulative + animeEps) {
+                return {
+                    anime: anime,
+                    index: i,
+                    localEp: this.globalEp - cumulative,
+                    totalEps: animeEps
+                };
+            }
+            cumulative += animeEps;
+        }
+        // Se passou de todos, retorna o último
+        if (this.stack.length > 0) {
+            const lastAnime = this.stack[this.stack.length - 1];
+            return {
+                anime: lastAnime,
+                index: this.stack.length - 1,
+                localEp: lastAnime.episodes || 0,
+                totalEps: lastAnime.episodes || 0
+            };
+        }
+        return null;
+    },
+
     renderHero() {
-        if (this.activeIndex === -1 || !this.stack[this.activeIndex]) return;
+        if (this.stack.length === 0) return;
         
-        const anime = this.stack[this.activeIndex];
-        const total = anime.episodes || 0;
-        const current = anime.currentEp || 0;
+        const current = this.getCurrentAnime();
+        if (!current) return;
         
-        document.getElementById('calc-hero-img').src = anime.image;
-        document.getElementById('calc-hero-title').textContent = anime.title;
-        document.getElementById('calc-hero-progress').textContent = `${current} / ${total}`;
-        this.elements.globalEpInput.value = current;
-        this.elements.globalEpInput.max = total;
+        const totalStackEps = this.getTotalStackEps();
+        
+        document.getElementById('calc-hero-img').src = current.anime.image;
+        document.getElementById('calc-hero-title').textContent = current.anime.title;
+        document.getElementById('calc-hero-progress').textContent = `${this.globalEp} / ${totalStackEps}`;
+        this.elements.globalEpInput.value = this.globalEp;
+        this.elements.globalEpInput.max = totalStackEps;
         
         this.updateProgressBar();
     },
 
     // ========================================
-    // GLOBAL EPISODE - Estilo v4
+    // GLOBAL EPISODE - Contador contínuo v4
     // ========================================
     setGlobalEpisode(value) {
-        if (this.activeIndex === -1 || !this.stack[this.activeIndex]) return;
+        if (this.stack.length === 0) return;
         
-        const anime = this.stack[this.activeIndex];
-        const max = anime.episodes || 9999;
-        const newValue = Math.max(0, Math.min(max, value));
+        const totalStackEps = this.getTotalStackEps();
+        const newValue = Math.max(0, Math.min(totalStackEps, value));
         
-        anime.currentEp = newValue;
-        this.elements.globalEpInput.value = newValue;
+        this.globalEp = newValue;
         
-        // Atualizar display
-        document.getElementById('calc-hero-progress').textContent = `${newValue} / ${max}`;
-        
+        // Atualizar Hero (imagem, título e progresso)
+        this.renderHero();
         this.updateProgressBar();
         this.renderStack();
         this.saveStack();
@@ -332,16 +388,15 @@ const CalculadoraPage = {
     },
 
     updateProgressBar() {
-        if (this.activeIndex === -1 || !this.stack[this.activeIndex]) {
+        const totalStackEps = this.getTotalStackEps();
+        
+        if (totalStackEps === 0) {
             if (this.elements.progressBar) this.elements.progressBar.style.width = '0%';
             if (this.elements.progressPercent) this.elements.progressPercent.textContent = '0%';
             return;
         }
         
-        const anime = this.stack[this.activeIndex];
-        const total = anime.episodes || 0;
-        const current = anime.currentEp || 0;
-        const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+        const percent = Math.round((this.globalEp / totalStackEps) * 100);
         
         if (this.elements.progressBar) {
             this.elements.progressBar.style.width = `${percent}%`;
@@ -359,17 +414,16 @@ const CalculadoraPage = {
         if (!container) return;
 
         const updateProgressFromPosition = (clientX) => {
-            if (this.activeIndex === -1 || !this.stack[this.activeIndex]) return;
+            if (this.stack.length === 0) return;
             
             const rect = container.getBoundingClientRect();
             const x = clientX - rect.left;
             const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
             
-            const anime = this.stack[this.activeIndex];
-            const totalEps = anime.episodes || 0;
-            if (totalEps === 0) return;
+            const totalStackEps = this.getTotalStackEps();
+            if (totalStackEps === 0) return;
             
-            const newEp = Math.round((percent / 100) * totalEps);
+            const newEp = Math.round((percent / 100) * totalStackEps);
             this.setGlobalEpisode(newEp);
         };
 
@@ -419,39 +473,47 @@ const CalculadoraPage = {
     // CALCULATE
     // ========================================
     calculate() {
-        let totalEps = 0;
+        const totalStackEps = this.getTotalStackEps();
+        let remainingEps = totalStackEps - this.globalEp;
         let savedEps = 0;
         
-        this.stack.forEach(anime => {
-            let eps = (anime.episodes || 0) - (anime.currentEp || 0);
-            
-            // Subtrair fillers se configurado
-            if (this.settings.skipFillers && this.fillerEpisodes[anime.title]) {
-                const fillers = this.fillerEpisodes[anime.title];
-                fillers.forEach(range => {
-                    for (let i = range[0]; i <= range[1]; i++) {
-                        if (i > (anime.currentEp || 0) && i <= (anime.episodes || 0)) {
-                            eps--;
-                            savedEps++;
+        // Calcular fillers restantes se configurado
+        if (this.settings.skipFillers) {
+            let cumulative = 0;
+            this.stack.forEach(anime => {
+                const animeEps = anime.episodes || 0;
+                const startEp = cumulative;
+                
+                if (this.fillerEpisodes[anime.title]) {
+                    const fillers = this.fillerEpisodes[anime.title];
+                    fillers.forEach(range => {
+                        for (let i = range[0]; i <= range[1]; i++) {
+                            // Só contar fillers que ainda não foram assistidos
+                            const globalFillerEp = startEp + i;
+                            if (globalFillerEp > this.globalEp && i <= animeEps) {
+                                remainingEps--;
+                                savedEps++;
+                            }
                         }
-                    }
-                });
-            }
-            
-            totalEps += Math.max(0, eps);
-        });
+                    });
+                }
+                cumulative += animeEps;
+            });
+        }
+        
+        remainingEps = Math.max(0, remainingEps);
         
         // Duração por episódio (20 min no speedrun, 24 normal)
         const epDuration = this.settings.speedrun ? 20 : 24;
-        const totalMinutes = totalEps * epDuration;
+        const totalMinutes = remainingEps * epDuration;
         const totalHours = Math.round(totalMinutes / 60);
         
-        const daysNeeded = Math.ceil(totalEps / this.settings.epsPerDay);
+        const daysNeeded = Math.ceil(remainingEps / this.settings.epsPerDay);
         const finishDate = new Date();
         finishDate.setDate(finishDate.getDate() + daysNeeded);
         
         // Update UI - Results
-        document.getElementById('result-remaining').textContent = totalEps;
+        document.getElementById('result-remaining').textContent = remainingEps;
         document.getElementById('result-hours').textContent = totalHours;
         
         // Saved indicator
