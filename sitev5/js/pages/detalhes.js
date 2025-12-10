@@ -254,7 +254,7 @@ const DetalhesPage = {
             const roleText = charData.role === 'Main' ? '⭐ Principal' : 'Secundário';
             
             grid.innerHTML += `
-                <div class="character-card">
+                <div class="character-card" onclick="DetalhesPage.openCharacterModal(${char.mal_id})" style="cursor: pointer;">
                     <div class="character-card-image">
                         <img src="${char.images?.jpg?.image_url}" alt="${char.name}" loading="lazy">
                     </div>
@@ -500,6 +500,130 @@ const DetalhesPage = {
                 <a href="index.html" class="btn btn-primary">Voltar</a>
             </div>
         `;
+    },
+    
+    /**
+     * Abrir modal com detalhes do personagem
+     */
+    async openCharacterModal(characterId) {
+        // Mostrar modal com loading
+        const loadingContent = `
+            <div class="character-modal-loading">
+                <div class="loader"></div>
+                <p>Carregando detalhes...</p>
+            </div>
+        `;
+        Common.openModal(loadingContent, { title: 'Personagem' });
+        
+        try {
+            const charData = await API.getCharacter(characterId);
+            
+            if (!charData) {
+                Common.closeModal();
+                Common.showToast('Não foi possível carregar os detalhes', 'error');
+                return;
+            }
+            
+            // Formatar about (remover spoilers e limpar)
+            let about = charData.about || 'Sem informações disponíveis.';
+            // Remover spoilers marcados
+            about = about.replace(/\(Source:.*?\)/gi, '');
+            about = about.replace(/\[Written by.*?\]/gi, '');
+            // Limitar tamanho
+            if (about.length > 800) {
+                about = about.substring(0, 800) + '...';
+            }
+            
+            // Formatar nicknames
+            const nicknames = charData.nicknames?.length > 0 
+                ? charData.nicknames.slice(0, 5).join(', ') 
+                : null;
+            
+            // Formatar animes
+            const animes = charData.anime?.slice(0, 6).map(a => `
+                <a href="detalhes.html?id=${a.anime.mal_id}" class="char-anime-link">
+                    <img src="${a.anime.images?.jpg?.small_image_url}" alt="${a.anime.title}">
+                    <span>${a.anime.title}</span>
+                </a>
+            `).join('') || '';
+            
+            // Formatar dubladores
+            const voiceActors = charData.voices?.slice(0, 8).map(v => `
+                <div class="char-va-item">
+                    <img src="${v.person?.images?.jpg?.image_url}" alt="${v.person?.name}">
+                    <div class="char-va-info">
+                        <span class="char-va-name">${v.person?.name}</span>
+                        <span class="char-va-lang">${this.getLanguageFlag(v.language)} ${v.language}</span>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-muted">Nenhum dublador registrado</p>';
+            
+            const modalContent = `
+                <div class="character-modal">
+                    <div class="char-modal-header">
+                        <div class="char-modal-image">
+                            <img src="${charData.images?.jpg?.image_url}" alt="${charData.name}">
+                        </div>
+                        <div class="char-modal-info">
+                            <h2 class="char-modal-name">${charData.name}</h2>
+                            ${charData.name_kanji ? `<p class="char-modal-kanji">${charData.name_kanji}</p>` : ''}
+                            ${nicknames ? `<p class="char-modal-nicknames"><i class="fas fa-quote-left"></i> ${nicknames}</p>` : ''}
+                            <div class="char-modal-stats">
+                                <span><i class="fas fa-heart"></i> ${charData.favorites?.toLocaleString() || 0} favoritos</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="char-modal-section">
+                        <h3><i class="fas fa-info-circle"></i> Sobre</h3>
+                        <p class="char-modal-about">${about}</p>
+                    </div>
+                    
+                    ${animes ? `
+                        <div class="char-modal-section">
+                            <h3><i class="fas fa-film"></i> Aparece em</h3>
+                            <div class="char-anime-grid">${animes}</div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="char-modal-section">
+                        <h3><i class="fas fa-microphone-alt"></i> Dubladores</h3>
+                        <div class="char-va-grid">${voiceActors}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Atualizar modal
+            const modalBody = document.querySelector('.modal-body');
+            if (modalBody) {
+                modalBody.innerHTML = modalContent;
+            }
+            
+        } catch (error) {
+            console.error('Erro ao carregar personagem:', error);
+            Common.closeModal();
+            Common.showToast('Erro ao carregar detalhes do personagem', 'error');
+        }
+    },
+    
+    /**
+     * Retornar bandeira do idioma
+     */
+    getLanguageFlag(language) {
+        const flags = {
+            'Japanese': '🇯🇵',
+            'English': '🇺🇸',
+            'Portuguese (BR)': '🇧🇷',
+            'Spanish': '🇪🇸',
+            'French': '🇫🇷',
+            'German': '🇩🇪',
+            'Italian': '🇮🇹',
+            'Korean': '🇰🇷',
+            'Portuguese': '🇵🇹',
+            'Chinese': '🇨🇳',
+            'Hungarian': '🇭🇺'
+        };
+        return flags[language] || '🌍';
     }
 };
 

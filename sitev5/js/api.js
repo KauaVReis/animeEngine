@@ -198,6 +198,14 @@ const API = {
     },
 
     /**
+     * Detalhes completos de um personagem
+     */
+    async getCharacter(characterId) {
+        const data = await this.fetch(`/characters/${characterId}/full`);
+        return data;
+    },
+
+    /**
      * Staff/Produção de um anime
      */
     async getStaff(id) {

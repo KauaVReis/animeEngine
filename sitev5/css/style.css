@@ -3863,6 +3863,221 @@ select:focus-visible {
 }
 
 /* ========================================
+   CHARACTER MODAL
+======================================== */
+.character-modal-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl);
+    gap: var(--space-md);
+}
+
+.character-modal {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.char-modal-header {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.char-modal-image {
+    flex: 0 0 150px;
+}
+
+.char-modal-image img {
+    width: 100%;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+}
+
+.char-modal-info {
+    flex: 1;
+}
+
+.char-modal-name {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    margin-bottom: var(--space-xs);
+}
+
+.char-modal-kanji {
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+}
+
+.char-modal-nicknames {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-sm);
+}
+
+.char-modal-nicknames i {
+    color: var(--color-primary);
+    margin-right: var(--space-xs);
+}
+
+.char-modal-stats {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-sm);
+}
+
+.char-modal-stats span {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    background: var(--color-bg);
+    padding: var(--space-xs) var(--space-sm);
+    border: 2px solid var(--border-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.char-modal-stats i {
+    color: var(--color-primary);
+}
+
+.char-modal-section {
+    margin-bottom: var(--space-lg);
+}
+
+.char-modal-section h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 1rem;
+    text-transform: uppercase;
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-xs);
+    border-bottom: 2px dashed var(--border-color);
+}
+
+.char-modal-section h3 i {
+    color: var(--color-primary);
+}
+
+.char-modal-about {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--color-text);
+    white-space: pre-line;
+}
+
+/* Animes Grid */
+.char-anime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-sm);
+}
+
+.char-anime-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs);
+    background: var(--color-bg);
+    border: 2px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.char-anime-link:hover {
+    transform: translateX(4px);
+    border-color: var(--color-primary);
+}
+
+.char-anime-link img {
+    width: 40px;
+    height: 55px;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.char-anime-link span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Voice Actors Grid */
+.char-va-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-sm);
+}
+
+.char-va-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--color-bg);
+    border: 2px solid var(--border-color);
+}
+
+.char-va-item img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.char-va-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.char-va-name {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.char-va-lang {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+    .char-modal-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .char-modal-image {
+        flex: 0 0 auto;
+        width: 120px;
+    }
+    
+    .char-modal-stats {
+        justify-content: center;
+    }
+    
+    .char-anime-grid,
+    .char-va-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
    RELATIONS (MANGA) SECTION
 ======================================== */
 .relations-grid {
