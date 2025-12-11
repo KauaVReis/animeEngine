@@ -495,8 +495,26 @@ const CalculadoraPage = {
                 const animeEps = anime.episodes || 0;
                 const startEp = cumulative;
                 
-                if (this.fillerEpisodes[anime.title]) {
-                    const fillers = this.fillerEpisodes[anime.title];
+                // Normalizar título para busca (remover pontos, traços, espaços extras e lowercase)
+                // Ex: "Naruto: Shippuuden" -> "narutoshippuuden"
+                const cleanTitle = anime.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+                
+                let fillers = null;
+                
+                // Tentar encontrar correspondência nas chaves
+                const keys = Object.keys(this.fillerEpisodes);
+                for (const key of keys) {
+                    const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    // Check parcial para Shippuden (shippuden vs shippuuden)
+                    if (cleanTitle === cleanKey || 
+                        (cleanTitle.includes('shippu') && cleanKey.includes('shippu') && cleanTitle.includes('naruto')) ||
+                        cleanTitle === cleanKey.replace('shippuden', 'shippuuden')) {
+                        fillers = this.fillerEpisodes[key];
+                        break;
+                    }
+                }
+                
+                if (fillers) {
                     fillers.forEach(range => {
                         for (let i = range[0]; i <= range[1]; i++) {
                             // Só contar fillers que ainda não foram assistidos
