@@ -3,7 +3,7 @@
  * Sistema de temas inspirado no v4
  */
 
-const Themes = {
+var Themes = window.Themes || {
     // Temas disponíveis
     themes: {
         default: {

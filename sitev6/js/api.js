@@ -230,7 +230,14 @@ const API = {
                     }
                 }
                 
-                characters(sort: ROLE, page: 1, perPage: 10) {
+                characters(sort: ROLE, page: 1, perPage: 50) {
+                    pageInfo {
+                        total
+                        perPage
+                        currentPage
+                        lastPage
+                        hasNextPage
+                    }
                     edges {
                         role
                         node {
@@ -253,14 +260,96 @@ const API = {
         
         // Trigger translation for details page specific workflow
         if (window.Translation) {
-             // We start the translation but don't wait for it to return in the initial object
-             // The UI should handle the update or we wait here.
-             // Let's wait here for better UX on first load (slower but translated)
-             // or standard approach: return text, UI updates using Translation.translate()
-             formatted.synopsis_pt = await window.Translation.translate(formatted.synopsis.replace(/<[^>]*>/g, ''), formatted.id);
+             const cleanSynopsis = formatted.synopsis.replace(/<[^>]*>/g, '').replace(/\(Source:.*?\)/g, '').trim();
+             formatted.synopsis = await window.Translation.translate(cleanSynopsis, formatted.id);
+             
+             // Translate Genres
+             if (formatted.genres && formatted.genres.length > 0) {
+                 formatted.genres = await Promise.all(formatted.genres.map(g => window.Translation.translate(g, `genre_${g}`, 'en', null)));
+             }
         }
         
         return formatted;
+    },
+
+
+
+    /**
+     * Get Character Details
+     */
+    async getCharacterById(id) {
+        const query = `
+        query ($id: Int) {
+            Character (id: $id) {
+                id
+                name { full native }
+                image { large }
+                description
+                gender
+                dateOfBirth { year month day }
+                age
+                bloodType
+                siteUrl
+                favourites
+                media (page: 1, perPage: 12, sort: POPULARITY_DESC, type: ANIME) {
+                    edges {
+                        node {
+                            id
+                            title { romaji }
+                            coverImage { medium }
+                            format
+                        }
+                        voiceActors (sort: LANGUAGE) {
+                            id
+                            name { full }
+                            image { medium }
+                            languageV2
+                        }
+                    }
+                }
+            }
+        }`;
+        
+        const data = await this.query(query, { id: parseInt(id) });
+        return data.Character;
+    },
+
+    /**
+     * Get Characters for an Anime (Pagination)
+     */
+    async getCharacters(id, page = 1, perPage = 50) {
+        const query = `
+        query ($id: Int, $page: Int, $perPage: Int) {
+            Media (id: $id) {
+                id
+                characters(sort: ROLE, page: $page, perPage: $perPage) {
+                    pageInfo {
+                        total
+                        perPage
+                        currentPage
+                        lastPage
+                        hasNextPage
+                    }
+                    edges {
+                        role
+                        node {
+                            id
+                            name { full }
+                            image { large }
+                        }
+                        voiceActors(language: JAPANESE, sort: RELEVANCE) {
+                            id
+                            name { full }
+                            image { medium }
+                            languageV2
+                        }
+                    }
+                }
+            }
+        }`;
+        
+        const data = await this.query(query, { id: parseInt(id), page, perPage });
+        return data.Media.characters;
     },
 
     /**

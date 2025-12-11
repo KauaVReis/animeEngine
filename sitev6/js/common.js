@@ -331,6 +331,13 @@ const Common = {
     /**
      * Mostrar notificação toast
      */
+    showToast(message, type = 'success') {
+        this.showNotification(message, type);
+    },
+
+    /**
+     * Mostrar notificação toast
+     */
     showNotification(message, type = 'success') {
         // Remover existente
         const existing = document.querySelector('.notification-toast');
@@ -367,7 +374,7 @@ const Common = {
         
         container.innerHTML = `
             <div class="modal-overlay" onclick="Common.closeModal()">
-                <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-content ${options.className || ''}" onclick="event.stopPropagation()">
                     ${options.title ? `<h2 class="modal-title">${options.title}</h2>` : ''}
                     <button class="modal-close" onclick="Common.closeModal()">
                         <i class="fas fa-times"></i>
@@ -571,6 +578,26 @@ const Common = {
         
         const content = `
             <div class="settings-section">
+                <h4 class="settings-section-title">🌐 Idioma da Tradução</h4>
+                <div class="settings-option">
+                    <div class="settings-option-info">
+                        <span class="settings-option-name">Idioma Alvo</span>
+                        <span class="settings-option-desc">Tradução automática de sinopses (pode conter erros).</span>
+                    </div>
+                    <select class="settings-select" onchange="Common.setLanguage(this.value)">
+                        <option value="pt-br" ${Storage.getSettings().language === 'pt-br' ? 'selected' : ''}>🇧🇷 Português (BR)</option>
+                        <option value="en" ${Storage.getSettings().language === 'en' ? 'selected' : ''}>🇺🇸 English</option>
+                        <option value="es" ${Storage.getSettings().language === 'es' ? 'selected' : ''}>🇪🇸 Español</option>
+                        <option value="fr" ${Storage.getSettings().language === 'fr' ? 'selected' : ''}>🇫🇷 Français</option>
+                        <option value="ja" ${Storage.getSettings().language === 'ja' ? 'selected' : ''}>🇯🇵 日本語</option>
+                    </select>
+                </div>
+                <p class="settings-note">
+                    <i class="fas fa-exclamation-triangle"></i> Nota: As traduções são geradas automaticamente por IA e podem apresentar imprecisões.
+                </p>
+            </div>
+
+            <div class="settings-section">
                 <h4 class="settings-section-title">🛡️ Conteúdo</h4>
                 <div class="settings-option">
                     <div class="settings-option-info">
@@ -608,6 +635,14 @@ const Common = {
         }
         
         this.showToast(enabled ? 'Modo SFW ativado 😇' : 'Modo SFW desativado 😈');
+    },
+
+    /**
+     * Definir idioma da tradução
+     */
+    setLanguage(lang) {
+        Storage.updateSettings({ language: lang });
+        this.showToast(`Idioma alterado para ${lang.toUpperCase()}. Recarregue para aplicar.`);
     },
 
     /**

@@ -14,27 +14,66 @@ const Translation = {
      * @param {string} from Source language (default: en)
      * @param {string} to Target language (default: pt-br)
      */
-    async translate(text, id, from = 'en', to = 'pt-br') {
+    async translate(text, id, from = 'en', to = null) {
         if (!text) return '';
+        
+        // Get target language from settings if not provided
+        if (!to) {
+            const settings = Storage.getSettings ? Storage.getSettings() : { language: 'pt-br' };
+            to = settings.language;
+        }
+
+        // If target is same as source (e.g. user set to English), return original
+        if (from === to) return text;
         
         // 1. Check Cache
         const cacheKey = `${this.CACHE_PREFIX}${id}`;
         const cached = localStorage.getItem(cacheKey);
         
         if (cached) {
-            // console.log(`📖 Cache hit for translation: ${id}`);
-            return cached;
+            // Check if cached value is actually an error message
+            if (cached.includes('QUERY LENGTH LIMIT EXCEEDED') || cached.includes('MYMEMORY')) {
+                // Invalid cache, proceed to fetch (or return original if too long)
+                // console.log(`🗑️ Clearing invalid cache for ${id}`);
+                localStorage.removeItem(cacheKey);
+            } else {
+                 // console.log(`📖 Cache hit for translation: ${id}`);
+                return cached;
+            }
         }
 
         // 2. Fetch from API
         try {
+            // MyMemory Free Limit is ~500 chars. 
+            // If text is longer, user prefers Original Full text over Truncated Translation.
+            if (text.length > 500) {
+                // console.warn('Text too long for free translation (skipped):', text.length);
+                return text; 
+            }
+            
             // console.log(`🌍 Translating for ${id}...`);
-            const response = await fetch(`${this.API_URL}?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
+            const response = await fetch(this.API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    q: text,
+                    langpair: `${from}|${to}`
+                })
+            });
+            
             const data = await response.json();
             
-            if (data && data.responseData && data.responseData.translatedText) {
+            if (data && data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
                 const translated = data.responseData.translatedText;
                 
+                // CRITICAL: Check if API returned an error message as text
+                if (translated.includes('QUERY LENGTH LIMIT EXCEEDED') || translated.includes('MYMEMORY')) {
+                    console.warn('Translation API Limit Hit, reverting to original.');
+                    return text;
+                }
+
                 // 3. Save to Cache
                 try {
                     localStorage.setItem(cacheKey, translated);
@@ -48,10 +87,14 @@ const Translation = {
                 }
                 
                 return translated;
+            } else {
+                 console.warn(`Translation API Error/Limit: ${data.responseDetails}`);
+                 return text; // Return original on error
             }
         } catch (error) {
-            console.error('Translation API Error:', error);
+            console.error('Translation API Network Error:', error);
         }
+
 
         // Fallback: return original text
         return text;

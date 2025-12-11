@@ -189,6 +189,26 @@ const Storage = {
     },
 
     // ========================================
+    // SETTINGS
+    // ========================================
+    getSettings() {
+        return this.get(this.KEYS.SETTINGS, {
+            theme: 'default',
+            language: 'pt-br', // Default language
+            notifications: true
+        });
+    },
+
+    updateSettings(data) {
+        const current = this.getSettings();
+        this.set(this.KEYS.SETTINGS, { ...current, ...data });
+        // Trigger theme update if changed
+        if (data.theme && window.Themes) {
+            window.Themes.apply(data.theme);
+        }
+    },
+
+    // ========================================
     // HELPERS
     // ========================================
     get(key, defaultValue) {
