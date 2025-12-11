@@ -13,6 +13,8 @@ const Common = {
         this.markActiveNav();
         this.createSettingsButton();
         this.createNotificationsButton();
+        this.createMobileRandomButton(); // Mobile Header
+        this.createSidebarRandomButton(); // Desktop Sidebar
         this.initNotifications();
         this.checkAchievements();
         console.log('🚀 AnimeEngine v6 loaded!');
@@ -65,9 +67,6 @@ const Common = {
 
         // Mobile Search Toggle
         this.createMobileSearchToggle();
-        
-        // Mobile Random Button
-        this.createMobileRandomButton();
     },
 
     /**
@@ -113,6 +112,47 @@ const Common = {
             randomBtn.addEventListener('click', () => {
                 this.goToRandomAnime();
             });
+        }
+    },
+
+    /**
+     * Criar botão Aleatório na Sidebar (Desktop)
+     */
+    createSidebarRandomButton() {
+        const sidebar = document.querySelector('.sidebar');
+        // Check if exists using link text or href logic is harder, but simplified check:
+        // We look for a nav-item with onclick containing 'Random' or specific class.
+        // Assuming index.html hardcoded one doesn't have a specific ID, we can check by text content?
+        
+        if (sidebar) {
+            // Check if already has one (e.g. hardcoded in index.html)
+            const existing = Array.from(sidebar.querySelectorAll('.nav-item')).find(el => el.textContent.includes('Aleatório'));
+            
+            if (!existing) {
+                const link = document.createElement('a');
+                link.href = '#';
+                link.className = 'nav-item';
+                link.innerHTML = '<i class="fas fa-dice"></i><span>Aleatório</span>';
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    this.goToRandomAnime();
+                };
+                
+                // Insert before divider if exists, else append
+                const divider = sidebar.querySelector('.nav-divider');
+                if (divider) {
+                    sidebar.insertBefore(link, divider);
+                } else {
+                    // Start inserting before theme selector if exists
+                    const themeSel = sidebar.querySelector('.theme-selector');
+                    if (themeSel) {
+                         // Or just append to sidebar logic
+                         sidebar.insertBefore(link, themeSel);
+                    } else {
+                        sidebar.appendChild(link);
+                    }
+                }
+            }
         }
     },
 
