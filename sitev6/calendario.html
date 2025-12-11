@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário - ANIME.ENGINE v5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/v6_styles.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version">v5</span>
+            </a>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar anime...">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="user-area">
+                <div class="level-badge" id="level-badge">
+                    <span class="level-icon">🌱</span>
+                    <span class="level-text">Lv.1</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item" data-page="home">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="explorar.html" class="nav-item" data-page="explorar">
+            <i class="fas fa-compass"></i>
+            <span>Explorar</span>
+        </a>
+        <a href="lista.html" class="nav-item" data-page="lista">
+            <i class="fas fa-list"></i>
+            <span>Minha Lista</span>
+        </a>
+        <a href="calendario.html" class="nav-item active" data-page="calendario">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Calendário</span>
+        </a>
+        <a href="calculadora.html" class="nav-item" data-page="calculadora">
+            <i class="fas fa-calculator"></i>
+            <span>Calculadora</span>
+        </a>
+    </nav>
+
+    <!-- BOTTOM NAV (Mobile) -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item"><i class="fas fa-home"></i></a>
+        <a href="explorar.html" class="bottom-nav-item"><i class="fas fa-search"></i></a>
+        <a href="lista.html" class="bottom-nav-item"><i class="fas fa-list"></i></a>
+        <a href="calendario.html" class="bottom-nav-item active"><i class="fas fa-calendar-alt"></i></a>
+        <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
+            <i class="fas fa-ellipsis-h"></i>
+            <div class="bottom-nav-popup" id="bottom-nav-popup">
+                <a href="favoritos.html"><i class="fas fa-star"></i> Favoritos</a>
+                <a href="assistindo.html"><i class="fas fa-play-circle"></i> Assistindo</a>
+                <a href="historico.html"><i class="fas fa-check-circle"></i> Histórico</a>
+                <a href="calculadora.html"><i class="fas fa-calculator"></i> Calculadora</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-calendar-alt"></i> Calendário da Temporada</h1>
+            <p class="page-subtitle">Animes que estão no ar esta temporada</p>
+        </div>
+
+        <!-- Season Selector -->
+        <div class="calendar-controls">
+            <div class="season-selector">
+                <button class="btn btn-secondary" onclick="CalendarioPage.prevSeason()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="season-display" id="season-display">
+                    <span class="season-icon">🌸</span>
+                    <span class="season-name">Carregando...</span>
+                </div>
+                <button class="btn btn-secondary" onclick="CalendarioPage.nextSeason()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="calendar-filters">
+                <button class="filter-btn active" data-filter="all"
+                    onclick="CalendarioPage.filterDay('all')">Todos</button>
+                <button class="filter-btn" data-filter="today" onclick="CalendarioPage.filterDay('today')">Hoje</button>
+                <button class="filter-btn" data-filter="following"
+                    onclick="CalendarioPage.filterDay('following')">Seguindo</button>
+            </div>
+        </div>
+
+        <!-- Weekly Grid -->
+        <div class="calendar-week" id="calendar-week">
+            <div class="calendar-day" data-day="sunday">
+                <div class="day-header">
+                    <span class="day-name">Domingo</span>
+                    <span class="day-count" id="count-sunday">0</span>
+                </div>
+                <div class="day-animes" id="animes-sunday"></div>
+            </div>
+            <div class="calendar-day" data-day="monday">
+                <div class="day-header">
+                    <span class="day-name">Segunda</span>
+                    <span class="day-count" id="count-monday">0</span>
+                </div>
+                <div class="day-animes" id="animes-monday"></div>
+            </div>
+            <div class="calendar-day" data-day="tuesday">
+                <div class="day-header">
+                    <span class="day-name">Terça</span>
+                    <span class="day-count" id="count-tuesday">0</span>
+                </div>
+                <div class="day-animes" id="animes-tuesday"></div>
+            </div>
+            <div class="calendar-day" data-day="wednesday">
+                <div class="day-header">
+                    <span class="day-name">Quarta</span>
+                    <span class="day-count" id="count-wednesday">0</span>
+                </div>
+                <div class="day-animes" id="animes-wednesday"></div>
+            </div>
+            <div class="calendar-day" data-day="thursday">
+                <div class="day-header">
+                    <span class="day-name">Quinta</span>
+                    <span class="day-count" id="count-thursday">0</span>
+                </div>
+                <div class="day-animes" id="animes-thursday"></div>
+            </div>
+            <div class="calendar-day" data-day="friday">
+                <div class="day-header">
+                    <span class="day-name">Sexta</span>
+                    <span class="day-count" id="count-friday">0</span>
+                </div>
+                <div class="day-animes" id="animes-friday"></div>
+            </div>
+            <div class="calendar-day" data-day="saturday">
+                <div class="day-header">
+                    <span class="day-name">Sábado</span>
+                    <span class="day-count" id="count-saturday">0</span>
+                </div>
+                <div class="day-animes" id="animes-saturday"></div>
+            </div>
+        </div>
+
+        <!-- CALENDAR -->
+        <div class="calendar-container" id="calendar-container">
+            <div class="loader"></div>
+        </div>
+
+    </main>
+
+    <!-- MODALS -->
+    <div id="modal-container"></div>
+
+    <!-- SCRIPTS -->
+    <script src="js/translation.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/pages/calendario.js"></script>
+</body>
+
+</html>

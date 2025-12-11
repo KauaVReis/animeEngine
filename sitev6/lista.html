@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Lista - ANIME.ENGINE v5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/v6_styles.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version">v5</span>
+            </a>
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar anime...">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="user-area">
+                <div class="level-badge" id="level-badge">
+                    <span class="level-icon">🌱</span>
+                    <span class="level-text">Lv.1</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="explorar.html" class="nav-item"><i class="fas fa-search"></i><span>Explorar</span></a>
+        <a href="lista.html" class="nav-item active"><i class="fas fa-list"></i><span>Minha Lista</span></a>
+        <a href="assistindo.html" class="nav-item"><i class="fas fa-play-circle"></i><span>Assistindo</span></a>
+        <a href="historico.html" class="nav-item"><i class="fas fa-check-circle"></i><span>Histórico</span></a>
+        <a href="favoritos.html" class="nav-item"><i class="fas fa-star"></i><span>Favoritos</span></a>
+        <a href="calendario.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Calendário</span></a>
+        <a href="calculadora.html" class="nav-item"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
+    </nav>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item"><i class="fas fa-home"></i></a>
+        <a href="explorar.html" class="bottom-nav-item"><i class="fas fa-search"></i></a>
+        <a href="lista.html" class="bottom-nav-item active"><i class="fas fa-list"></i></a>
+        <a href="calendario.html" class="bottom-nav-item"><i class="fas fa-calendar-alt"></i></a>
+        <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
+            <i class="fas fa-ellipsis-h"></i>
+            <div class="bottom-nav-popup" id="bottom-nav-popup">
+                <a href="favoritos.html"><i class="fas fa-star"></i> Favoritos</a>
+                <a href="assistindo.html"><i class="fas fa-play-circle"></i> Assistindo</a>
+                <a href="historico.html"><i class="fas fa-check-circle"></i> Histórico</a>
+                <a href="calculadora.html"><i class="fas fa-calculator"></i> Calculadora</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-list"></i> Minha Lista</h1>
+        </div>
+
+        <!-- TABS -->
+        <div class="list-tabs">
+            <button class="list-tab active" data-list="all" onclick="ListaPage.switchTab('all')">
+                Todos <span class="tab-count" id="count-all">0</span>
+            </button>
+            <button class="list-tab" data-list="watching" onclick="ListaPage.switchTab('watching')">
+                📺 Assistindo <span class="tab-count" id="count-watching">0</span>
+            </button>
+            <button class="list-tab" data-list="planToWatch" onclick="ListaPage.switchTab('planToWatch')">
+                📋 Quero Ver <span class="tab-count" id="count-planToWatch">0</span>
+            </button>
+            <button class="list-tab" data-list="completed" onclick="ListaPage.switchTab('completed')">
+                ✅ Completos <span class="tab-count" id="count-completed">0</span>
+            </button>
+            <button class="list-tab" data-list="paused" onclick="ListaPage.switchTab('paused')">
+                ⏸️ Pausados <span class="tab-count" id="count-paused">0</span>
+            </button>
+            <button class="list-tab" data-list="dropped" onclick="ListaPage.switchTab('dropped')">
+                ❌ Dropados <span class="tab-count" id="count-dropped">0</span>
+            </button>
+        </div>
+
+        <!-- FILTERS TOOLBAR -->
+        <div class="list-toolbar">
+            <div class="list-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="list-search-input" placeholder="Buscar na lista..."
+                    oninput="ListaPage.filterList()">
+            </div>
+            <div class="list-filters">
+                <select id="list-sort" onchange="ListaPage.filterList()">
+                    <option value="recent">📅 Mais Recentes</option>
+                    <option value="alpha">🔤 A-Z</option>
+                    <option value="alpha-desc">🔤 Z-A</option>
+                    <option value="score">⭐ Maior Score</option>
+                    <option value="episodes">📺 Mais Episódios</option>
+                    <option value="progress">📊 Progresso</option>
+                </select>
+                <button class="btn btn-icon" id="view-toggle" onclick="ListaPage.toggleView()"
+                    title="Alterar visualização">
+                    <i class="fas fa-th-large"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- LIST -->
+        <div class="anime-list" id="anime-list">
+            <p class="empty-message">Sua lista está vazia. <a href="explorar.html">Explore animes</a> para adicionar!
+            </p>
+        </div>
+    </main>
+
+    <!-- MODALS -->
+    <div id="modal-container"></div>
+
+    <!-- Roulette FAB -->
+    <button class="fab-btn" onclick="Roulette.spin()" title="Sortear o que assistir">
+        <i class="fas fa-dice"></i>
+    </button>
+
+    <style>
+        .fab-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: transform 0.2s;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+        }
+    </style>
+
+    <!-- SCRIPTS -->
+    <script src="js/translation.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/roulette.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/pages/lista.js"></script>
+</body>
+
+</html>

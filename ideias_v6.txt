@@ -1,0 +1,18 @@
+AnimeEngine v6 - The Performance UpdateFoco: Migração para AniList, Tradução e Novas Funcionalidades1. MIGRAÇÃO DE API (CORE)O objetivo principal da v6 é substituir a Jikan API (REST) pela AniList API (GraphQL).Vantagens TécnicasVelocidade: Pedir apenas os campos necessários (ex: só id e title na busca), reduzindo o tamanho do download.Estabilidade: A AniList é uma API oficial, não um scraper, logo tem menos falhas.Fusos Horários: O airingSchedule devolve timestamps Unix, permitindo mostrar a hora exata do episódio no Brasil/Portugal sem cálculos complexos.Estrutura do Novo api.jsEm vez de endpoints fixos, teremos um construtor de queries.// Exemplo Conceitual
+const query = `
+query ($id: Int) {
+  Media(id: $id) {
+    title { romaji }
+    description(asHtml: true)
+    coverImage { large }
+  }
+}
+`;
+2. TRADUÇÃO AUTOMÁTICA (PT-BR)Resolver o problema das sinopses em inglês.Estratégia HíbridaCache Local: Quando traduzir uma sinopse, salvar no localStorage junto com o ID do anime. Assim, se o usuário voltar à página, não gasta quota da API de tradução.API de Tradução: Integrar uma API gratuita (ex: MyMemory) ou low-cost.Fluxo: Carrega dados da AniList -> Verifica se tem tradução no cache -> Se não, chama API de Tradução -> Exibe na tela.3. NOVAS FUNCIONALIDADES (POSSIBILITADAS PELA ANILIST)📅 Calendário de Temporada Preciso (Novo)Visual: Igual à imagem de referência (colunas por dia da semana).Lógica: Usar a query airingSchedule para pegar os lançamentos da semana atual.Diferencial: Mostrar "Faltam 2 horas" ou "Saiu há 10 min".🧬 Timeline de Franquias (Upgrade)Problema: Saber a ordem de Fate, Monogatari, etc.Solução: Usar o campo relations (edges) da AniList que diz explicitamente se é PREQUEL, SEQUEL ou SPIN_OFF.UI: Um diagrama vertical simples conectando os cards (melhor do que a lista simples atual).🎲 Roleta "O Que Assistir?" (Novo)Conceito: O usuário não sabe o que ver da sua lista "Plan to Watch".Ação: Um botão flutuante na página lista.html que sorteia um anime aleatório da lista salva e abre o modal de detalhes.4. MELHORIAS DE UI/UX (Neo-Brutalist v2)Refinamento do DesignMicro-interações: Animações sutis ao passar o mouse nos cards (o card levanta, a sombra muda de cor).Skeleton Screens: Em vez de um spinner de loading, mostrar o esqueleto cinza dos cards enquanto a AniList carrega (sensação de ser mais rápido).Modo Foco: Ao abrir o player de trailer, escurecer todo o resto do site.5. ESTRUTURA DE DADOS (PREPARAÇÃO PARA v7)Padronização do storage.jsPreparar o formato dos dados para ser compatível com um futuro banco de dados SQL.Atual: localStorage.setItem('lists', JSON...)Meta v6: Garantir que o objeto JSON tenha uma estrutura rígida:{
+  "id": 12345,
+  "status": "watching",
+  "score": 8,
+  "progress": 12,
+  "updated_at": "2025-10-20T14:00:00Z"
+}
+Isso facilitará criar a tabela MySQL na v7 sem precisar converter dados.RESUMO DE PRIORIDADES v6[CRÍTICO] Migrar api.js para usar fetch com GraphQL da AniList.[ALTO] Implementar Tradutor de Sinopses (Cache + API).[MÉDIO] Criar Página "Calendário" com horários reais.[MÉDIO] Criar Roleta "O Que Assistir" na lista.[BAIXO] Melhorar UI com Skeleton Screens.
