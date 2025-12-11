@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Common Functions
+ * AnimeEngine v6 - Common Functions
  * Funções compartilhadas entre todas as páginas
  */
 
@@ -15,7 +15,7 @@ const Common = {
         this.createNotificationsButton();
         this.initNotifications();
         this.checkAchievements();
-        console.log('🚀 AnimeEngine v5 loaded!');
+        console.log('🚀 AnimeEngine v6 loaded!');
     },
 
     /**
@@ -314,17 +314,13 @@ const Common = {
      */
     async goToRandomAnime() {
         try {
-            this.showNotification('🎲 Sorteando anime...', 'info');
-            const result = await API.getRandom();
-            
-            if (result && result.mal_id) {
-                window.location.href = `detalhes.html?id=${result.mal_id}`;
-            } else {
-                throw new Error('Dados inválidos');
+            const anime = await API.getRandomAnime();
+            if (anime) {
+                window.location.href = `detalhes.html?id=${anime.id}`;
             }
         } catch (error) {
             console.error('Erro random:', error);
-            this.showNotification('Erro ao buscar anime aleatório', 'error');
+            this.showToast('Erro ao buscar anime aleatório', 'error');
         }
     },
 

@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Goals Module
+ * AnimeEngine v6 - Goals Module
  * Sistema de metas e desafios semanais
  */
 

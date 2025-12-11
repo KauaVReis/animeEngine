@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Detalhes Page
+ * AnimeEngine v6 - Detalhes Page
  */
 
 const DetalhesPage = {
@@ -34,7 +34,7 @@ const DetalhesPage = {
             }
             
             // Atualizar título da página
-            document.title = `${this.anime.title} - ANIME.ENGINE v5`;
+            document.title = `${this.anime.title} - ANIME.ENGINE v6`;
         } catch (error) {
             console.error('Erro ao carregar anime:', error);
             this.showError('Erro ao carregar anime');
@@ -44,7 +44,8 @@ const DetalhesPage = {
     render() {
         const container = document.getElementById('anime-details');
         const anime = this.anime;
-        const status = Storage.getAnimeStatus(anime.id);
+        const listType = Storage.getAnimeStatus(anime.id);
+        const userAnime = listType ? Storage.getList(listType).find(a => a.id == anime.id) : null;
         const isFav = Storage.isFavorite(anime.id);
         
         container.innerHTML = `
@@ -70,7 +71,7 @@ const DetalhesPage = {
                         </div>
                         
                         <div class="details-meta">
-                            <span><i class="fas fa-tv"></i> ${anime.episodes || '?'} episódios</span>
+                            <span><i class="fas fa-tv"></i> ${anime.episodes || anime.total_episodes || '?'} episódios</span>
                             <span><i class="fas fa-clock"></i> ${anime.duration || '24 min'}</span>
                             <span><i class="fas fa-signal"></i> ${anime.status}</span>
                             <span><i class="fas fa-calendar"></i> ${anime.year || '-'}</span>
@@ -81,10 +82,10 @@ const DetalhesPage = {
                         </div>
                         
                         <!-- STATUS BADGE -->
-                        ${status ? `
+                        ${listType ? `
                             <div class="details-current-status">
-                                <span class="status-badge status-${status.list}">
-                                    ${this.getStatusLabel(status.list)}
+                                <span class="status-badge status-${listType}">
+                                    ${this.getStatusLabel(listType)}
                                 </span>
                             </div>
                         ` : ''}
@@ -93,15 +94,14 @@ const DetalhesPage = {
                         <div class="details-rating">
                             <span class="rating-label">Sua Avaliação:</span>
                             <div class="rating-stars" id="rating-stars">
-                                ${this.renderStars(status?.anime?.rating || 0)}
+                                ${this.renderStars(userAnime?.rating || 0)}
                             </div>
                         </div>
                         
                         <div class="details-actions">
-                            <!-- ADD TO LIST DROPDOWN -->
                             <div class="dropdown">
                                 <button class="btn btn-primary dropdown-toggle" onclick="DetalhesPage.toggleDropdown()">
-                                    <i class="fas fa-list"></i> ${status ? 'Mover para' : 'Adicionar'}
+                                    <i class="fas fa-list"></i> ${listType ? 'Mover para' : 'Adicionar'}
                                 </button>
                                 <div class="dropdown-menu" id="list-dropdown">
                                     <button onclick="DetalhesPage.addToList('watching')">📺 Assistindo</button>
@@ -109,7 +109,7 @@ const DetalhesPage = {
                                     <button onclick="DetalhesPage.addToList('completed')">✅ Completo</button>
                                     <button onclick="DetalhesPage.addToList('paused')">⏸️ Pausado</button>
                                     <button onclick="DetalhesPage.addToList('dropped')">❌ Abandonado</button>
-                                    ${status ? '<div class="dropdown-divider"></div><button class="dropdown-remove" onclick="DetalhesPage.removeFromList()">🗑️ Remover da Lista</button>' : ''}
+                                    ${listType ? '<div class="dropdown-divider"></div><button class="dropdown-remove" onclick="DetalhesPage.removeFromList()">🗑️ Remover da Lista</button>' : ''}
                                 </div>
                             </div>
                             
@@ -150,7 +150,7 @@ const DetalhesPage = {
                     <div class="info-grid">
                         <div class="info-item">
                             <span class="info-label">Tipo</span>
-                            <span class="info-value">${anime.rating || 'TV'}</span>
+                            <span class="info-value">${anime.format || 'TV'}</span>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Estúdio</span>
@@ -461,18 +461,18 @@ const DetalhesPage = {
      * Define avaliação
      */
     setRating(rating) {
-        const status = Storage.getAnimeStatus(this.anime.id);
-        if (!status) {
+        const listType = Storage.getAnimeStatus(this.anime.id);
+        if (!listType) {
             Common.showNotification('Adicione o anime à lista primeiro!', 'warning');
             return;
         }
         
         // Atualizar rating no Storage
         const lists = Storage.getLists();
-        const anime = lists[status.list].find(a => a.id === this.anime.id);
+        const anime = lists[listType].find(a => a.id == this.anime.id);
         if (anime) {
             anime.rating = rating;
-            Storage.save('lists', lists);
+            Storage.save(Storage.KEYS.LISTS, lists);
             Storage.addXP(5);
             Common.showNotification(`Avaliação: ${rating} estrelas!`);
             

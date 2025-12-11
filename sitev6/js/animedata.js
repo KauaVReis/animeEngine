@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - AnimeData Module
+ * AnimeEngine v6 - AnimeData Module
  * Dados de episódios e fillers para animes populares
  * Usado para mostrar informações precisas na calculadora
  */

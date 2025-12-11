@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Lista Page
+ * AnimeEngine v6 - Lista Page
  * Gerencia todas as listas do usuário
  */
 
@@ -164,7 +164,7 @@ const ListaPage = {
         item.dataset.id = anime.id;
         
         const progress = anime.progress || 0;
-        const total = anime.episodes || '?';
+        const total = anime.total_episodes || anime.episodes || '?';
         const percent = total !== '?' ? Math.round((progress / total) * 100) : 0;
         
         const statusLabels = {
@@ -224,8 +224,8 @@ const ListaPage = {
                 <div class="form-group">
                     <label>Episódios Assistidos</label>
                     <div class="progress-input">
-                        <input type="number" id="edit-progress" value="${anime.progress || 0}" min="0" max="${anime.episodes || 9999}">
-                        <span>/ ${anime.episodes || '?'}</span>
+                        <input type="number" id="edit-progress" value="${anime.progress || 0}" min="0" max="${anime.total_episodes || anime.episodes || 9999}">
+                        <span>/ ${anime.total_episodes || anime.episodes || '?'}</span>
                     </div>
                 </div>
                 <div class="form-group">
@@ -242,6 +242,18 @@ const ListaPage = {
         `;
         
         Common.openModal(content, { title: anime.title });
+        
+        // Auto-fill progress when changing to Completed
+        const statusSelect = document.getElementById('edit-status');
+        const progressInput = document.getElementById('edit-progress');
+        
+        if (statusSelect && progressInput) {
+            statusSelect.addEventListener('change', (e) => {
+                if (e.target.value === 'completed') {
+                    progressInput.value = progressInput.max;
+                }
+            });
+        }
     },
 
     createRatingStars(currentRating) {
@@ -280,10 +292,16 @@ const ListaPage = {
         if (newStatus !== oldListType) {
             lists[oldListType].splice(index, 1);
             if (!lists[newStatus]) lists[newStatus] = [];
+            
+            // Auto-complete if moving to completed
+            if (newStatus === 'completed') {
+                anime.progress = anime.total_episodes || anime.episodes || anime.progress;
+            }
+            
             lists[newStatus].unshift(anime);
         }
         
-        Storage.save('lists', lists);
+        Storage.save(Storage.KEYS.LISTS, lists);
         Common.closeModal();
         Common.showNotification('Anime atualizado!');
         

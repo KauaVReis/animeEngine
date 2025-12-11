@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeEngine - Version Select</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* AnimeEngine v6 Tokens */
+            --color-bg: #f5f5f5;
+            --color-surface: #ffffff;
+            --color-black: #1a1a1a;
+            --color-white: #ffffff;
+
+            --color-primary-v6: #ff3366;
+            /* v6 Primary */
+            --color-primary-v5: #3366ff;
+            /* v5 Blue Style */
+
+            --border-width: 3px;
+            --border-color: #1a1a1a;
+
+            --shadow-neo: 4px 4px 0 var(--border-color);
+            --shadow-neo-hover: 8px 8px 0 var(--border-color);
+
+            --font-display: 'Archivo Black', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-bg);
+            color: var(--color-black);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            margin: 0 0 1rem 0;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            color: var(--color-black);
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .versions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .version-card {
+            background: var(--color-surface);
+            border: var(--border-width) solid var(--border-color);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-neo);
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .version-card:hover {
+            transform: translate(-2px, -4px);
+            box-shadow: var(--shadow-neo-hover);
+        }
+
+        /* Badges */
+        .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--color-black);
+            color: var(--color-white);
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            border-bottom: var(--border-width) solid var(--border-color);
+            border-left: var(--border-width) solid var(--border-color);
+        }
+
+        .v6-theme .badge {
+            background: var(--color-primary-v6);
+            color: white;
+        }
+
+        .v5-theme .badge {
+            background: #666;
+            color: white;
+        }
+
+        /* Icons */
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .v6-theme .card-icon {
+            color: var(--color-primary-v6);
+        }
+
+        .v5-theme .card-icon {
+            color: var(--color-primary-v5);
+        }
+
+        /* Typography */
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin: 0 0 1rem 0;
+            text-transform: uppercase;
+        }
+
+        .card-desc {
+            color: #555;
+            margin-bottom: 2rem;
+            flex-grow: 1;
+        }
+
+        /* Features */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+        }
+
+        .feature-list li {
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .feature-list i {
+            font-size: 1rem;
+        }
+
+        .v6-theme .feature-list i {
+            color: var(--color-primary-v6);
+        }
+
+        .v5-theme .feature-list i {
+            color: var(--color-primary-v5);
+        }
+
+        /* Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 1rem;
+            border: var(--border-width) solid var(--border-color);
+            transition: all 0.2s;
+            background: var(--color-bg);
+            box-shadow: 2px 2px 0 var(--border-color);
+        }
+
+        .v6-theme .btn {
+            background: var(--color-primary-v6);
+            color: white;
+            border-color: var(--color-black);
+        }
+
+        .v6-theme:hover .btn {
+            background: #e02e5a;
+            box-shadow: 4px 4px 0 var(--border-color);
+            transform: translate(-1px, -1px);
+        }
+
+        .v5-theme .btn {
+            background: #fff;
+            color: var(--color-black);
+        }
+
+        .v5-theme:hover .btn {
+            background: #f0f0f0;
+            box-shadow: 4px 4px 0 var(--border-color);
+            transform: translate(-1px, -1px);
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .versions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">Anime.Engine</h1>
+            <p class="subtitle">Selecione a versão para acessar</p>
+        </header>
+
+        <div class="versions-grid">
+            <!-- V6 CARD (New) -->
+            <a href="sitev6/index.html" class="version-card v6-theme">
+                <div class="badge">Nova Geração</div>
+                <div class="card-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h2 class="card-title">Versão 6.0</h2>
+                <p class="card-desc">
+                    Experiência completa com timeline, calendário sazonal, e sincronização automática via AniList.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check-circle"></i> Design Neo-Brutalist</li>
+                    <li><i class="fas fa-check-circle"></i> Timeline & Calendário</li>
+                    <li><i class="fas fa-check-circle"></i> Tradução Automática</li>
+                </ul>
+                <div class="btn">Acessar v6 (Recomendado)</div>
+            </a>
+
+            <!-- V5 CARD (Legacy) -->
+            <a href="sitev5/index.html" class="version-card v5-theme">
+                <div class="badge">Legado</div>
+                <div class="card-icon">
+                    <i class="fas fa-cube"></i>
+                </div>
+                <h2 class="card-title">Versão 5.0</h2>
+                <p class="card-desc">
+                    Versão clássica para dispositivos antigos ou compatibilidade. Baseada em Jikan API.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check-circle"></i> Interface Clássica</li>
+                    <li><i class="fas fa-check-circle"></i> Modo Leve</li>
+                    <li><i class="fas fa-check-circle"></i> Estável</li>
+                </ul>
+                <div class="btn">Acessar v5 (Clássico)</div>
+            </a>
+        </div>
+
+        <p style="text-align: center; margin-top: 3rem; color: #888; font-size: 0.9rem;">
+            AnimeEngine &copy; 2025 - Todos os direitos reservados.
+        </p>
+    </div>
+
+</body>
+
+</html>

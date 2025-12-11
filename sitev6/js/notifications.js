@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Notifications Module
+ * AnimeEngine v6 - Notifications Module
  * Sistema de notificações persistentes
  */
 

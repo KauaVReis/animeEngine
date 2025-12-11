@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Calculadora Page
+ * AnimeEngine v6 - Calculadora Page
  * Progress bar e lógica exatamente como no v4
  * Contador global contínuo: percorre todos animes sequencialmente
  */
@@ -176,7 +176,7 @@ const CalculadoraPage = {
         container.style.display = 'block';
         
         try {
-            const results = await API.searchAnime(query, 5);
+            const results = await API.searchAnime(query, 1, 5);
             this.renderSearchResults(results);
         } catch (error) {
             container.innerHTML = '<p class="error-message">Erro na busca</p>';
@@ -192,7 +192,8 @@ const CalculadoraPage = {
         }
         
         container.innerHTML = animes.map(anime => {
-            const formatted = API.formatAnime(anime);
+            // const formatted = API.formatAnime(anime);
+            const formatted = anime;
             return `
                 <div class="calc-result-item" onclick="CalculadoraPage.addToStack(${formatted.id})">
                     <img src="${formatted.image}" alt="${formatted.title}">
@@ -221,7 +222,8 @@ const CalculadoraPage = {
         
         try {
             const data = await API.getAnimeById(animeId);
-            const anime = API.formatAnime(data);
+            // const anime = API.formatAnime(data);
+            const anime = data;
             
             this.stack.push({
                 ...anime

@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Achievements Module
+ * AnimeEngine v6 - Achievements Module
  * Sistema de gamificação com XP, níveis e medalhas
  */
 
@@ -166,7 +166,7 @@ const Achievements = {
         user.level = this.getLevel(user.xp).level;
         
         // Salvar
-        Storage.save('user', user);
+        Storage.updateUser(user);
         
         // Mostrar notificações
         newUnlocks.forEach((badge, i) => {

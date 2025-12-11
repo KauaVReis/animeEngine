@@ -37,7 +37,7 @@ const Storage = {
         
         // Simple level up logic: Level N requires N * 100 XP
         // Or cumulative: 100, 300, 600...
-        // Let's keep v5 logic or simple: Level = 1 + floor(sqrt(xp)/10) ? No, let's use the v5 logic if known, or simple linear
+        // Let's keep v6 logic or simple: Level = 1 + floor(sqrt(xp)/10) ? No, let's use the v6 logic if known, or simple linear
         const newLevel = Math.floor(user.xp / 500) + 1;
         
         if (newLevel > user.level) {
@@ -110,7 +110,8 @@ const Storage = {
             title: anime.title || anime.title_english, // Fallback
             image: anime.image,
             score: null, // User score
-            progress: 0,
+            progress: listType === 'completed' ? (anime.episodes || anime.total_episodes || 0) : (anime.progress || 0),
+            total_episodes: anime.episodes,
             total_episodes: anime.episodes,
             updated_at: new Date().toISOString(),
             data: anime // Optional: cache full data
@@ -131,9 +132,9 @@ const Storage = {
     // ========================================
     // FAVORITES
     // ========================================
-    // Favorites are just another list or separate? In v5 it seemed separate.
+    // Favorites are just another list or separate? In v6 it seemed separate.
     // Let's keep it separate or just a boolean flag in lists?
-    // v5 had 'favoritos.html', implying a list.
+    // v6 had 'favoritos.html', implying a list.
     // Let's use a specific key for favorites.
 
     getFavorites() {
@@ -213,6 +214,13 @@ const Storage = {
      */
     save(key, value) {
         this.set(key, value);
+    },
+
+    /**
+     * Alias for get (compatibility)
+     */
+    load(key, defaultValue) {
+        return this.get(key, defaultValue);
     }
 };
 

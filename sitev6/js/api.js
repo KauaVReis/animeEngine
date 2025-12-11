@@ -132,6 +132,35 @@ const API = {
     },
 
     /**
+     * Get Specific Season
+     */
+    async getSeason(year, season, page = 1, perPage = 50) {
+        const query = `
+        query ($page: Int, $perPage: Int, $year: Int, $season: MediaSeason) {
+            Page (page: $page, perPage: $perPage) {
+                media (season: $season, seasonYear: $year, type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+                    id
+                    title { romaji english native }
+                    coverImage { extraLarge large }
+                    averageScore
+                    episodes
+                    format
+                    status
+                    nextAiringEpisode { airingAt timeUntilAiring episode }
+                }
+            }
+        }`;
+        
+        const data = await this.query(query, { 
+            page, 
+            perPage, 
+            year: parseInt(year), 
+            season: season.toUpperCase() 
+        });
+        return Promise.all(data.Page.media.map(m => this.formatAnime(m)));
+    },
+
+    /**
      * Get Top Anime
      */
     async getTopAnime(page = 1, perPage = 10) {
@@ -158,7 +187,7 @@ const API = {
     async getAnimeById(id) {
         const query = `
         query ($id: Int) {
-            Media (id: $id, type: ANIME) {
+            Media (id: $id, type: ANIME, isAdult: false) {
                 id
                 idMal
                 title { romaji english native }
@@ -261,11 +290,28 @@ const API = {
      * Get Airing Schedule (for Calendar)
      * Get episodes airing in the current week range
      */
+    async getGenres() {
+        const query = `
+            query {
+                GenreCollection
+            }
+        `;
+
+        try {
+            const data = await this.query(query);
+            // Map strings to object structure expected by ExplorePage
+            return data.GenreCollection.map(g => ({ mal_id: g, name: g }));
+        } catch (error) {
+            console.error('Error fetching genres:', error);
+            return [];
+        }
+    },
+
     async getAiringSchedule(start, end) {
         const query = `
         query ($start: Int, $end: Int) {
             Page(page: 1, perPage: 50) {
-                airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME) {
+                airingSchedules(airingAt_greater: $start, airingAt_lesser: $end, sort: TIME, notYetAired: true) {
                     id
                     airingAt
                     episode

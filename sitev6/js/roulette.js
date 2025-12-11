@@ -22,14 +22,19 @@ const Roulette = {
         setTimeout(() => {
             const random = list[Math.floor(Math.random() * list.length)];
             
+            // Validate data
+            const title = random.title || 'Sem Título';
+            const image = random.image || 'img/placeholder.jpg';
+            const eps = random.total_episodes || random.episodes || '?';
+            
             // Show result modal
             const content = `
                 <div class="roulette-result">
                     <h2>Você deve assistir:</h2>
                     <div class="roulette-card">
-                        <img src="${random.image}" alt="${random.title}" style="max-width: 200px; border-radius: 10px; margin: 15px 0;">
-                        <h3>${random.title}</h3>
-                        <p>${random.total_episodes || '?'} episódios</p>
+                        <img src="${image}" alt="${title}" style="max-width: 200px; border-radius: 10px; margin: 15px 0;">
+                        <h3>${title}</h3>
+                        <p>${eps} episódios</p>
                         <button class="btn btn-primary" onclick="window.location.href='detalhes.html?id=${random.id}'">
                             Ver Detalhes
                         </button>

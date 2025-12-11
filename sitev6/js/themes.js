@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Themes Module
+ * AnimeEngine v6 - Themes Module
  * Sistema de temas inspirado no v4
  */
 

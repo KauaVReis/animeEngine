@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Calendario Page
+ * AnimeEngine v6 - Calendario Page
  * Grade semanal de animes da temporada atual
  */
 
@@ -73,8 +73,9 @@ const CalendarioPage = {
         
         try {
             // Buscar animes da temporada
-            const data = await API.getSeasonAnimes(this.currentYear, this.currentSeason);
-            this.animes = data.data || [];
+            // Buscar animes da temporada
+            const data = await API.getSeason(this.currentYear, this.currentSeason, 1, 50);
+            this.animes = data || [];
             
             // Renderizar grade
             this.renderCalendar();
@@ -157,11 +158,17 @@ const CalendarioPage = {
         
         this.animes.forEach(anime => {
             // Verificar broadcast
-            const broadcast = anime.broadcast;
+            // Determine day from nextAiringEpisode
             let day = 'unknown';
             
-            if (broadcast && broadcast.day) {
-                day = this.dayMapping[broadcast.day] || 'unknown';
+            if (anime.nextAiringEpisode && anime.nextAiringEpisode.airingAt) {
+                const date = new Date(anime.nextAiringEpisode.airingAt * 1000);
+                const dayIndex = date.getDay(); // 0 = Sunday
+                const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                day = days[dayIndex];
+            } else if (anime.broadcast && anime.broadcast.day) {
+                 // Fallback if broadcast info is somehow present (legacy)
+                 day = this.dayMapping[anime.broadcast.day] || 'unknown';
             }
             
             // Adicionar info de seguindo
@@ -205,12 +212,19 @@ const CalendarioPage = {
      * Criar card de anime para o calendário
      */
     createAnimeCard(anime) {
-        const time = anime.broadcast?.time || '??:??';
+        // Calculate time from nextAiringEpisode
+        let time = '??:??';
+        if (anime.nextAiringEpisode && anime.nextAiringEpisode.airingAt) {
+            const date = new Date(anime.nextAiringEpisode.airingAt * 1000);
+            time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
         const episodes = anime.episodes || '?';
+        const image = anime.image || 'img/placeholder.jpg';
         
         return `
-            <div class="calendar-anime ${anime.isFollowing ? 'following' : ''}" onclick="window.location='detalhes.html?id=${anime.mal_id}'">
-                <img src="${anime.images?.jpg?.image_url || ''}" alt="${anime.title}" loading="lazy">
+            <div class="calendar-anime ${anime.isFollowing ? 'following' : ''}" onclick="window.location='detalhes.html?id=${anime.id}'">
+                <img src="${image}" alt="${anime.title}" loading="lazy" onerror="this.src='img/placeholder.jpg'">
                 <div class="calendar-anime-info">
                     <div class="calendar-anime-title">${anime.title}</div>
                     <div class="calendar-anime-meta">
@@ -219,7 +233,7 @@ const CalendarioPage = {
                     </div>
                 </div>
                 <button class="calendar-follow-btn ${anime.isFollowing ? 'active' : ''}" 
-                        onclick="event.stopPropagation(); CalendarioPage.toggleFollow(${anime.mal_id}, '${anime.title.replace(/'/g, "\\'")}', '${anime.images?.jpg?.image_url || ''}', ${anime.episodes || 0})"
+                        onclick="event.stopPropagation(); CalendarioPage.toggleFollow(${anime.id}, '${anime.title.replace(/'/g, "\\'")}', '${image}', ${anime.episodes || 0})"
                         title="${anime.isFollowing ? 'Deixar de seguir' : 'Seguir'}">
                     <i class="fas ${anime.isFollowing ? 'fa-bell-slash' : 'fa-bell'}"></i>
                 </button>

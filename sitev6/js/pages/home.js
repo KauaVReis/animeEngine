@@ -1,5 +1,5 @@
 /**
- * AnimeEngine v5 - Home Page
+ * AnimeEngine v6 - Home Page
  * Lógica específica da página inicial
  */
 
