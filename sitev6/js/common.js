@@ -65,6 +65,9 @@ const Common = {
 
         // Mobile Search Toggle
         this.createMobileSearchToggle();
+        
+        // Mobile Random Button
+        this.createMobileRandomButton();
     },
 
     /**
@@ -87,6 +90,28 @@ const Common = {
                 if (searchContainer.classList.contains('open')) {
                     setTimeout(() => document.getElementById('search-input')?.focus(), 100);
                 }
+            });
+        }
+    },
+
+    /**
+     * Criar botão Aleatório mobile (header)
+     */
+    createMobileRandomButton() {
+        const headerContent = document.querySelector('.header-content');
+        
+        // Evitar duplicar
+        if (headerContent && !document.querySelector('.random-btn-mobile')) {
+            const randomBtn = document.createElement('button');
+            randomBtn.className = 'random-btn-mobile';
+            randomBtn.innerHTML = '<i class="fas fa-dice"></i>';
+            randomBtn.title = 'Anime Aleatório';
+            
+            // Inserir antes da user area
+            headerContent.insertBefore(randomBtn, document.querySelector('.user-area'));
+            
+            randomBtn.addEventListener('click', () => {
+                this.goToRandomAnime();
             });
         }
     },

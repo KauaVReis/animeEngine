@@ -46,8 +46,8 @@ const HomePage = {
         try {
             // Usar data como seed para "random" consistente no dia
             const today = new Date().toDateString();
-            const storedDate = localStorage.getItem('animeOfDay_date');
-            const storedAnime = localStorage.getItem('animeOfDay_anime');
+            const storedDate = localStorage.getItem('animeOfDay_date_v6');
+            const storedAnime = localStorage.getItem('animeOfDay_anime_v6');
             
             let anime;
             
@@ -57,17 +57,17 @@ const HomePage = {
             } else {
                 // Buscar anime random da temporada
                 await API.delay();
-                const seasonal = await API.getSeasonNow(25);
+                const seasonal = await API.getSeasonNow(1, 25); // Page 1, 25 items
                 
                 if (seasonal && seasonal.length > 0) {
                     // Usar hash da data para selecionar o mesmo anime o dia todo
                     const hash = today.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0);
                     const index = Math.abs(hash) % seasonal.length;
-                    anime = API.formatAnime(seasonal[index]);
+                    anime = seasonal[index]; // Already formatted by API.getSeasonNow
                     
                     // Salvar no localStorage
-                    localStorage.setItem('animeOfDay_date', today);
-                    localStorage.setItem('animeOfDay_anime', JSON.stringify(anime));
+                    localStorage.setItem('animeOfDay_date_v6', today);
+                    localStorage.setItem('animeOfDay_anime_v6', JSON.stringify(anime));
                 }
             }
             

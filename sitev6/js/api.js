@@ -425,13 +425,46 @@ const API = {
      * 
      * However, we can add a generic random finder here too.
      */
+    /**
+     * Get Random Anime
+     * Simulates random by picking a random page from top 5000 popular anime
+     */
     async getRandomAnime() {
-        // AniList doesn't have a direct /random endpoint like Jikan easily accessible without querying a random ID range or using a trick.
-        // A common trick is to query a random page of popular anime or a random ID.
-        // Let's stick to "Random Popular" for now if needed.
-        const randomPage = Math.floor(Math.random() * 50) + 1;
-        const data = await this.getTrending(randomPage, 1);
-        return data[0];
+        // AniList doesn't have a native /random endpoint.
+        // Workaround: Pick a random page (1-500) from the most popular list with perPage: 10
+        // This gives us access to a pool of 5000 random but "valid" anime.
+        
+        const randomPage = Math.floor(Math.random() * 500) + 1; // 1 to 500
+        const query = `
+        query ($page: Int) {
+            Page (page: $page, perPage: 1) {
+                media (type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+                    id
+                    title { romaji english native }
+                    coverImage { extraLarge large }
+                    averageScore
+                    episodes
+                    format
+                    status
+                    description(asHtml: true)
+                    genres
+                    seasonYear
+                }
+            }
+        }`;
+        
+        try {
+            const data = await this.query(query, { page: randomPage });
+            if (data.Page.media.length > 0) {
+                return this.formatAnime(data.Page.media[0]);
+            }
+            // Retry once if empty
+            return this.getTrending(1, 1).then(res => res[0]);
+        } catch (e) {
+            console.error('Random failed, fallback to trending', e);
+            const fallback = await this.getTrending(1, 1);
+            return fallback[0];
+        }
     }
 };
 
