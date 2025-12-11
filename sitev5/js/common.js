@@ -62,6 +62,33 @@ const Common = {
                 }
             });
         }
+
+        // Mobile Search Toggle
+        this.createMobileSearchToggle();
+    },
+
+    /**
+     * Criar botão de busca mobile
+     */
+    createMobileSearchToggle() {
+        const headerContent = document.querySelector('.header-content');
+        const searchContainer = document.querySelector('.search-container');
+        
+        if (headerContent && searchContainer && !document.querySelector('.search-toggle-mobile')) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'search-toggle-mobile';
+            toggleBtn.innerHTML = '<i class="fas fa-search"></i>';
+            
+            // Inserir antes da user area (ou depois do container de busca)
+            headerContent.insertBefore(toggleBtn, document.querySelector('.user-area'));
+            
+            toggleBtn.addEventListener('click', () => {
+                searchContainer.classList.toggle('open');
+                if (searchContainer.classList.contains('open')) {
+                    setTimeout(() => document.getElementById('search-input')?.focus(), 100);
+                }
+            });
+        }
     },
 
     /**
@@ -113,7 +140,7 @@ const Common = {
             <div class="anime-card-image">
                 <img src="${anime.image}" alt="${anime.title}" loading="lazy">
                 <div class="anime-card-overlay">
-                    <button class="btn btn-primary btn-sm" onclick="Common.addToList(${anime.id}, 'watching')">
+                    <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); Common.openListModal({id: ${anime.id}})">
                         <i class="fas fa-plus"></i> Lista
                     </button>
                     <button class="btn btn-secondary btn-sm" onclick="Common.toggleFavorite(${anime.id})">
@@ -216,9 +243,45 @@ const Common = {
             Storage.addXP(10);
             this.showNotification(`"${formatted.title}" adicionado à lista!`);
             this.updateLevelBadge();
+            this.closeModal(); // Fechar modal se estiver aberto
         } catch (error) {
             this.showNotification('Erro ao adicionar anime', 'error');
         }
+    },
+
+    /**
+     * Abrir modal de seleção de lista
+     */
+    async openListModal(anime) {
+        const status = Storage.getAnimeStatus(anime.id);
+        const lists = [
+            { id: 'watching', name: 'Assistindo', icon: '📺' },
+            { id: 'planToWatch', name: 'Quero Ver', icon: '📋' },
+            { id: 'completed', name: 'Completo', icon: '✅' },
+            { id: 'paused', name: 'Pausado', icon: '⏸️' },
+            { id: 'dropped', name: 'Abandonado', icon: '❌' }
+        ];
+
+        let html = `
+            <div class="list-selection-grid" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+        `;
+
+        lists.forEach(list => {
+            const isActive = status === list.id;
+            html += `
+                <button class="btn btn-${isActive ? 'primary' : 'outline'} btn-block" 
+                        onclick="Common.addToList(${anime.id}, '${list.id}')"
+                        style="justify-content: flex-start; text-align: left;">
+                    <span style="font-size: 1.2rem; margin-right: 10px;">${list.icon}</span>
+                    <span>${list.name}</span>
+                    ${isActive ? '<i class="fas fa-check" style="margin-left: auto;"></i>' : ''}
+                </button>
+            `;
+        });
+
+        html += '</div>';
+
+        this.openModal(html, { title: `📝 Adicionar à Lista` });
     },
 
     /**
@@ -241,6 +304,25 @@ const Common = {
             this.updateLevelBadge();
         } catch (error) {
             this.showNotification('Erro ao favoritar', 'error');
+        }
+    },
+
+    /**
+     * Ir para Anime Aleatório
+     */
+    async goToRandomAnime() {
+        try {
+            this.showNotification('🎲 Sorteando anime...', 'info');
+            const result = await API.getRandom();
+            
+            if (result && result.mal_id) {
+                window.location.href = `detalhes.html?id=${result.mal_id}`;
+            } else {
+                throw new Error('Dados inválidos');
+            }
+        } catch (error) {
+            console.error('Erro random:', error);
+            this.showNotification('Erro ao buscar anime aleatório', 'error');
         }
     },
 
@@ -479,6 +561,7 @@ const Common = {
      */
     openSettings() {
         const themes = Themes ? Themes.getAll() : [];
+        const sfw = Storage.getUser().settings?.sfw ?? true;
         
         const themesHTML = themes.map(t => `
             <div class="theme-card ${t.active ? 'active' : ''}" onclick="Common.setTheme('${t.id}')">
@@ -490,12 +573,43 @@ const Common = {
         
         const content = `
             <div class="settings-section">
+                <h4 class="settings-section-title">🛡️ Conteúdo</h4>
+                <div class="settings-option">
+                    <div class="settings-option-info">
+                        <span class="settings-option-name">Modo SFW (Família)</span>
+                        <span class="settings-option-desc">Ocultar conteúdo adulto/ecchi</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" ${sfw ? 'checked' : ''} onchange="Common.toggleSFW(this.checked)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
                 <h4 class="settings-section-title">🎨 Tema</h4>
                 <div class="theme-grid">${themesHTML}</div>
             </div>
         `;
         
         this.openModal(content, { title: '⚙️ Configurações' });
+    },
+
+    /**
+     * Alternar modo SFW
+     */
+    toggleSFW(enabled) {
+        const user = Storage.getUser();
+        const settings = user.settings || {};
+        settings.sfw = enabled;
+        
+        Storage.updateUser({ settings });
+        
+        if (!enabled) {
+            Achievements.unlock('safado');
+        }
+        
+        this.showToast(enabled ? 'Modo SFW ativado 😇' : 'Modo SFW desativado 😈');
     },
 
     /**

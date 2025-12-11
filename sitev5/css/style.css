@@ -235,6 +235,7 @@ h1, h2, h3, h4, h5, h6 {
     border: var(--border-width) solid var(--border-color);
     background: var(--color-surface);
     box-shadow: var(--shadow-neo);
+    transition: all 0.2s ease;
 }
 
 .search-input {
@@ -244,6 +245,7 @@ h1, h2, h3, h4, h5, h6 {
     outline: none;
     font-size: 1rem;
     text-transform: uppercase;
+    width: 100%; /* Garantir largura */
 }
 
 .search-input::placeholder {
@@ -260,6 +262,48 @@ h1, h2, h3, h4, h5, h6 {
 
 .search-btn:hover {
     background: var(--color-primary);
+}
+
+.search-toggle-mobile {
+    display: none;
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border-color);
+    background: var(--color-surface);
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-neo);
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .search-toggle-mobile {
+        display: flex;
+    }
+
+    .search-container {
+        display: none;
+        position: absolute;
+        top: calc(100% + 10px);
+        left: var(--space-md);
+        right: var(--space-md);
+        z-index: 1000;
+        max-width: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: 3px solid var(--border-color);
+        animation: slideDown 0.2s ease-out;
+    }
+
+    .search-container.open {
+        display: flex;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 }
 
 /* User Area */
@@ -584,6 +628,16 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-icon:hover {
     background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn-sm {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    height: 32px;
+}
+
+.btn-primary i {
     color: var(--color-white);
 }
 
@@ -3501,6 +3555,82 @@ select:focus-visible {
     margin-top: 2px;
 }
 
+/* SETTINGS OPTIONS */
+.settings-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    margin-bottom: var(--space-md);
+}
+
+.settings-option-name {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.settings-option-desc {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+/* SWITCH TOGGLE */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-bg);
+    border: 2px solid var(--border-color);
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--color-text);
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--color-primary);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+    background-color: var(--color-white);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
 /* ========================================
    ACHIEVEMENTS SECTION
 ======================================== */
@@ -5228,6 +5358,24 @@ select:focus-visible {
     text-transform: uppercase;
     margin-bottom: var(--space-xs);
     line-height: 1.2;
+}
+
+.anime-of-day-meta-extended {
+    display: flex;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.anime-of-day-synopsis.extended {
+    -webkit-line-clamp: 6;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: var(--space-md);
+    flex: auto;
 }
 
 .anime-of-day-synopsis {

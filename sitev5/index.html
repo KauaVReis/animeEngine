@@ -76,6 +76,11 @@
             <span>Calculadora</span>
         </a>
         
+        <a href="#" class="nav-item" onclick="Common.goToRandomAnime(); return false;">
+            <i class="fas fa-dice"></i>
+            <span>Aleatório</span>
+        </a>
+        
         <div class="nav-divider"></div>
         
         <div class="theme-selector" id="theme-selector"></div>
@@ -90,6 +95,7 @@
         <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
             <i class="fas fa-ellipsis-h"></i>
             <div class="bottom-nav-popup" id="bottom-nav-popup">
+                <a href="#" onclick="Common.goToRandomAnime(); return false;"><i class="fas fa-dice"></i> Aleatório</a>
                 <a href="favoritos.html"><i class="fas fa-star"></i> Favoritos</a>
                 <a href="assistindo.html"><i class="fas fa-play-circle"></i> Assistindo</a>
                 <a href="historico.html"><i class="fas fa-check-circle"></i> Histórico</a>

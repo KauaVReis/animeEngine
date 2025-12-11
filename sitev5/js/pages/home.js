@@ -89,6 +89,14 @@ const HomePage = {
         const isFav = Storage.isFavorite(anime.id);
         const status = Storage.getAnimeStatus(anime.id);
         
+        // Formatar status
+        const mapStatus = {
+            'Currently Airing': 'Em lançamento',
+            'Finished Airing': 'Finalizado',
+            'Not yet aired': 'Não lançado'
+        };
+        const statusText = mapStatus[anime.status] || anime.status;
+        
         container.innerHTML = `
             <div class="anime-of-day">
                 <div class="anime-of-day-header">
@@ -101,15 +109,24 @@ const HomePage = {
                     </div>
                     <div class="anime-of-day-info">
                         <h3 class="anime-of-day-title">${anime.title}</h3>
-                        <p class="anime-of-day-synopsis">${anime.synopsis ? anime.synopsis.slice(0, 150) + '...' : 'Sem sinopse disponível.'}</p>
+                        
+                        <div class="anime-of-day-meta-extended">
+                            <span>${anime.year || 'N/A'}</span>
+                            <span>•</span>
+                            <span>${statusText}</span>
+                            ${anime.studios && anime.studios.length > 0 ? `<span>•</span><span>${anime.studios[0]}</span>` : ''}
+                        </div>
+
+                        <p class="anime-of-day-synopsis extended">${anime.synopsis || 'Sem sinopse disponível.'}</p>
+                        
                         <div class="anime-of-day-meta">
                             <span class="anime-of-day-score"><i class="fas fa-star"></i> ${anime.score || '-'}</span>
                             <span><i class="fas fa-tv"></i> ${anime.episodes || '?'} eps</span>
                             ${anime.genres && anime.genres.length > 0 ? `<span class="anime-of-day-genre">${anime.genres[0]}</span>` : ''}
                         </div>
                         <div class="anime-of-day-actions">
-                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); Common.addToList(${anime.id}, 'watching')">
-                                <i class="fas fa-plus"></i> Adicionar
+                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); Common.openListModal({id: ${anime.id}})">
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-secondary btn-sm ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); Common.toggleFavorite(${anime.id})">
                                 <i class="fas fa-heart"></i>
@@ -170,7 +187,7 @@ const HomePage = {
         }
         
         if (listBtn) {
-            listBtn.onclick = () => Common.addToList(anime.id, 'watching');
+            listBtn.onclick = () => Common.openListModal({id: anime.id});
         }
         
         if (favBtn) {

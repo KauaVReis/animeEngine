@@ -65,7 +65,8 @@ const Achievements = {
         { id: "night_owl", name: "Coruja Noturna", description: "Use entre 00h e 5h", icon: "🦉", xp: 15, condition: (stats) => stats.isNightTime },
         { id: "theme_changer", name: "Estilista", description: "Mude o tema do app", icon: "🎨", xp: 10, condition: (stats) => stats.changedTheme },
         { id: "calculator", name: "Calculista", description: "Use a calculadora", icon: "🧮", xp: 15, condition: (stats) => stats.usedCalculator },
-        { id: "weekender", name: "Fim de Semana", description: "Use no sábado ou domingo", icon: "🎉", xp: 10, condition: (stats) => stats.isWeekend }
+        { id: "weekender", name: "Fim de Semana", description: "Use no sábado ou domingo", icon: "🎉", xp: 10, condition: (stats) => stats.isWeekend },
+        { id: "safado", name: "Safado", description: "Desativou o filtro de conteúdo adulto", icon: "🔞", xp: 69, condition: (stats) => false } // Desbloqueio manual
     ],
 
     /**

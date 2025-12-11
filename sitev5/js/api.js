@@ -109,10 +109,29 @@ const API = {
     // ========================================
 
     /**
+     * Retorna query string SFW se ativado
+     */
+    getSFWQuery() {
+        // Tentar obter do Storage global, default true
+        try {
+            if (typeof Storage !== 'undefined' && Storage.getUser) {
+                const settings = Storage.getUser().settings;
+                // Se sfw for true (ativado), retornar &sfw
+                // Se sfw for false (desativado/safado), retornar string vazia
+                return (settings && settings.sfw !== false) ? '&sfw' : '';
+            }
+        } catch (e) {
+            console.warn('API: Storage not accessible for SFW check');
+        }
+        return '&sfw'; // Default safe
+    },
+
+    /**
      * Animes em alta (airing + popular)
      */
     async getTrending(limit = 10) {
-        const data = await this.fetch(`/top/anime?filter=airing&limit=${limit}`);
+        const sfw = this.getSFWQuery();
+        const data = await this.fetch(`/top/anime?filter=airing&limit=${limit}${sfw}`);
         return data;
     },
 
@@ -120,7 +139,8 @@ const API = {
      * Temporada atual
      */
     async getSeasonNow(limit = 10) {
-        const data = await this.fetch(`/seasons/now?limit=${limit}`);
+        const sfw = this.getSFWQuery();
+        const data = await this.fetch(`/seasons/now?limit=${limit}${sfw}`);
         return data;
     },
 
@@ -129,7 +149,8 @@ const API = {
      */
     async getSeasonAnimes(year, season) {
         // Retornar objeto com data array para manter compatibilidade
-        const data = await this.fetch(`/seasons/${year}/${season}?limit=25`);
+        const sfw = this.getSFWQuery();
+        const data = await this.fetch(`/seasons/${year}/${season}?limit=25${sfw}`);
         return { data: data };
     },
 
@@ -137,7 +158,8 @@ const API = {
      * Top animes de todos os tempos
      */
     async getTopAnime(limit = 10) {
-        const data = await this.fetch(`/top/anime?limit=${limit}`);
+        const sfw = this.getSFWQuery();
+        const data = await this.fetch(`/top/anime?limit=${limit}${sfw}`);
         return data;
     },
 
@@ -153,7 +175,8 @@ const API = {
      * Buscar animes por nome
      */
     async searchAnime(query, limit = 20) {
-        const data = await this.fetch(`/anime?q=${encodeURIComponent(query)}&limit=${limit}`);
+        const sfw = this.getSFWQuery();
+        const data = await this.fetch(`/anime?q=${encodeURIComponent(query)}&limit=${limit}${sfw}`);
         return data;
     },
 
@@ -177,7 +200,8 @@ const API = {
      * Animes por gênero
      */
     async getByGenre(genreId, limit = 20) {
-        const data = await this.fetch(`/anime?genres=${genreId}&limit=${limit}`);
+        const sfw = this.getSFWQuery();
+        const data = await this.fetch(`/anime?genres=${genreId}&limit=${limit}${sfw}`);
         return data;
     },
 
@@ -218,6 +242,17 @@ const API = {
      */
     async getRelations(id) {
         const data = await this.fetch(`/anime/${id}/relations`);
+        return data;
+    },
+
+    /**
+     * Anime Aleatório
+     */
+    async getRandom() {
+        const enabledAndSafe = this.getSFWQuery() === '&sfw';
+        const sfwParam = enabledAndSafe ? '?sfw' : '';
+        // Disable cache for random requests
+        const data = await this.fetch(`/random/anime${sfwParam}`, false);
         return data;
     },
 

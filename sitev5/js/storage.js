@@ -32,7 +32,8 @@ const Storage = {
         settings: {
             theme: 'default',
             preferredStreaming: null,
-            notifications: true
+            notifications: true,
+            sfw: true
         }
     },
 
