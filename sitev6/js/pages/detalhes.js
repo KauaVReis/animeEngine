@@ -120,6 +120,12 @@ const DetalhesPage = {
                             <button class="btn btn-secondary" onclick="DetalhesPage.openStreaming()">
                                 <i class="fas fa-play"></i> Assistir
                             </button>
+                            
+                            ${anime.trailer ? `
+                                <button class="btn btn-secondary" onclick="DetalhesPage.playOpening()" title="Ouvir Opening">
+                                    <i class="fas fa-music"></i> Opening
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -133,16 +139,22 @@ const DetalhesPage = {
                 <!-- TRAILER -->
                 ${anime.trailer ? `
                     <div class="details-section">
-                        <h2 class="section-title"><i class="fas fa-film"></i> Trailer</h2>
-                        <div class="details-trailer">
+                        <h2 class="section-title"><i class="fas fa-film"></i> Trailer <span style="font-size: 0.7rem; color: var(--color-text-muted);">(clique para modo foco)</span></h2>
+                        <div class="details-trailer" onclick="DetalhesPage.toggleFocusMode()">
                             <iframe 
                                 src="${anime.trailer.replace('watch?v=', 'embed/')}" 
                                 frameborder="0" 
                                 allowfullscreen>
                             </iframe>
                         </div>
+                        <button class="trailer-focus-close" onclick="DetalhesPage.toggleFocusMode()">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 ` : ''}
+                
+                <!-- TIMELINE DE FRANQUIAS -->
+                <div class="details-section" id="timeline-container" style="display: none;"></div>
                 
                 <!-- INFO GRID -->
                 <div class="details-section">
@@ -748,6 +760,57 @@ const DetalhesPage = {
             'Hungarian': '🇭🇺'
         };
         return flags[language] || '🌍';
+    },
+    
+    /**
+     * Toggle focus mode for trailer
+     */
+    toggleFocusMode() {
+        document.body.classList.toggle('trailer-focus-mode');
+        
+        // Add ESC key listener when entering focus mode
+        if (document.body.classList.contains('trailer-focus-mode')) {
+            document.addEventListener('keydown', this.handleEscKey);
+        } else {
+            document.removeEventListener('keydown', this.handleEscKey);
+        }
+    },
+    
+    handleEscKey(e) {
+        if (e.key === 'Escape') {
+            DetalhesPage.toggleFocusMode();
+        }
+    },
+    
+    /**
+     * Play anime opening using OST Player
+     */
+    playOpening() {
+        const anime = this.anime;
+        if (!anime || !anime.trailer) {
+            Common.showNotification('Opening não disponível', 'error');
+            return;
+        }
+        
+        // Extract video ID from YouTube URL
+        let videoId = null;
+        const trailer = anime.trailer;
+        
+        if (trailer.includes('youtube.com/watch?v=')) {
+            videoId = trailer.split('watch?v=')[1].split('&')[0];
+        } else if (trailer.includes('youtube.com/embed/')) {
+            videoId = trailer.split('embed/')[1].split('?')[0];
+        } else if (trailer.includes('youtu.be/')) {
+            videoId = trailer.split('youtu.be/')[1].split('?')[0];
+        }
+        
+        if (videoId && typeof OSTPlayer !== 'undefined') {
+            OSTPlayer.play(videoId, anime.title + ' - Opening');
+        } else {
+            // Fallback: search for opening on YouTube
+            const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(anime.title + ' opening full')}`;
+            window.open(searchUrl, '_blank');
+        }
     }
 };
 

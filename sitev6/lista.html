@@ -42,6 +42,7 @@
         <a href="favoritos.html" class="nav-item"><i class="fas fa-star"></i><span>Favoritos</span></a>
         <a href="calendario.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Calendário</span></a>
         <a href="calculadora.html" class="nav-item"><i class="fas fa-calculator"></i><span>Calculadora</span></a>
+        <a href="estatisticas.html" class="nav-item"><i class="fas fa-chart-bar"></i><span>Estatísticas</span></a>
     </nav>
 
     <nav class="bottom-nav">
@@ -56,6 +57,7 @@
                 <a href="assistindo.html"><i class="fas fa-play-circle"></i> Assistindo</a>
                 <a href="historico.html"><i class="fas fa-check-circle"></i> Histórico</a>
                 <a href="calculadora.html"><i class="fas fa-calculator"></i> Calculadora</a>
+                <a href="estatisticas.html"><i class="fas fa-chart-bar"></i> Estatísticas</a>
             </div>
         </div>
     </nav>
@@ -124,29 +126,6 @@
     <button class="fab-btn" onclick="Roulette.spin()" title="Sortear o que assistir">
         <i class="fas fa-dice"></i>
     </button>
-
-    <style>
-        .fab-btn {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            transition: transform 0.2s;
-        }
-
-        .fab-btn:hover {
-            transform: scale(1.1) rotate(180deg);
-        }
-    </style>
 
     <!-- SCRIPTS -->
     <script src="js/translation.js"></script>

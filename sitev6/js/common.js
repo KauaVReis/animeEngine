@@ -677,12 +677,40 @@ const Common = {
             </div>
 
             <div class="settings-section">
+                <h4 class="settings-section-title">✨ Efeitos Visuais</h4>
+                <div class="settings-option">
+                    <div class="settings-option-info">
+                        <span class="settings-option-name">Partículas de Fundo</span>
+                        <span class="settings-option-desc">Efeitos animados baseados no tema</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" ${typeof Particles !== 'undefined' && Particles.enabled ? 'checked' : ''} onchange="Common.toggleParticles(this.checked)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
                 <h4 class="settings-section-title">🎨 Tema</h4>
                 <div class="theme-grid">${themesHTML}</div>
             </div>
         `;
         
         this.openModal(content, { title: '⚙️ Configurações' });
+    },
+    
+    /**
+     * Toggle partículas
+     */
+    toggleParticles(enabled) {
+        if (typeof Particles !== 'undefined') {
+            if (enabled && !Particles.enabled) {
+                Particles.toggle();
+            } else if (!enabled && Particles.enabled) {
+                Particles.toggle();
+            }
+            this.showToast(enabled ? '✨ Partículas ativadas!' : '✨ Partículas desativadas');
+        }
     },
 
     /**

@@ -8,7 +8,10 @@ const Timeline = {
         const container = document.getElementById(containerId);
         if (!container || !relations || !relations.edges || relations.edges.length === 0) return;
 
-        container.innerHTML = '<h3 class="section-title">Timeline da Franquia</h3>';
+        // Show container
+        container.style.display = 'block';
+        
+        container.innerHTML = '<h2 class="section-title"><i class="fas fa-project-diagram"></i> Timeline da Franquia</h2>';
         
         const timelineWrapper = document.createElement('div');
         timelineWrapper.className = 'timeline-wrapper';

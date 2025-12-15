@@ -246,7 +246,7 @@ body.focus-mode:hover .sidebar {
     height: 60px;
     border-radius: 50%;
     background: var(--color-primary);
-    color: var(--color-black);
+    color: #ffffff;
     border: 2px solid var(--color-black);
     box-shadow: 4px 4px 0 rgba(0,0,0,1);
     font-size: 1.5rem;

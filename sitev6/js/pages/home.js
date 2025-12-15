@@ -34,6 +34,12 @@ const HomePage = {
         if (container && typeof Goals !== 'undefined') {
             container.innerHTML = Goals.renderWidget();
         }
+        
+        // Render quote widget
+        const quoteContainer = document.getElementById('quote-container');
+        if (quoteContainer && typeof Quotes !== 'undefined') {
+            quoteContainer.innerHTML = Quotes.renderWidget();
+        }
     },
 
     /**

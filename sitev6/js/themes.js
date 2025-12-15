@@ -25,6 +25,16 @@ var Themes = window.Themes || {
             name: 'Mono',
             icon: '⬛',
             description: 'Preto e branco puro'
+        },
+        dark: {
+            name: 'Dark Mode',
+            icon: '🌙',
+            description: 'Modo escuro elegante'
+        },
+        matrix: {
+            name: 'Matrix',
+            icon: '💚',
+            description: 'Estilo hacker verde'
         }
     },
 
@@ -49,6 +59,11 @@ var Themes = window.Themes || {
         document.documentElement.setAttribute('data-theme', themeName);
         this.currentTheme = themeName;
         localStorage.setItem('animeengine_theme', themeName);
+        
+        // Update particles if available
+        if (window.Particles && Particles.enabled) {
+            Particles.setTheme(themeName);
+        }
         
         console.log(`🎨 Theme applied: ${themeName}`);
     },
