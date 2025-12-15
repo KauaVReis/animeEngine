@@ -975,6 +975,7 @@ h1, h2, h3, h4, h5, h6 {
     
     .main-content {
         padding: var(--space-md);
+        padding-bottom: calc(var(--bottom-nav-height) + var(--space-xl));
     }
     
     .anime-card {
