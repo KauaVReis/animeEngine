@@ -92,3 +92,4 @@ window.Themes = Themes;
 
 // Inicializar
 document.addEventListener('DOMContentLoaded', () => Themes.init());
+

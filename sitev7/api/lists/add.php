@@ -6,6 +6,7 @@
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/atividade.php';
 
 header('Content-Type: application/json');
 
@@ -68,7 +69,12 @@ $sql = "INSERT INTO listas_anime (usuario_id, anime_id, tipo_lista)
             atualizado_em = NOW()";
 
 if (mysqli_query($conn, $sql)) {
+    // Registrar atividade (antes de fechar conexão)
+    $tipo_atividade = $tipo_lista === 'completed' ? 'complete' : 'add';
+    registrarAtividade($usuario_id, $tipo_atividade, $anime_id, ['titulo' => $anime_data['title'] ?? '']);
+    
     mysqli_close($conn);
+    
     jsonSuccess('Anime adicionado à lista!', [
         'anime_id' => $anime_id,
         'tipo_lista' => $tipo_lista
@@ -77,3 +83,4 @@ if (mysqli_query($conn, $sql)) {
     mysqli_close($conn);
     jsonError('Erro ao adicionar anime');
 }
+

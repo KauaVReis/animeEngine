@@ -176,7 +176,7 @@ const StatsPage = {
         }
         
         return animes.map((anime, i) => `
-            <div class="top-rated-item" onclick="window.location='detalhes.html?id=${anime.id}'">
+            <div class="top-rated-item" onclick="window.location='detalhes.php?id=${anime.id}'">
                 <span class="top-rated-rank">#${i + 1}</span>
                 <img src="${anime.image}" alt="${anime.title}">
                 <div class="top-rated-info">
@@ -191,3 +191,4 @@ const StatsPage = {
 };
 
 document.addEventListener('DOMContentLoaded', () => StatsPage.init());
+

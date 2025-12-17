@@ -71,7 +71,7 @@ const Calendar = {
                             <div class="calendar-ep">Ep. ${item.episode}</div>
                         </div>
                     `;
-                    card.onclick = () => window.location.href = `detalhes.html?id=${item.media.id}`;
+                    card.onclick = () => window.location.href = `detalhes.php?id=${item.media.id}`;
                     list.appendChild(card);
                 });
             }
@@ -88,3 +88,4 @@ document.addEventListener('DOMContentLoaded', () => {
         Calendar.init();
     }
 });
+

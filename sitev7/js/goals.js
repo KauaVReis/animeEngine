@@ -375,3 +375,4 @@ window.Goals = Goals;
 
 // Inicializar quando DOM pronto
 document.addEventListener('DOMContentLoaded', () => Goals.init());
+

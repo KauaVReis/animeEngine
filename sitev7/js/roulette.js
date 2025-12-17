@@ -44,7 +44,7 @@ const Roulette = {
                         <img src="${image}" alt="${title}">
                         <h3>${title}</h3>
                         <p>${eps} episódios</p>
-                        <button class="btn btn-primary" onclick="window.location.href='detalhes.html?id=${random.id}'">
+                        <button class="btn btn-primary" onclick="window.location.href='detalhes.php?id=${random.id}'">
                             <i class="fas fa-play"></i> Ver Detalhes
                         </button>
                     </div>
@@ -78,4 +78,5 @@ const Roulette = {
 };
 
 window.Roulette = Roulette;
+
 

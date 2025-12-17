@@ -87,5 +87,34 @@ CREATE TABLE IF NOT EXISTS listas_anime (
 CREATE INDEX idx_usuario_lista ON listas_anime(usuario_id, tipo_lista);
 
 -- ============================================
+-- Tabela de Conquistas/Achievements
+-- ============================================
+CREATE TABLE IF NOT EXISTS conquistas (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    badge_id VARCHAR(50) NOT NULL,
+    desbloqueado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_badge (usuario_id, badge_id)
+);
+
+-- ============================================
+-- Tabela de Metas Semanais
+-- ============================================
+CREATE TABLE IF NOT EXISTS metas_semanais (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    semana_ano VARCHAR(10) NOT NULL,
+    episodios_meta INT DEFAULT 10,
+    episodios_atual INT DEFAULT 0,
+    minutos_meta INT DEFAULT 240,
+    minutos_atual INT DEFAULT 0,
+    completos_meta INT DEFAULT 2,
+    completos_atual INT DEFAULT 0,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_week (usuario_id, semana_ano)
+);
+
+-- ============================================
 -- Executar este SQL no phpMyAdmin!
 -- ============================================

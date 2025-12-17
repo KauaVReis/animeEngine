@@ -294,3 +294,4 @@ window.Particles = Particles;
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => Particles.init(), 500);
 });
+

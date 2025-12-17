@@ -277,3 +277,4 @@ const AnimeData = {
 
 // Expor globalmente
 window.AnimeData = AnimeData;
+

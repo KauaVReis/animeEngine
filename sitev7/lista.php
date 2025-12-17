@@ -24,7 +24,10 @@ require_once 'includes/nav.php';
 
     <!-- TABS -->
     <div class="list-tabs">
-        <button class="list-tab active" data-list="watching">
+        <button class="list-tab active" data-list="all">
+            📚 Todos <span class="tab-count" id="count-all">0</span>
+        </button>
+        <button class="list-tab" data-list="watching">
             📺 Assistindo <span class="tab-count" id="count-watching">0</span>
         </button>
         <button class="list-tab" data-list="planToWatch">

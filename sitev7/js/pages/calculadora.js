@@ -570,3 +570,4 @@ const CalculadoraPage = {
 };
 
 document.addEventListener('DOMContentLoaded', () => CalculadoraPage.init());
+

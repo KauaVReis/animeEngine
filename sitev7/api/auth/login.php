@@ -6,6 +6,7 @@
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/streak.php';
 
 // Headers
 header('Content-Type: application/json');
@@ -36,7 +37,7 @@ $conn = conectar();
 
 // Buscar usuário por email
 $email_escaped = escape($conn, $email);
-$sql = "SELECT id, username, email, senha_hash, avatar, xp, nivel, tema 
+$sql = "SELECT id, username, email, senha_hash, avatar, xp, nivel, tema, streak_atual, streak_max
         FROM usuarios WHERE email = '$email_escaped'";
 $result = mysqli_query($conn, $sql);
 
@@ -62,9 +63,18 @@ mysqli_query($conn, $sql);
 
 mysqli_close($conn);
 
+// Verificar e atualizar streak
+$streak_result = verificarStreak($usuario['id']);
+
 // Remover hash da resposta
 unset($usuario['senha_hash']);
 
+// Adicionar streak à resposta
+$usuario['streak_atual'] = $streak_result['streak'];
+$usuario['streak_max'] = $streak_result['max'];
+
 jsonSuccess('Login realizado com sucesso!', [
-    'usuario' => $usuario
+    'usuario' => $usuario,
+    'streak' => $streak_result
 ]);
+

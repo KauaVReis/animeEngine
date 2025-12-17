@@ -21,21 +21,21 @@ $usuario_id = getUsuarioId();
 
 // Buscar todos os animes do usuário com dados do cache
 $sql = "SELECT 
-            la.anime_id as id,
+            la.anime_id,
             la.tipo_lista,
             la.progresso,
-            la.nota as user_rating,
+            la.nota,
             la.favorito,
             la.adicionado_em,
             la.atualizado_em,
-            ac.titulo as title,
-            ac.imagem as image,
-            ac.episodios as episodes,
-            ac.nota as score,
+            ac.titulo,
+            ac.imagem,
+            ac.episodios,
+            ac.nota as nota_anime,
             ac.status,
-            ac.generos as genres,
+            ac.generos,
             ac.trailer,
-            ac.ano as year
+            ac.ano
         FROM listas_anime la
         JOIN animes_cache ac ON la.anime_id = ac.anime_id
         WHERE la.usuario_id = $usuario_id
@@ -54,28 +54,24 @@ $lists = [
 ];
 
 while ($row = mysqli_fetch_assoc($result)) {
-    // Decodificar JSON
-    $row['genres'] = json_decode($row['genres'], true) ?: [];
-    
-    // Renomear para compatibilidade com frontend
     $anime = [
-        'id' => intval($row['id']),
-        'title' => $row['title'],
-        'image' => $row['image'],
-        'episodes' => intval($row['episodes']),
-        'score' => floatval($row['score']),
+        'anime_id' => intval($row['anime_id']),
+        'titulo' => $row['titulo'],
+        'imagem' => $row['imagem'],
+        'episodios_total' => intval($row['episodios']),
+        'progresso' => intval($row['progresso']),
+        'nota' => intval($row['nota']),
+        'nota_anime' => floatval($row['nota_anime']),
         'status' => $row['status'],
-        'genres' => $row['genres'],
-        'trailer' => $row['trailer'],
-        'year' => intval($row['year']),
-        'progress' => intval($row['progresso']),
-        'rating' => intval($row['user_rating']),
-        'addedAt' => $row['adicionado_em'],
-        'updatedAt' => $row['atualizado_em']
+        'adicionado_em' => $row['adicionado_em'],
+        'atualizado_em' => $row['atualizado_em']
     ];
     
     // Adicionar à lista correspondente
-    $lists[$row['tipo_lista']][] = $anime;
+    $tipo = $row['tipo_lista'];
+    if (isset($lists[$tipo])) {
+        $lists[$tipo][] = $anime;
+    }
     
     // Se for favorito, adicionar também à lista de favoritos
     if ($row['favorito']) {
@@ -85,4 +81,5 @@ while ($row = mysqli_fetch_assoc($result)) {
 
 mysqli_close($conn);
 
-jsonResponse($lists);
+jsonResponse(['lists' => $lists]);
+

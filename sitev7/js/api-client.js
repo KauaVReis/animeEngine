@@ -248,3 +248,4 @@ const StorageV7 = {
 // Exportar globalmente
 window.ApiClient = ApiClient;
 window.StorageV7 = StorageV7;
+

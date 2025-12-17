@@ -223,7 +223,7 @@ const CalendarioPage = {
         const image = anime.image || 'img/placeholder.jpg';
         
         return `
-            <div class="calendar-anime ${anime.isFollowing ? 'following' : ''}" onclick="window.location='detalhes.html?id=${anime.id}'">
+            <div class="calendar-anime ${anime.isFollowing ? 'following' : ''}" onclick="window.location='detalhes.php?id=${anime.id}'">
                 <img src="${image}" alt="${anime.title}" loading="lazy" onerror="this.src='img/placeholder.jpg'">
                 <div class="calendar-anime-info">
                     <div class="calendar-anime-title">${anime.title}</div>
@@ -336,3 +336,4 @@ const CalendarioPage = {
 
 // Inicializar quando DOM pronto
 document.addEventListener('DOMContentLoaded', () => CalendarioPage.init());
+

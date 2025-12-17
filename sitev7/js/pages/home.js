@@ -109,7 +109,7 @@ const HomePage = {
                     <span class="anime-of-day-badge">🎲 ANIME DO DIA</span>
                     <span class="anime-of-day-date">${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
                 </div>
-                <div class="anime-of-day-content" onclick="window.location='detalhes.html?id=${anime.id}'">
+                <div class="anime-of-day-content" onclick="window.location='detalhes.php?id=${anime.id}'">
                     <div class="anime-of-day-image">
                         <img src="${anime.image}" alt="${anime.title}" loading="lazy">
                     </div>
@@ -189,7 +189,7 @@ const HomePage = {
         if (eps) eps.textContent = anime.episodes || '?';
         
         if (detailsBtn) {
-            detailsBtn.href = `detalhes.html?id=${anime.id}`;
+            detailsBtn.href = `detalhes.php?id=${anime.id}`;
         }
         
         if (listBtn) {
@@ -262,7 +262,7 @@ const HomePage = {
         
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
-                window.location.href = `detalhes.html?id=${anime.id}`;
+                window.location.href = `detalhes.php?id=${anime.id}`;
             }
         });
         
@@ -356,3 +356,4 @@ const HomePage = {
 
 // Inicializar quando DOM pronto
 document.addEventListener('DOMContentLoaded', () => HomePage.init());
+

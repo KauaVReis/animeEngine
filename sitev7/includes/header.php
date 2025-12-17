@@ -35,10 +35,10 @@ $pagina_atual = basename($_SERVER['PHP_SELF'], '.php');
             
             <div class="user-area">
                 <?php if ($usuario): ?>
-                    <div class="level-badge" id="level-badge" title="<?= htmlspecialchars($usuario['username']) ?>">
+                    <a href="perfil.php" class="level-badge" id="level-badge" title="Ver Perfil">
                         <span class="level-icon"><?= ['🌱','🌿','🍃','🔥','⚡','💎','🏆','👑','🌟','🐉'][min($usuario['nivel']-1, 9)] ?></span>
                         <span class="level-text">Lv.<?= $usuario['nivel'] ?></span>
-                    </div>
+                    </a>
                     <a href="api/auth/logout.php" class="header-btn" title="Sair">
                         <i class="fas fa-sign-out-alt"></i>
                     </a>

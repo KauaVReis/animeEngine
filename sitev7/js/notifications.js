@@ -272,3 +272,4 @@ const Notifications = {
 
 // Expor globalmente
 window.Notifications = Notifications;
+

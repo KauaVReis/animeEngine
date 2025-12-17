@@ -139,3 +139,4 @@ const Quotes = {
 };
 
 window.Quotes = Quotes;
+

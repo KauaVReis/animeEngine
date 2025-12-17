@@ -215,3 +215,4 @@ const Achievements = {
 
 // Expor globalmente
 window.Achievements = Achievements;
+

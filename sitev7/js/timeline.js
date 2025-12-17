@@ -34,7 +34,7 @@ const Timeline = {
                 <div class="timeline-marker"></div>
                 <div class="timeline-content">
                     <span class="timeline-type">${typeLabel}</span>
-                    <div class="timeline-card" onclick="window.location.href='detalhes.html?id=${node.id}'">
+                    <div class="timeline-card" onclick="window.location.href='detalhes.php?id=${node.id}'">
                         <img src="${node.coverImage.medium}" alt="${node.title.romaji}">
                         <div class="timeline-info">
                             <div class="timeline-title">${node.title.romaji}</div>
@@ -49,3 +49,4 @@ const Timeline = {
         container.appendChild(timelineWrapper);
     }
 };
+

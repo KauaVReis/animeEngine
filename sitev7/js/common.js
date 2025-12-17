@@ -226,7 +226,7 @@ const Common = {
         // Click para detalhes
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
-                window.location.href = `detalhes.html?id=${anime.id}`;
+                window.location.href = `detalhes.php?id=${anime.id}`;
             }
         });
         
@@ -298,19 +298,34 @@ const Common = {
     // ========================================
 
     /**
-     * Adicionar à lista
+     * Adicionar à lista (usa API do backend)
      */
     async addToList(animeId, listName) {
         try {
-            // API now returns formatted anime
-            const formatted = await API.getAnimeById(animeId);
-            // const formatted = API.formatAnime(anime); 
-            Storage.addToList(listName, formatted);
-            Storage.addXP(10);
-            this.showNotification(`"${formatted.title}" adicionado à lista!`);
-            this.updateLevelBadge();
-            this.closeModal(); // Fechar modal se estiver aberto
+            // Buscar dados do anime
+            const animeData = await API.getAnimeById(animeId);
+            
+            // Chamar API do backend
+            const response = await fetch('api/lists/add.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    anime_id: animeId,
+                    tipo_lista: listName,
+                    anime_data: animeData
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification(`"${animeData.title}" adicionado à lista!`);
+                this.closeModal();
+            } else {
+                this.showNotification(result.message || 'Erro ao adicionar', 'error');
+            }
         } catch (error) {
+            console.error('Erro:', error);
             this.showNotification('Erro ao adicionar anime', 'error');
         }
     },
@@ -381,7 +396,7 @@ const Common = {
         try {
             const anime = await API.getRandomAnime();
             if (anime) {
-                window.location.href = `detalhes.html?id=${anime.id}`;
+                window.location.href = `detalhes.php?id=${anime.id}`;
             }
         } catch (error) {
             console.error('Erro random:', error);
@@ -848,4 +863,5 @@ document.addEventListener('DOMContentLoaded', () => {
     Common.init();
     Common.setupScrollReveal();
 });
+
 

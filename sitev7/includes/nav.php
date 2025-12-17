@@ -37,6 +37,9 @@ function navActive($pagina, $atual) {
     <a href="estatisticas.php" class="nav-item <?= navActive('estatisticas', $pagina_atual) ?>">
         <i class="fas fa-chart-bar"></i><span>Estatísticas</span>
     </a>
+    <a href="#" class="nav-item" onclick="goToRandomAnime(); return false;">
+        <i class="fas fa-dice"></i><span>Aleatório</span>
+    </a>
     
     <div class="nav-divider"></div>
     

@@ -406,7 +406,7 @@ const DetalhesPage = {
                                  node.format === 'NOVEL' ? '📚' : '🎬';
                                  
                 grid.innerHTML += `
-                    <div class="relation-card" onclick="window.location.href='detalhes.html?id=${node.id}'" style="cursor: pointer;">
+                    <div class="relation-card" onclick="window.location.href='detalhes.php?id=${node.id}'" style="cursor: pointer;">
                         <div class="relation-icon">${typeIcon}</div>
                         <div class="relation-info">
                             <div class="relation-type">${relationType}</div>
@@ -466,11 +466,29 @@ const DetalhesPage = {
     },
     
     async addToList(listName) {
-        Storage.addToList(listName, this.anime);
-        Storage.addXP(10);
-        Common.showNotification(`"${this.anime.title}" adicionado à lista!`);
-        Common.updateLevelBadge();
-        this.render(); // Re-render para atualizar status
+        try {
+            const response = await fetch('api/lists/add.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    anime_id: this.anime.id,
+                    tipo_lista: listName,
+                    anime_data: this.anime
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                Common.showNotification(`"${this.anime.title}" adicionado à lista!`);
+                this.render();
+            } else {
+                Common.showNotification(result.message || 'Erro', 'error');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            Common.showNotification('Erro ao adicionar', 'error');
+        }
     },
     
     async toggleFavorite() {
@@ -672,7 +690,7 @@ const DetalhesPage = {
             // We use the media pairs we already have. 
             // In v5 it was "Aparece em".
             const animeList = char.media && char.media.edges ? char.media.edges.slice(0, 12).map(edge => `
-                <a href="detalhes.html?id=${edge.node.id}" class="char-anime-link" title="${edge.node.title.romaji}">
+                <a href="detalhes.php?id=${edge.node.id}" class="char-anime-link" title="${edge.node.title.romaji}">
                     <img src="${edge.node.coverImage.medium}" alt="${edge.node.title.romaji}">
                     <span>${edge.node.title.romaji}</span>
                 </a>
@@ -815,3 +833,4 @@ const DetalhesPage = {
 };
 
 document.addEventListener('DOMContentLoaded', () => DetalhesPage.init());
+
