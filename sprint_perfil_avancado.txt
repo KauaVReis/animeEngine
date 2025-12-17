@@ -1,0 +1,262 @@
+================================================================================
+              ANIMEENGINE V7 - SPRINT PERFIL AVANÇADO
+                    Backlog de Tarefas por Sprint
+================================================================================
+
+METODOLOGIA: Sprints de 1 semana
+ESTIMATIVA TOTAL: 5 Sprints (~5 semanas)
+INÍCIO: Dezembro 2024
+
+================================================================================
+                         SPRINT 5 - PERSONALIZAÇÃO
+                    "Bio, Status, Moldura, Cores"
+================================================================================
+
+OBJETIVO: Customização básica do perfil
+
+[ ] TASK 5.1 - Alterar Banco de Dados
+    ├── ALTER TABLE usuarios ADD bio TEXT
+    ├── ALTER TABLE usuarios ADD status_emoji VARCHAR(10)
+    ├── ALTER TABLE usuarios ADD moldura VARCHAR(50)
+    ├── ALTER TABLE usuarios ADD badges_exibidos JSON
+    ├── ALTER TABLE usuarios ADD perfil_publico TINYINT(1)
+    ├── ALTER TABLE usuarios ADD cor_nome VARCHAR(20)
+    └── Tempo estimado: 15min
+
+[ ] TASK 5.2 - API Atualizar Perfil
+    ├── Criar api/users/update_profile.php
+    ├── Validar campos
+    ├── Atualizar bio, status, moldura
+    └── Tempo estimado: 1h
+
+[ ] TASK 5.3 - Página Editar Perfil
+    ├── Criar editar_perfil.php
+    ├── Formulário com campos
+    ├── Preview de moldura
+    ├── Seletor de badges para exibir
+    └── Tempo estimado: 2h
+
+[ ] TASK 5.4 - Atualizar perfil.php
+    ├── Mostrar bio
+    ├── Mostrar status emoji
+    ├── Aplicar moldura no avatar
+    ├── Aplicar cor no nome
+    ├── Exibir badges escolhidos
+    └── Tempo estimado: 1.5h
+
+[ ] TASK 5.5 - CSS Molduras
+    ├── Criar 5 molduras (default, gold, diamond, fire, rainbow)
+    ├── Animações CSS
+    └── Tempo estimado: 1h
+
+ENTREGÁVEL SPRINT 5:
+✓ Usuário pode editar bio e status
+✓ Molduras visuais no avatar
+✓ Badges exibidos no perfil
+
+================================================================================
+                         SPRINT 6 - STREAK
+                       "Sistema de Dias Consecutivos"
+================================================================================
+
+OBJETIVO: Gamificação com streak diário
+
+[ ] TASK 6.1 - Alterar Banco de Dados
+    ├── ALTER TABLE usuarios ADD streak_atual INT DEFAULT 0
+    ├── ALTER TABLE usuarios ADD streak_max INT DEFAULT 0
+    ├── ALTER TABLE usuarios ADD ultimo_acesso_streak DATE
+    └── Tempo estimado: 10min
+
+[ ] TASK 6.2 - Lógica de Streak
+    ├── Criar includes/streak.php
+    ├── Função verificarStreak()
+    ├── Se ontem → streak + 1
+    ├── Se hoje → mantém
+    ├── Se antes → streak = 1
+    ├── Atualizar streak_max se necessário
+    └── Tempo estimado: 1h
+
+[ ] TASK 6.3 - Chamar no Login
+    ├── Modificar api/auth/login.php
+    ├── Chamar verificarStreak() após login
+    └── Tempo estimado: 30min
+
+[ ] TASK 6.4 - Widget Streak no Perfil
+    ├── Mostrar 🔥 streak atual
+    ├── Mostrar recorde pessoal
+    ├── Animação de fogo
+    └── Tempo estimado: 1h
+
+[ ] TASK 6.5 - Conquistas de Streak
+    ├── 7 dias → "Uma Semana"
+    ├── 30 dias → "Um Mês"
+    ├── 100 dias → "Centurião do Streak"
+    └── Tempo estimado: 30min
+
+ENTREGÁVEL SPRINT 6:
+✓ Streak diário funcionando
+✓ Widget visual no perfil
+✓ Novas conquistas
+
+================================================================================
+                         SPRINT 7 - TÍTULOS
+                    "Mestre Shounen, Rei do Isekai"
+================================================================================
+
+OBJETIVO: Sistema de títulos personalizados
+
+[ ] TASK 7.1 - Criar Tabelas
+    ├── CREATE TABLE titulos (id, codigo, nome, tipo, cor)
+    ├── CREATE TABLE usuarios_titulos (usuario_id, titulo_id)
+    ├── ALTER TABLE usuarios ADD titulo_ativo INT
+    └── Tempo estimado: 20min
+
+[ ] TASK 7.2 - Popular Títulos
+    ├── Inserir 15+ títulos
+    ├── Gênero: Mestre Shounen, Senhor Isekai, Rei Romance
+    ├── Sazonais: Veterano Inverno 2024
+    ├── Secretos: Madrugador, Speedrunner
+    ├── Conquista: baseados em achievements
+    └── Tempo estimado: 30min
+
+[ ] TASK 7.3 - API Títulos
+    ├── Criar api/users/titulos.php (GET)
+    ├── Criar api/users/set_titulo.php (POST)
+    └── Tempo estimado: 1h
+
+[ ] TASK 7.4 - Verificar Desbloqueio
+    ├── Criar função verificarTitulos()
+    ├── Verificar gêneros assistidos
+    ├── Desbloquear automaticamente
+    └── Tempo estimado: 1.5h
+
+[ ] TASK 7.5 - UI no Perfil
+    ├── Mostrar título abaixo do nome
+    ├── Lista de títulos disponíveis
+    ├── Botão para trocar título ativo
+    └── Tempo estimado: 1h
+
+ENTREGÁVEL SPRINT 7:
+✓ Títulos desbloqueáveis
+✓ Título exibido no perfil
+✓ Seletor de título
+
+================================================================================
+                         SPRINT 8 - ATIVIDADE + ANIMES
+                    "Histórico e Lista de Animes no Perfil"
+================================================================================
+
+OBJETIVO: Mostrar atividade e animes assistidos
+
+[ ] TASK 8.1 - Tabela Atividades
+    ├── CREATE TABLE atividades
+    ├── tipo: add, complete, rate, favorite
+    └── Tempo estimado: 10min
+
+[ ] TASK 8.2 - Registrar Atividades
+    ├── Modificar api/lists/add.php → log
+    ├── Modificar api/lists/update.php → log
+    └── Tempo estimado: 1h
+
+[ ] TASK 8.3 - API Atividade Recente
+    ├── Criar api/users/atividade.php
+    ├── Retornar últimas 20 atividades
+    └── Tempo estimado: 30min
+
+[ ] TASK 8.4 - Seção Atividade no Perfil
+    ├── Timeline visual
+    ├── "Completou Death Note" ⭐ há 2h
+    └── Tempo estimado: 1h
+
+[ ] TASK 8.5 - Seção Animes no Perfil
+    ├── Grid de animes completos
+    ├── Mostrar nota do usuário
+    ├── Mostrar observações/review
+    ├── Filtro por nota
+    └── Tempo estimado: 1.5h
+
+ENTREGÁVEL SPRINT 8:
+✓ Feed de atividade recente
+✓ Animes com notas no perfil
+
+================================================================================
+                         SPRINT 9 - SOCIAL
+                    "Ranking, Seguir, Comentários"
+================================================================================
+
+OBJETIVO: Features sociais
+
+[ ] TASK 9.1 - Ranking Global
+    ├── Criar api/users/ranking.php
+    ├── Top 100 por XP
+    ├── Posição do usuário atual
+    └── Tempo estimado: 1h
+
+[ ] TASK 9.2 - Ranking Semanal
+    ├── Criar api/users/ranking_semanal.php
+    ├── Baseado em episódios da semana
+    └── Tempo estimado: 1h
+
+[ ] TASK 9.3 - Página de Ranking
+    ├── Criar ranking.php
+    ├── Tabs: Global / Semanal
+    ├── Cards de usuários
+    └── Tempo estimado: 1.5h
+
+[ ] TASK 9.4 - Sistema de Seguir
+    ├── CREATE TABLE seguidores
+    ├── Criar api/users/seguir.php
+    ├── Criar api/users/deixar_seguir.php
+    ├── Botão no perfil
+    └── Tempo estimado: 2h
+
+[ ] TASK 9.5 - Comentários no Perfil
+    ├── CREATE TABLE comentarios_perfil
+    ├── Criar api/users/comentar.php
+    ├── Seção "Mural" no perfil
+    └── Tempo estimado: 2h
+
+[ ] TASK 9.6 - Perfil Público/Privado
+    ├── Toggle nas configurações
+    ├── Verificar antes de mostrar
+    └── Tempo estimado: 30min
+
+[ ] TASK 9.7 - Link Compartilhável
+    ├── URL: perfil.php?user=username
+    ├── Meta tags para preview
+    └── Tempo estimado: 30min
+
+ENTREGÁVEL SPRINT 9:
+✓ Ranking funcionando
+✓ Seguir usuários
+✓ Comentários no perfil
+✓ Compartilhar perfil
+
+================================================================================
+                           RESUMO DOS SPRINTS
+================================================================================
+
+| Sprint | Foco                    | Tasks | Tempo Est. |
+|--------|-------------------------|-------|------------|
+| 5      | Personalização          | 5     | ~6h        |
+| 6      | Streak                  | 5     | ~4h        |
+| 7      | Títulos                 | 5     | ~5h        |
+| 8      | Atividade + Animes      | 5     | ~5h        |
+| 9      | Social                  | 7     | ~9h        |
+|--------|-------------------------|-------|------------|
+| TOTAL  |                         | 27    | ~29h       |
+
+================================================================================
+                           PRÓXIMOS PASSOS
+================================================================================
+
+VOCÊ ESTÁ AQUI → [ ] Sprint 5: Personalização do Perfil
+
+Próximos passos imediatos:
+1. Executar ALTERs no banco
+2. Criar API update_profile
+3. Criar página editar_perfil.php
+
+================================================================================
+                              FIM DO DOCUMENTO
+================================================================================
