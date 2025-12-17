@@ -1,0 +1,495 @@
+================================================================================
+                    ANIMEENGINE V7 - MIGRAÇÃO PARA PHP + SQL
+                         Documento de Planejamento Técnico
+================================================================================
+
+Data: Dezembro 2025
+Autor: Gemini AI
+Baseado em: AnimeEngine v6 (Frontend JS + localStorage)
+
+================================================================================
+1. VISÃO GERAL DA MIGRAÇÃO
+================================================================================
+
+OBJETIVO:
+- Migrar de localStorage para banco de dados MySQL
+- Adicionar autenticação de usuários (login/registro)
+- Criar API REST em PHP para comunicação
+- Manter compatibilidade com a UI existente
+- Adicionar funcionalidades multiplayer/social
+
+STACK PROPOSTA:
+- Backend: PHP 8+ com PDO
+- Banco: MySQL/MariaDB
+- Frontend: Manter HTML/CSS/JS existente
+- Servidor: Apache (XAMPP)
+
+================================================================================
+2. ESTRUTURA DO BANCO DE DADOS
+================================================================================
+
+-- Tabela de Usuários
+CREATE TABLE usuarios (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    avatar VARCHAR(255) DEFAULT NULL,
+    xp INT DEFAULT 0,
+    nivel INT DEFAULT 1,
+    tema VARCHAR(20) DEFAULT 'default',
+    idioma VARCHAR(10) DEFAULT 'pt-br',
+    sfw BOOLEAN DEFAULT TRUE,
+    particulas BOOLEAN DEFAULT TRUE,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ultimo_acesso TIMESTAMP NULL
+);
+
+-- Tabela de Listas de Anime
+CREATE TABLE listas_anime (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    anime_id INT NOT NULL,
+    tipo_lista ENUM('watching', 'planToWatch', 'completed', 'paused', 'dropped') NOT NULL,
+    progresso INT DEFAULT 0,
+    nota INT DEFAULT 0,
+    favorito BOOLEAN DEFAULT FALSE,
+    notas_pessoais TEXT,
+    adicionado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_anime (usuario_id, anime_id)
+);
+
+-- Cache de Animes (dados da API)
+CREATE TABLE animes_cache (
+    anime_id INT PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    titulo_en VARCHAR(255),
+    imagem VARCHAR(500),
+    episodios INT DEFAULT 0,
+    nota DECIMAL(3,1),
+    status VARCHAR(50),
+    sinopse TEXT,
+    generos JSON,
+    estudios JSON,
+    trailer VARCHAR(255),
+    ano INT,
+    temporada VARCHAR(20),
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela de Conquistas/Achievements do Usuário
+CREATE TABLE conquistas (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    badge_id VARCHAR(50) NOT NULL,
+    desbloqueado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_badge (usuario_id, badge_id)
+);
+
+-- Tabela de Metas Semanais
+CREATE TABLE metas_semanais (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    semana_ano VARCHAR(10) NOT NULL,  -- ex: "2025-W50"
+    episodios_meta INT DEFAULT 10,
+    episodios_atual INT DEFAULT 0,
+    minutos_meta INT DEFAULT 240,
+    minutos_atual INT DEFAULT 0,
+    completos_meta INT DEFAULT 2,
+    completos_atual INT DEFAULT 0,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_week (usuario_id, semana_ano)
+);
+
+-- Sessões para autenticação
+CREATE TABLE sessoes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    ip VARCHAR(45),
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expira_em TIMESTAMP NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+================================================================================
+3. ESTRUTURA DE ARQUIVOS PHP (BACKEND)
+================================================================================
+
+sitev7/
+├── api/
+│   ├── config/
+│   │   ├── database.php          # Conexão PDO
+│   │   └── cors.php              # Headers CORS
+│   ├── auth/
+│   │   ├── login.php             # POST - Login
+│   │   ├── register.php          # POST - Registro
+│   │   ├── logout.php            # POST - Logout
+│   │   ├── verify.php            # GET - Verificar sessão
+│   │   └── middleware.php        # Validação de token
+│   ├── users/
+│   │   ├── profile.php           # GET/PUT - Perfil usuário
+│   │   ├── settings.php          # GET/PUT - Configurações
+│   │   ├── stats.php             # GET - Estatísticas
+│   │   └── achievements.php      # GET/POST - Conquistas
+│   ├── lists/
+│   │   ├── get.php               # GET - Obter listas
+│   │   ├── add.php               # POST - Adicionar anime
+│   │   ├── update.php            # PUT - Atualizar (progresso, nota)
+│   │   ├── move.php              # PUT - Mover entre listas
+│   │   └── remove.php            # DELETE - Remover anime
+│   ├── anime/
+│   │   ├── cache.php             # GET/POST - Cache de animes
+│   │   └── search.php            # GET - Busca (proxy para AniList)
+│   └── goals/
+│       ├── get.php               # GET - Metas da semana
+│       └── update.php            # PUT - Atualizar progresso
+│
+├── includes/
+│   ├── functions.php             # Funções helper
+│   └── validation.php            # Validação de dados
+│
+├── css/                          # Manter da v6
+├── js/                           # Manter da v6 + modificações
+└── *.html → *.php                # Converter páginas
+
+================================================================================
+4. MUDANÇAS NO JAVASCRIPT (storage.js → api-client.js)
+================================================================================
+
+ANTES (v6 - localStorage):
+-------------------------------------------------------------------------
+const Storage = {
+    save(key, data) {
+        localStorage.setItem('animeengine_' + key, JSON.stringify(data));
+    },
+    load(key) {
+        return JSON.parse(localStorage.getItem('animeengine_' + key));
+    }
+};
+
+DEPOIS (v7 - API REST):
+-------------------------------------------------------------------------
+const ApiClient = {
+    baseUrl: '/api',
+    token: null,
+    
+    async init() {
+        this.token = localStorage.getItem('auth_token');
+        if (this.token) {
+            await this.verifySession();
+        }
+    },
+    
+    async request(endpoint, method = 'GET', data = null) {
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            }
+        };
+        
+        if (data) options.body = JSON.stringify(data);
+        
+        const response = await fetch(this.baseUrl + endpoint, options);
+        
+        if (response.status === 401) {
+            this.logout();
+            throw new Error('Sessão expirada');
+        }
+        
+        return response.json();
+    },
+    
+    // Métodos de autenticação
+    async login(email, senha) {
+        const result = await this.request('/auth/login.php', 'POST', { email, senha });
+        if (result.success) {
+            this.token = result.token;
+            localStorage.setItem('auth_token', result.token);
+        }
+        return result;
+    },
+    
+    async register(username, email, senha) {
+        return this.request('/auth/register.php', 'POST', { username, email, senha });
+    },
+    
+    logout() {
+        this.token = null;
+        localStorage.removeItem('auth_token');
+        window.location.href = '/login.php';
+    },
+    
+    // Métodos de lista
+    async getLists() {
+        return this.request('/lists/get.php');
+    },
+    
+    async addToList(animeId, listType, animeData) {
+        return this.request('/lists/add.php', 'POST', { 
+            anime_id: animeId, 
+            tipo_lista: listType,
+            anime_data: animeData 
+        });
+    },
+    
+    async updateProgress(animeId, progress) {
+        return this.request('/lists/update.php', 'PUT', { 
+            anime_id: animeId, 
+            progresso: progress 
+        });
+    },
+    
+    async moveToList(animeId, newList) {
+        return this.request('/lists/move.php', 'PUT', { 
+            anime_id: animeId, 
+            tipo_lista: newList 
+        });
+    },
+    
+    // Métodos de estatísticas
+    async getStats() {
+        return this.request('/users/stats.php');
+    },
+    
+    // Métodos de achievements
+    async getAchievements() {
+        return this.request('/users/achievements.php');
+    },
+    
+    async unlockAchievement(badgeId) {
+        return this.request('/users/achievements.php', 'POST', { badge_id: badgeId });
+    }
+};
+
+// Compatibilidade com código existente
+const Storage = {
+    async getList(type) {
+        const lists = await ApiClient.getLists();
+        return lists[type] || [];
+    },
+    
+    async addToList(type, anime) {
+        return ApiClient.addToList(anime.id, type, anime);
+    },
+    
+    // ... outros métodos adaptados
+};
+
+================================================================================
+5. NOVAS FUNCIONALIDADES PARA V7
+================================================================================
+
+5.1 SISTEMA DE AUTENTICAÇÃO
+-----------------------------
+- Tela de login/registro
+- Recuperação de senha (email)
+- Login social (Google, Discord) - opcional
+- Sessões persistentes com tokens JWT ou simples
+
+5.2 PERFIL DE USUÁRIO
+----------------------
+- Página de perfil público
+- Avatar customizável
+- Estatísticas públicas/privadas
+- Badge de nível visível
+
+5.3 FUNCIONALIDADES SOCIAIS
+----------------------------
+- Amigos/Seguidores
+- Compartilhar lista
+- Ver o que amigos estão assistindo
+- Recomendações baseadas em amigos
+
+5.4 SINCRONIZAÇÃO MULTI-DISPOSITIVO
+------------------------------------
+- Dados salvos no servidor
+- Acesso de qualquer dispositivo
+- Histórico de atividade
+
+5.5 RECURSOS AVANÇADOS
+-----------------------
+- Importar lista de MyAnimeList/AniList
+- Exportar dados (JSON/CSV)
+- Backup automático
+- Notificações por email (novos episódios)
+
+================================================================================
+6. EXEMPLO DE ENDPOINT PHP (api/lists/add.php)
+================================================================================
+
+<?php
+require_once '../config/database.php';
+require_once '../auth/middleware.php';
+
+header('Content-Type: application/json');
+
+// Verificar autenticação
+$usuario = autenticar();
+if (!$usuario) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Não autorizado']);
+    exit;
+}
+
+// Receber dados
+$data = json_decode(file_get_contents('php://input'), true);
+
+$anime_id = intval($data['anime_id']);
+$tipo_lista = $data['tipo_lista'];
+$anime_data = $data['anime_data'];
+
+// Validar
+$tipos_validos = ['watching', 'planToWatch', 'completed', 'paused', 'dropped'];
+if (!in_array($tipo_lista, $tipos_validos)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Tipo de lista inválido']);
+    exit;
+}
+
+try {
+    $pdo = getConnection();
+    
+    // Salvar/atualizar cache do anime
+    $stmt = $pdo->prepare("
+        INSERT INTO animes_cache (anime_id, titulo, imagem, episodios, nota, generos, estudios, trailer, ano)
+        VALUES (:id, :titulo, :imagem, :eps, :nota, :generos, :estudios, :trailer, :ano)
+        ON DUPLICATE KEY UPDATE
+            titulo = VALUES(titulo),
+            imagem = VALUES(imagem),
+            episodios = VALUES(episodios),
+            nota = VALUES(nota)
+    ");
+    
+    $stmt->execute([
+        ':id' => $anime_id,
+        ':titulo' => $anime_data['title'],
+        ':imagem' => $anime_data['image'],
+        ':eps' => $anime_data['episodes'] ?? 0,
+        ':nota' => $anime_data['score'] ?? 0,
+        ':generos' => json_encode($anime_data['genres'] ?? []),
+        ':estudios' => json_encode($anime_data['studios'] ?? []),
+        ':trailer' => $anime_data['trailer'] ?? null,
+        ':ano' => $anime_data['year'] ?? null
+    ]);
+    
+    // Adicionar à lista do usuário
+    $stmt = $pdo->prepare("
+        INSERT INTO listas_anime (usuario_id, anime_id, tipo_lista)
+        VALUES (:usuario, :anime, :tipo)
+        ON DUPLICATE KEY UPDATE
+            tipo_lista = VALUES(tipo_lista),
+            atualizado_em = CURRENT_TIMESTAMP
+    ");
+    
+    $stmt->execute([
+        ':usuario' => $usuario['id'],
+        ':anime' => $anime_id,
+        ':tipo' => $tipo_lista
+    ]);
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Anime adicionado com sucesso'
+    ]);
+    
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Erro no banco de dados']);
+}
+
+================================================================================
+7. ARQUIVOS JS A MODIFICAR
+================================================================================
+
+ARQUIVO              | MUDANÇA NECESSÁRIA
+---------------------|----------------------------------------------------
+storage.js           | Substituir por api-client.js (chamadas async)
+common.js            | Adaptar métodos para usar await/async
+achievements.js      | Sincronizar badges com servidor
+goals.js             | Metas salvas no banco por semana
+pages/home.js        | Carregar dados via API
+pages/lista.js       | Operações CRUD via API
+pages/detalhes.js    | Salvar progresso/nota no servidor
+pages/stats.js       | Estatísticas vêm do servidor (mais precisas)
+
+================================================================================
+8. PÁGINAS NOVAS NECESSÁRIAS
+================================================================================
+
+login.php            - Tela de login
+register.php         - Tela de cadastro
+perfil.php           - Página do perfil
+recuperar-senha.php  - Recuperação de senha
+configuracoes.php    - Configurações da conta
+
+================================================================================
+9. ORDEM DE IMPLEMENTAÇÃO SUGERIDA
+================================================================================
+
+FASE 1 - Infraestrutura (1-2 dias)
+-----------------------------------
+[ ] Criar banco de dados e tabelas
+[ ] Configurar conexão PDO
+[ ] Criar middleware de autenticação
+[ ] Implementar login/register
+
+FASE 2 - API Core (2-3 dias)
+-----------------------------
+[ ] Endpoints de listas (CRUD)
+[ ] Cache de animes
+[ ] Sincronização de achievements
+[ ] Metas semanais
+
+FASE 3 - Migração Frontend (2-3 dias)
+--------------------------------------
+[ ] Criar api-client.js
+[ ] Adaptar storage.js como wrapper
+[ ] Converter páginas .html → .php
+[ ] Testar funcionalidades existentes
+
+FASE 4 - Novas Features (3-5 dias)
+-----------------------------------
+[ ] Página de perfil
+[ ] Configurações avançadas
+[ ] Sistema de amigos
+[ ] Importar/Exportar
+
+================================================================================
+10. CONSIDERAÇÕES DE SEGURANÇA
+================================================================================
+
+- Usar password_hash() e password_verify() para senhas
+- Prepared statements SEMPRE (prevenir SQL injection)
+- Validar TODOS os inputs do usuário
+- Rate limiting para prevenir brute force
+- HTTPS obrigatório em produção
+- Tokens com expiração (24h-7d)
+- Sanitizar outputs (htmlspecialchars)
+
+================================================================================
+11. COMPATIBILIDADE
+================================================================================
+
+MANTER FUNCIONANDO:
+- Todos os temas (default, dark, cyberpunk, matrix, mono)
+- Partículas e efeitos visuais
+- OST Player
+- Citações do dia
+- Calculadora
+- Calendário
+
+MIGRAR DADOS:
+- Criar script de migração localStorage → MySQL
+- Usuários existentes podem importar dados salvos
+
+================================================================================
+                              FIM DO DOCUMENTO
+================================================================================
+
+SEM PDO
