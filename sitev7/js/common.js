@@ -26,16 +26,16 @@ const Common = {
     updateLevelBadge() {
         const user = Storage.getUser();
         const badge = document.getElementById('level-badge');
-        
+
         if (badge) {
             const levelIcons = ['🌱', '🌿', '🌳', '⭐', '🌟', '💫', '🔥', '💎', '👑', '🏆'];
             const icon = levelIcons[Math.min(user.level - 1, levelIcons.length - 1)];
-            
+
             badge.innerHTML = `
                 <span class="level-icon">${icon}</span>
                 <span class="level-text">Lv.${user.level}</span>
             `;
-            
+
             // Click para abrir modal de achievements
             badge.style.cursor = 'pointer';
             badge.onclick = () => this.openAchievementsModal();
@@ -48,7 +48,7 @@ const Common = {
     setupSearch() {
         const input = document.getElementById('search-input');
         const btn = document.querySelector('.search-btn');
-        
+
         if (input) {
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && input.value.trim()) {
@@ -56,11 +56,38 @@ const Common = {
                 }
             });
         }
-        
+
         if (btn) {
             btn.addEventListener('click', () => {
                 if (input?.value.trim()) {
                     this.doSearch(input.value.trim());
+                }
+            });
+        }
+
+        // Live Search / Suggestions
+        if (input) {
+            const debouncedSearch = this.debounce(async (text) => {
+                if (text.length < 3) {
+                    this.closeSearchSuggestions();
+                    return;
+                }
+                await this.fetchSearchSuggestions(text);
+            }, 300);
+
+            input.addEventListener('input', (e) => debouncedSearch(e.target.value.trim()));
+
+            // Close on click outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    this.closeSearchSuggestions();
+                }
+            });
+
+            // Restore if focused
+            input.addEventListener('focus', () => {
+                if (input.value.trim().length >= 3) {
+                    this.fetchSearchSuggestions(input.value.trim());
                 }
             });
         }
@@ -70,20 +97,107 @@ const Common = {
     },
 
     /**
+     * Buscar sugestões na AniList
+     */
+    async fetchSearchSuggestions(query) {
+        const gql = `
+            query ($search: String) {
+                Page(page: 1, perPage: 5) {
+                    media(search: $search, type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+                        id
+                        title { romaji }
+                        coverImage { medium }
+                        format
+                        seasonYear
+                    }
+                }
+            }
+        `;
+
+        try {
+            const response = await fetch('https://graphql.anilist.co', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: gql, variables: { search: query } })
+            });
+
+            const data = await response.json();
+            const results = data.data?.Page?.media || [];
+            this.renderSearchSuggestions(results);
+        } catch (e) {
+            console.error('Erro na busca live:', e);
+        }
+    },
+
+    /**
+     * Renderizar dropdown de sugestões
+     */
+    renderSearchSuggestions(results) {
+        let dropdown = document.querySelector('.search-results-dropdown');
+        const container = document.querySelector('.search-container');
+
+        if (!dropdown) {
+            dropdown = document.createElement('div');
+            dropdown.className = 'search-results-dropdown';
+            container.appendChild(dropdown);
+            // Ensure container has relative position for absolute dropdown
+            container.style.position = 'relative';
+        }
+
+        if (results.length === 0) {
+            dropdown.innerHTML = '<div class="search-no-results">Nenhum resultado encontrado</div>';
+            dropdown.classList.add('visible');
+            return;
+        }
+
+        dropdown.innerHTML = results.map(anime => `
+            <a href="detalhes.php?id=${anime.id}" class="search-result-item">
+                <img src="${anime.coverImage.medium}" alt="${anime.title.romaji}">
+                <div class="search-result-info">
+                    <div class="search-result-title">${anime.title.romaji}</div>
+                    <div class="search-result-meta">
+                        ${anime.seasonYear || ''} • ${anime.format || 'TV'}
+                    </div>
+                </div>
+            </a>
+        `).join('');
+
+        // Add "View all" link
+        dropdown.innerHTML += `
+            <a href="#" onclick="event.preventDefault(); Common.doSearch('${document.getElementById('search-input').value}')" class="search-result-all">
+                Ver todos os resultados <i class="fas fa-arrow-right"></i>
+            </a>
+        `;
+
+        dropdown.classList.add('visible');
+    },
+
+    /**
+     * Fechar sugestões
+     */
+    closeSearchSuggestions() {
+        const dropdown = document.querySelector('.search-results-dropdown');
+        if (dropdown) {
+            dropdown.classList.remove('visible');
+            setTimeout(() => dropdown.remove(), 200); // Wait for fade out
+        }
+    },
+
+    /**
      * Criar botão de busca mobile
      */
     createMobileSearchToggle() {
         const headerContent = document.querySelector('.header-content');
         const searchContainer = document.querySelector('.search-container');
-        
+
         if (headerContent && searchContainer && !document.querySelector('.search-toggle-mobile')) {
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'search-toggle-mobile';
             toggleBtn.innerHTML = '<i class="fas fa-search"></i>';
-            
+
             // Inserir antes da user area (ou depois do container de busca)
             headerContent.insertBefore(toggleBtn, document.querySelector('.user-area'));
-            
+
             toggleBtn.addEventListener('click', () => {
                 searchContainer.classList.toggle('open');
                 if (searchContainer.classList.contains('open')) {
@@ -98,17 +212,17 @@ const Common = {
      */
     createMobileRandomButton() {
         const headerContent = document.querySelector('.header-content');
-        
+
         // Evitar duplicar
         if (headerContent && !document.querySelector('.random-btn-mobile')) {
             const randomBtn = document.createElement('button');
             randomBtn.className = 'random-btn-mobile';
             randomBtn.innerHTML = '<i class="fas fa-dice"></i>';
             randomBtn.title = 'Anime Aleatório';
-            
+
             // Inserir antes da user area
             headerContent.insertBefore(randomBtn, document.querySelector('.user-area'));
-            
+
             randomBtn.addEventListener('click', () => {
                 this.goToRandomAnime();
             });
@@ -123,11 +237,11 @@ const Common = {
         // Check if exists using link text or href logic is harder, but simplified check:
         // We look for a nav-item with onclick containing 'Random' or specific class.
         // Assuming index.html hardcoded one doesn't have a specific ID, we can check by text content?
-        
+
         if (sidebar) {
             // Check if already has one (e.g. hardcoded in index.html)
             const existing = Array.from(sidebar.querySelectorAll('.nav-item')).find(el => el.textContent.includes('Aleatório'));
-            
+
             if (!existing) {
                 const link = document.createElement('a');
                 link.href = '#';
@@ -137,7 +251,7 @@ const Common = {
                     e.preventDefault();
                     this.goToRandomAnime();
                 };
-                
+
                 // Insert before divider if exists, else append
                 const divider = sidebar.querySelector('.nav-divider');
                 if (divider) {
@@ -146,8 +260,8 @@ const Common = {
                     // Start inserting before theme selector if exists
                     const themeSel = sidebar.querySelector('.theme-selector');
                     if (themeSel) {
-                         // Or just append to sidebar logic
-                         sidebar.insertBefore(link, themeSel);
+                        // Or just append to sidebar logic
+                        sidebar.insertBefore(link, themeSel);
                     } else {
                         sidebar.appendChild(link);
                     }
@@ -160,7 +274,7 @@ const Common = {
      * Executar busca
      */
     doSearch(query) {
-        window.location.href = `explorar.html?q=${encodeURIComponent(query)}`;
+        window.location.href = `explorar.php?q=${encodeURIComponent(query)}`;
     },
 
     /**
@@ -168,7 +282,7 @@ const Common = {
      */
     markActiveNav() {
         const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-        
+
         // Sidebar
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
@@ -176,7 +290,7 @@ const Common = {
                 item.classList.add('active');
             }
         });
-        
+
         // Bottom nav
         document.querySelectorAll('.bottom-nav-item').forEach(item => {
             item.classList.remove('active');
@@ -196,11 +310,11 @@ const Common = {
     createAnimeCard(anime) {
         const isFav = Storage.isFavorite(anime.id);
         const status = Storage.getAnimeStatus(anime.id);
-        
+
         const card = document.createElement('div');
         card.className = 'anime-card';
         card.dataset.id = anime.id;
-        
+
         card.innerHTML = `
             <div class="anime-card-image">
                 <img src="${anime.image}" alt="${anime.title}" loading="lazy">
@@ -222,14 +336,14 @@ const Common = {
                 </div>
             </div>
         `;
-        
+
         // Click para detalhes
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
                 window.location.href = `detalhes.php?id=${anime.id}`;
             }
         });
-        
+
         return card;
     },
 
@@ -239,14 +353,14 @@ const Common = {
     renderCarousel(containerId, animes) {
         const container = document.getElementById(containerId);
         if (!container) return;
-        
+
         container.innerHTML = '';
-        
+
         if (!animes || animes.length === 0) {
             container.innerHTML = '<p class="empty-message">Nenhum anime encontrado</p>';
             return;
         }
-        
+
         animes.forEach(anime => {
             // const formatted = API.formatAnime(anime); // Data is already formatted by API
             const card = this.createAnimeCard(anime);
@@ -260,7 +374,7 @@ const Common = {
     renderSkeletonCards(containerId, count = 6) {
         const container = document.getElementById(containerId);
         if (!container) return;
-        
+
         container.innerHTML = Array(count).fill('').map(() => `
             <div class="skeleton-card">
                 <div class="skeleton-card-image">
@@ -280,7 +394,7 @@ const Common = {
     renderLoader(containerId, text = 'Carregando...') {
         const container = document.getElementById(containerId);
         if (!container) return;
-        
+
         container.innerHTML = `
             <div class="loader-container">
                 <div class="loader-dots">
@@ -304,7 +418,7 @@ const Common = {
         try {
             // Buscar dados do anime
             const animeData = await API.getAnimeById(animeId);
-            
+
             // Chamar API do backend
             const response = await fetch('api/lists/add.php', {
                 method: 'POST',
@@ -315,9 +429,9 @@ const Common = {
                     anime_data: animeData
                 })
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 this.showNotification(`"${animeData.title}" adicionado à lista!`);
                 this.closeModal();
@@ -375,14 +489,14 @@ const Common = {
             // const formatted = API.formatAnime(anime);
             const wasFav = Storage.isFavorite(animeId);
             Storage.toggleFavorite(formatted);
-            
+
             if (!wasFav) {
                 Storage.addXP(5);
                 this.showNotification(`"${formatted.title}" favoritado!`);
             } else {
                 this.showNotification(`"${formatted.title}" removido dos favoritos`);
             }
-            
+
             this.updateLevelBadge();
         } catch (error) {
             this.showNotification('Erro ao favoritar', 'error');
@@ -422,18 +536,18 @@ const Common = {
         // Remover existente
         const existing = document.querySelector('.notification-toast');
         if (existing) existing.remove();
-        
+
         const toast = document.createElement('div');
         toast.className = `notification-toast notification-${type}`;
         toast.innerHTML = `
             <span>${message}</span>
         `;
-        
+
         document.body.appendChild(toast);
-        
+
         // Animar entrada
         setTimeout(() => toast.classList.add('show'), 10);
-        
+
         // Remover após 3s
         setTimeout(() => {
             toast.classList.remove('show');
@@ -451,7 +565,7 @@ const Common = {
     openModal(content, options = {}) {
         const container = document.getElementById('modal-container');
         if (!container) return;
-        
+
         container.innerHTML = `
             <div class="modal-overlay" onclick="Common.closeModal()">
                 <div class="modal-content ${options.className || ''}" onclick="event.stopPropagation()">
@@ -465,7 +579,7 @@ const Common = {
                 </div>
             </div>
         `;
-        
+
         container.classList.add('open');
         document.body.style.overflow = 'hidden';
     },
@@ -490,9 +604,9 @@ const Common = {
         const currentLevel = Achievements.getLevel(user.xp);
         const nextLevel = Achievements.getNextLevel(user.xp);
         const progressPercent = Achievements.getLevelProgress(user.xp);
-        
+
         const unlockedCount = badges.filter(b => b.unlocked).length;
-        
+
         const badgesHtml = badges.map(badge => `
             <div class="achievement-card-mini ${badge.unlocked ? 'unlocked' : 'locked'}" title="${badge.description}">
                 <div class="achievement-mini-icon">${badge.icon}</div>
@@ -500,7 +614,7 @@ const Common = {
                 <div class="achievement-mini-xp">+${badge.xp}</div>
             </div>
         `).join('');
-        
+
         const content = `
             <div class="achievements-header">
                 <div class="achievements-level">
@@ -525,7 +639,7 @@ const Common = {
                 ${badgesHtml}
             </div>
         `;
-        
+
         this.openModal(content, { title: '🏆 Conquistas' });
     },
 
@@ -553,7 +667,7 @@ const Common = {
     renderSkeletonCarousel(containerId, count = 6) {
         const container = document.getElementById(containerId);
         if (!container) return;
-        
+
         container.innerHTML = '';
         for (let i = 0; i < count; i++) {
             container.appendChild(this.createSkeletonCard());
@@ -569,7 +683,7 @@ const Common = {
      */
     setupScrollReveal() {
         const elements = document.querySelectorAll('.scroll-reveal');
-        
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -577,7 +691,7 @@ const Common = {
                 }
             });
         }, { threshold: 0.1 });
-        
+
         elements.forEach(el => observer.observe(el));
     },
 
@@ -626,14 +740,14 @@ const Common = {
     // ========================================
     // SETTINGS
     // ========================================
-    
+
     /**
      * Criar botão de settings flutuante
      */
     createSettingsButton() {
         // Evitar duplicar
         if (document.querySelector('.settings-btn')) return;
-        
+
         const btn = document.createElement('button');
         btn.className = 'settings-btn';
         btn.innerHTML = '<i class="fas fa-cog"></i>';
@@ -647,7 +761,7 @@ const Common = {
     openSettings() {
         const themes = Themes ? Themes.getAll() : [];
         const sfw = Storage.getUser().settings?.sfw ?? true;
-        
+
         const themesHTML = themes.map(t => `
             <div class="theme-card ${t.active ? 'active' : ''}" onclick="Common.setTheme('${t.id}')">
                 <div class="theme-card-icon">${t.icon}</div>
@@ -655,7 +769,7 @@ const Common = {
                 <div class="theme-card-desc">${t.description}</div>
             </div>
         `).join('');
-        
+
         const content = `
             <div class="settings-section">
                 <h4 class="settings-section-title">🌐 Idioma da Tradução</h4>
@@ -710,10 +824,10 @@ const Common = {
                 <div class="theme-grid">${themesHTML}</div>
             </div>
         `;
-        
+
         this.openModal(content, { title: '⚙️ Configurações' });
     },
-    
+
     /**
      * Toggle partículas
      */
@@ -735,13 +849,13 @@ const Common = {
         const user = Storage.getUser();
         const settings = user.settings || {};
         settings.sfw = enabled;
-        
+
         Storage.updateUser({ settings });
-        
+
         if (!enabled) {
             Achievements.unlock('safado');
         }
-        
+
         this.showToast(enabled ? 'Modo SFW ativado 😇' : 'Modo SFW desativado 😈');
     },
 
@@ -792,7 +906,7 @@ const Common = {
     createNotificationsButton() {
         const userArea = document.querySelector('.user-area');
         if (!userArea || document.getElementById('notifications-btn')) return;
-        
+
         const btn = document.createElement('div');
         btn.className = 'notifications-wrapper';
         btn.innerHTML = `
@@ -802,14 +916,14 @@ const Common = {
             </button>
             <div class="notifications-dropdown" id="notifications-dropdown"></div>
         `;
-        
+
         userArea.insertBefore(btn, userArea.firstChild);
-        
+
         // Atualizar badge
         if (typeof Notifications !== 'undefined') {
             setTimeout(() => Notifications.updateBadge(), 100);
         }
-        
+
         // Fechar dropdown ao clicar fora
         document.addEventListener('click', (e) => {
             const dropdown = document.getElementById('notifications-dropdown');
@@ -826,9 +940,9 @@ const Common = {
     toggleNotifications() {
         const dropdown = document.getElementById('notifications-dropdown');
         if (!dropdown) return;
-        
+
         dropdown.classList.toggle('open');
-        
+
         if (dropdown.classList.contains('open')) {
             this.renderNotificationsDropdown();
         }
@@ -840,7 +954,7 @@ const Common = {
     renderNotificationsDropdown() {
         const dropdown = document.getElementById('notifications-dropdown');
         if (!dropdown || typeof Notifications === 'undefined') return;
-        
+
         dropdown.innerHTML = Notifications.renderDropdown();
     },
 

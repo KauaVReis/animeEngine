@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade - AnimeEngine</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- HEADER (Copied from Site v6) -->
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version" style="background: var(--secondary); color: black;">ARCADE</span>
+            </a>
+
+            <!-- Search disabled for Arcade for now -->
+            <div class="search-container" style="opacity: 0.5; pointer-events: none;">
+                <input type="text" class="search-input" placeholder="Buscar no Engine..." disabled>
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="user-area">
+                <div class="level-badge">
+                    <span class="level-icon">🎮</span>
+                    <span class="level-text">Player</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR (Modified for Arcade Context) -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item active">
+            <i class="fas fa-gamepad"></i>
+            <span>Arcade Home</span>
+        </a>
+
+        <div class="nav-divider"></div>
+        <div
+            style="padding: 10px 24px; font-size: 0.75rem; color: var(--text-sec); font-weight: bold; text-transform: uppercase;">
+            Jogos</div>
+
+        <a href="music_quiz.html" class="nav-item">
+            <i class="fas fa-music"></i>
+            <span>Music Quiz</span>
+        </a>
+        <a href="char_dle.html" class="nav-item">
+            <i class="fas fa-user-secret"></i>
+            <span>CharacterDle</span>
+        </a>
+        <a href="pixel_cover.html" class="nav-item">
+            <i class="fas fa-image"></i>
+            <span>Pixel Cover</span>
+        </a>
+
+        <div class="nav-divider"></div>
+        <div
+            style="padding: 10px 24px; font-size: 0.75rem; color: var(--text-sec); font-weight: bold; text-transform: uppercase;">
+            Engine</div>
+
+        <a href="../sitev6/index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Voltar ao Site</span>
+        </a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h1>🎮 Anime Arcade</h1>
+                <p style="color: var(--text-sec);">Desafios diários para testar seu conhecimento.</p>
+            </div>
+
+            <div class="menu">
+                <!-- Music Quiz -->
+                <a href="music_quiz.html" class="menu-item">
+                    <span class="badge">Popular</span>
+                    <span class="icon">🎵</span>
+                    <span class="title">Music Quiz</span>
+                    <span class="desc">Adivinha a a OP/ED do anime! Modos Infinito e Diário.</span>
+                </a>
+
+                <!-- CharacterDle -->
+                <a href="char_dle.html" class="menu-item">
+                    <span class="badge new">Update</span>
+                    <span class="icon">👤</span>
+                    <span class="title">CharacterDle</span>
+                    <span class="desc">Quem é este personagem? Atributos OnePieceDle Style.</span>
+                </a>
+
+                <!-- Pixel Cover -->
+                <a href="pixel_cover.html" class="menu-item">
+                    <span class="badge new">Novo</span>
+                    <span class="icon">🖼️</span>
+                    <span class="title">Pixel Cover</span>
+                    <span class="desc">Adivinha o anime pelo zoom da capa.</span>
+                </a>
+            </div>
+        </div>
+    </main>
+
+</body>
+
+</html>

@@ -5,34 +5,34 @@
 const DetalhesPage = {
     anime: null,
     animeId: null,
-    
+
     async init() {
         console.log('📖 Loading Details Page...');
-        
+
         // Pegar ID da URL
         const params = new URLSearchParams(window.location.search);
         this.animeId = params.get('id');
-        
+
         if (!this.animeId) {
             this.showError('Anime não especificado');
             return;
         }
-        
+
         await this.loadAnime();
         console.log('✅ Details Page loaded!');
     },
-    
+
     async loadAnime() {
         try {
             const data = await API.getAnimeById(this.animeId);
             this.anime = data; // Already formatted
             this.render();
-            
+
             // Render Timeline
             if (typeof Timeline !== 'undefined') {
                 Timeline.render('timeline-container', this.anime.relations);
             }
-            
+
             // Atualizar título da página
             document.title = `${this.anime.title} - ANIME.ENGINE v6`;
         } catch (error) {
@@ -40,14 +40,14 @@ const DetalhesPage = {
             this.showError('Erro ao carregar anime');
         }
     },
-    
+
     render() {
         const container = document.getElementById('anime-details');
         const anime = this.anime;
         const listType = Storage.getAnimeStatus(anime.id);
         const userAnime = listType ? Storage.getList(listType).find(a => a.id == anime.id) : null;
         const isFav = Storage.isFavorite(anime.id);
-        
+
         container.innerHTML = `
             <!-- HERO -->
             <div class="details-hero" style="background-image: url('${anime.image}')">
@@ -104,11 +104,11 @@ const DetalhesPage = {
                                     <i class="fas fa-list"></i> ${listType ? 'Mover para' : 'Adicionar'}
                                 </button>
                                 <div class="dropdown-menu" id="list-dropdown">
-                                    <button onclick="DetalhesPage.addToList('watching')">📺 Assistindo</button>
-                                    <button onclick="DetalhesPage.addToList('planToWatch')">📋 Quero Ver</button>
-                                    <button onclick="DetalhesPage.addToList('completed')">✅ Completo</button>
-                                    <button onclick="DetalhesPage.addToList('paused')">⏸️ Pausado</button>
-                                    <button onclick="DetalhesPage.addToList('dropped')">❌ Abandonado</button>
+                                    <button class="${listType === 'watching' ? 'active' : ''}" onclick="DetalhesPage.addToList('watching')">📺 Assistindo</button>
+                                    <button class="${listType === 'planToWatch' ? 'active' : ''}" onclick="DetalhesPage.addToList('planToWatch')">📋 Quero Ver</button>
+                                    <button class="${listType === 'completed' ? 'active' : ''}" onclick="DetalhesPage.addToList('completed')">✅ Completo</button>
+                                    <button class="${listType === 'paused' ? 'active' : ''}" onclick="DetalhesPage.addToList('paused')">⏸️ Pausado</button>
+                                    <button class="${listType === 'dropped' ? 'active' : ''}" onclick="DetalhesPage.addToList('dropped')">❌ Abandonado</button>
                                     ${listType ? '<div class="dropdown-divider"></div><button class="dropdown-remove" onclick="DetalhesPage.removeFromList()">🗑️ Remover da Lista</button>' : ''}
                                 </div>
                             </div>
@@ -204,37 +204,37 @@ const DetalhesPage = {
                 </div>
             </div>
         `;
-        
+
         // Carregar dados adicionais
         this.loadCharacters();
         this.loadRelations();
         this.loadRecommendations();
     },
-    
+
     // Armazenar dados de personagens para paginação
     charactersData: [],
     charactersShown: 0,
     apiPage: 1,
     hasNextPage: false,
     CHARS_PER_PAGE: 10,
-    
+
     /**
      * Carregar personagens e dubladores
      */
     async loadCharacters() {
         try {
             await API.delay();
-            
+
             // Initial data from getAnimeById (Page 1)
             const characters = this.anime.characters;
             const data = characters ? characters.edges : [];
             const grid = document.getElementById('characters-grid');
-            
+
             if (!data || data.length === 0) {
                 document.getElementById('characters-section').style.display = 'none';
                 return;
             }
-            
+
             // Initialization
             this.charactersData = data;
             this.charactersShown = 0;
@@ -245,33 +245,33 @@ const DetalhesPage = {
             if (characters && characters.pageInfo) {
                 this.hasNextPage = characters.pageInfo.hasNextPage;
             } else {
-                 // Fallback if something fails: assume true if full page
-                 this.hasNextPage = this.charactersData.length >= 25; 
+                // Fallback if something fails: assume true if full page
+                this.hasNextPage = this.charactersData.length >= 25;
             }
-            
+
             grid.innerHTML = '';
-            
+
             // Mostrar primeiros 10
             this.showMoreCharacters();
-            
+
             // Adicionar botão se houver mais
             if (this.hasNextPage || data.length > this.CHARS_PER_PAGE) {
                 this.addShowMoreButton();
             }
-            
+
         } catch (error) {
             console.error('Erro ao carregar personagens:', error);
             document.getElementById('characters-section').style.display = 'none';
         }
     },
-    
+
     /**
      * Mostrar mais personagens
      */
     async showMoreCharacters() {
         const grid = document.getElementById('characters-grid');
         const btn = document.getElementById('show-more-chars-btn');
-        
+
         // Check if we need to fetch more data
         // If we are showing everything we have AND there is a next page
         if (this.charactersShown + this.CHARS_PER_PAGE > this.charactersData.length && this.hasNextPage) {
@@ -279,47 +279,47 @@ const DetalhesPage = {
                 btn.innerHTML = '<div class="loader-sm"></div> Carregando...';
                 btn.disabled = true;
             }
-            
+
             try {
                 // Fetch next page
                 this.apiPage++;
                 const newData = await API.getCharacters(this.animeId, this.apiPage);
-                
+
                 if (newData && newData.edges) {
                     this.charactersData = [...this.charactersData, ...newData.edges];
                     this.hasNextPage = newData.pageInfo.hasNextPage;
                 } else {
                     this.hasNextPage = false;
                 }
-                
+
             } catch (error) {
                 console.error('Erro ao buscar mais personagens:', error);
                 if (btn) {
-                     btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao carregar';
-                     btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao carregar';
+                    btn.disabled = false;
                 }
                 return;
             } finally {
                 if (btn) btn.disabled = false;
             }
         }
-    
+
         const start = this.charactersShown;
         const end = start + this.CHARS_PER_PAGE;
         const chars = this.charactersData.slice(start, end);
-        
+
         chars.forEach(edge => {
-                const char = edge.node;
-                const role = edge.role;
-                const vas = edge.voiceActors || [];
-                const vaJP = vas.find(v => v.language === 'Japanese');
-                const va = vaJP || vas[0];
-                const vaLang = va ? (va.language === 'Japanese' ? '🇯🇵' : '🌍') : '';
-                
-                const roleClass = role === 'MAIN' ? 'main' : '';
-                const roleText = role === 'MAIN' ? '⭐ Principal' : 'Secundário';
-                
-                grid.innerHTML += `
+            const char = edge.node;
+            const role = edge.role;
+            const vas = edge.voiceActors || [];
+            const vaJP = vas.find(v => v.language === 'Japanese');
+            const va = vaJP || vas[0];
+            const vaLang = va ? (va.language === 'Japanese' ? '🇯🇵' : '🌍') : '';
+
+            const roleClass = role === 'MAIN' ? 'main' : '';
+            const roleText = role === 'MAIN' ? '⭐ Principal' : 'Secundário';
+
+            grid.innerHTML += `
                     <div class="character-card" onclick="DetalhesPage.openCharacterModal(${char.id})" style="cursor: pointer;">
                         <div class="character-card-image">
                             <img src="${char.image?.large}" alt="${char.name.full}" loading="lazy">
@@ -337,13 +337,13 @@ const DetalhesPage = {
                     </div>
                 `;
         });
-        
+
         this.charactersShown = Math.min(end, this.charactersData.length);
-        
+
         // Update Button Logic
         if (btn) {
             const moreLocal = this.charactersShown < this.charactersData.length;
-            
+
             if (!moreLocal && !this.hasNextPage) {
                 btn.parentElement.style.display = 'none';
             } else {
@@ -351,7 +351,7 @@ const DetalhesPage = {
                 // Calculate approximately how many left if we know total, otherwise just "Ver Mais"
                 // API v2 pageInfo gives total, but getAnimeById didn't. getCharacters does.
                 // Let's just say "Ver Mais" or calculate simple local remaining if no next page
-                
+
                 if (this.hasNextPage) {
                     btn.innerHTML = `<i class="fas fa-plus"></i> Ver Mais`;
                 } else {
@@ -361,14 +361,14 @@ const DetalhesPage = {
             }
         }
     },
-    
+
     /**
      * Adicionar botão Ver Mais
      */
     addShowMoreButton() {
         const section = document.getElementById('characters-section');
         const remaining = this.charactersData.length - this.CHARS_PER_PAGE;
-        
+
         const btnContainer = document.createElement('div');
         btnContainer.className = 'show-more-container';
         btnContainer.innerHTML = `
@@ -378,7 +378,7 @@ const DetalhesPage = {
         `;
         section.appendChild(btnContainer);
     },
-    
+
     /**
      * Carregar obras relacionadas (manga, sequels, etc)
      */
@@ -386,25 +386,25 @@ const DetalhesPage = {
         try {
             await API.delay();
             // Use relations from this.anime
-            const data = this.anime.relations; 
+            const data = this.anime.relations;
             const grid = document.getElementById('relations-grid');
-            
+
             if (!data || !data.edges || data.edges.length === 0) {
                 document.getElementById('relations-section').style.display = 'none';
                 return;
             }
-            
+
             grid.innerHTML = '';
-            
+
             // AniList relations are in data.edges
             data.edges.forEach(edge => {
                 const node = edge.node;
                 const relationType = edge.relationType.replace(/_/g, ' ');
-                
-                const typeIcon = node.format === 'MANGA' ? '📖' : 
-                                 node.format === 'TV' ? '📺' :
-                                 node.format === 'NOVEL' ? '📚' : '🎬';
-                                 
+
+                const typeIcon = node.format === 'MANGA' ? '📖' :
+                    node.format === 'TV' ? '📺' :
+                        node.format === 'NOVEL' ? '📚' : '🎬';
+
                 grid.innerHTML += `
                     <div class="relation-card" onclick="window.location.href='detalhes.php?id=${node.id}'" style="cursor: pointer;">
                         <div class="relation-icon">${typeIcon}</div>
@@ -421,24 +421,24 @@ const DetalhesPage = {
             document.getElementById('relations-section').style.display = 'none';
         }
     },
-    
+
     async loadRecommendations() {
         try {
             await API.delay();
             // Use recommendations from this.anime
             const data = this.anime.recommendations;
             const carousel = document.getElementById('recommendations-carousel');
-            
+
             if (!data || !data.nodes || data.nodes.length === 0) {
                 document.getElementById('recommendations-section').style.display = 'none';
                 return;
             }
-            
+
             carousel.innerHTML = '';
             data.nodes.slice(0, 10).forEach(node => {
                 const rec = node.mediaRecommendation;
                 if (!rec) return;
-                
+
                 const anime = {
                     id: rec.id,
                     title: rec.title.romaji,
@@ -453,7 +453,7 @@ const DetalhesPage = {
             console.error('Erro ao carregar recomendações:', error);
         }
     },
-    
+
     getStatusLabel(status) {
         const labels = {
             watching: '📺 Assistindo',
@@ -464,48 +464,63 @@ const DetalhesPage = {
         };
         return labels[status] || status;
     },
-    
-    async addToList(listName) {
+
+    /**
+     * Adicionar à lista (Local Storage)
+     */
+    addToList(listName) {
         try {
-            const response = await fetch('api/lists/add.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    anime_id: this.anime.id,
-                    tipo_lista: listName,
-                    anime_data: this.anime
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                Common.showNotification(`"${this.anime.title}" adicionado à lista!`);
+            const currentStatus = Storage.getAnimeStatus(this.anime.id);
+
+            // LOGIC: Toggle (Remove if clicking same status)
+            if (currentStatus === listName) {
+                Storage.removeFromAllLists(this.anime.id);
+                Common.showNotification('Removido da lista');
                 this.render();
-            } else {
-                Common.showNotification(result.message || 'Erro', 'error');
+                return;
             }
+
+            // Remove from old list if exists
+            if (currentStatus) {
+                Storage.removeFromAllLists(this.anime.id);
+            }
+
+            // Add to new list (Pass raw anime object, Storage handles formatting)
+            Storage.addToList(listName, this.anime);
+
+            // UI Feedback
+            Common.showNotification(`"${this.anime.title}" adicionado à lista!`);
+            Storage.addXP(10); // Bonus XP
+
+            // Close dropdown and refresh
+            const dropdown = document.getElementById('list-dropdown');
+            if (dropdown) dropdown.classList.remove('show');
+
+            this.render(); // Re-render to show updated status
+
         } catch (error) {
-            console.error('Erro:', error);
-            Common.showNotification('Erro ao adicionar', 'error');
+            console.error('Erro ao adicionar à lista:', error);
+            Common.showNotification('Erro ao adicionar à lista', 'error');
         }
     },
-    
+
+
+
     async toggleFavorite() {
         const wasFav = Storage.isFavorite(this.anime.id);
         Storage.toggleFavorite(this.anime);
-        
+
         if (!wasFav) {
             Storage.addXP(5);
             Common.showNotification(`"${this.anime.title}" favoritado!`);
         } else {
             Common.showNotification(`"${this.anime.title}" removido dos favoritos`);
         }
-        
+
         Common.updateLevelBadge();
         this.render();
     },
-    
+
     openStreaming() {
         const anime = this.anime;
         const services = [
@@ -514,28 +529,28 @@ const DetalhesPage = {
             { name: 'Better Anime', icon: '🟢', url: `https://betteranime.net/pesquisa?titulo=${encodeURIComponent(anime.title)}`, official: false },
             { name: 'AnimeFire', icon: '🔵', url: `https://animefire.net/pesquisar/${encodeURIComponent(anime.title)}`, official: false }
         ];
-        
+
         let content = '<div class="streaming-list">';
-        
+
         content += '<p class="streaming-label">Oficiais:</p>';
         services.filter(s => s.official).forEach(s => {
             content += `<a href="${s.url}" target="_blank" class="streaming-link official">${s.icon} ${s.name}</a>`;
         });
-        
+
         content += '<p class="streaming-label">Alternativas:</p>';
         services.filter(s => !s.official).forEach(s => {
             content += `<a href="${s.url}" target="_blank" class="streaming-link">${s.icon} ${s.name}</a>`;
         });
-        
+
         content += '</div>';
-        
+
         Common.openModal(content, { title: `📺 Onde Assistir: ${anime.title}` });
     },
-    
+
     // ========================================
     // RATING & LIST MANAGEMENT
     // ========================================
-    
+
     /**
      * Renderiza estrelas de avaliação (10 estrelas)
      */
@@ -547,7 +562,7 @@ const DetalhesPage = {
         }
         return html;
     },
-    
+
     /**
      * Define avaliação
      */
@@ -557,7 +572,7 @@ const DetalhesPage = {
             Common.showNotification('Adicione o anime à lista primeiro!', 'warning');
             return;
         }
-        
+
         // Atualizar rating no Storage
         const lists = Storage.getLists();
         const anime = lists[listType].find(a => a.id == this.anime.id);
@@ -566,13 +581,13 @@ const DetalhesPage = {
             Storage.save(Storage.KEYS.LISTS, lists);
             Storage.addXP(5);
             Common.showNotification(`Avaliação: ${rating} estrelas!`);
-            
+
             // Atualizar UI
             document.getElementById('rating-stars').innerHTML = this.renderStars(rating);
             Common.updateLevelBadge();
         }
     },
-    
+
     /**
      * Remover da lista
      */
@@ -581,14 +596,14 @@ const DetalhesPage = {
         Common.showNotification(`"${this.anime.title}" removido da lista`);
         this.render();
     },
-    
+
     /**
      * Toggle dropdown de listas
      */
     toggleDropdown() {
         const dropdown = document.getElementById('list-dropdown');
         dropdown.classList.toggle('show');
-        
+
         // Fechar ao clicar fora
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.dropdown')) {
@@ -596,7 +611,7 @@ const DetalhesPage = {
             }
         }, { once: true });
     },
-    
+
     showError(message) {
         const container = document.getElementById('anime-details');
         container.innerHTML = `
@@ -607,7 +622,7 @@ const DetalhesPage = {
             </div>
         `;
     },
-    
+
     /**
      * Abrir modal com detalhes do personagem
      */
@@ -626,16 +641,16 @@ const DetalhesPage = {
 
         try {
             const char = await API.getCharacterById(characterId);
-            
+
             if (!char) {
-                 Common.closeModal();
-                 Common.showToast('Erro ao carregar personagem', 'error');
-                 return;
+                Common.closeModal();
+                Common.showToast('Erro ao carregar personagem', 'error');
+                return;
             }
 
             // Translate description if available
             let description = char.description || 'Sem descrição.';
-            
+
             // Check translation service availability
             if (window.Translation) {
                 // If description is super long, the translator might skip it (returns original)
@@ -648,7 +663,7 @@ const DetalhesPage = {
             // ---------------------------------------------------------
             // Aggregate unique VAs by ID, prioritizing Japanese, English, Portuguese
             const vaMap = new Map();
-            
+
             if (char.media && char.media.edges) {
                 char.media.edges.forEach(edge => {
                     if (edge.voiceActors) {
@@ -660,9 +675,9 @@ const DetalhesPage = {
                     }
                 });
             }
-            
+
             const uniqueVAs = Array.from(vaMap.values());
-            
+
             // Sort: BR first, then JP, then others
             uniqueVAs.sort((a, b) => {
                 const getScore = (lang) => {
@@ -680,7 +695,7 @@ const DetalhesPage = {
             // ---------------------------------------------------------
             // 4. Render Layout (v5 Style)
             // ---------------------------------------------------------
-            
+
             // Format nicknames
             const nicknames = char.name.alternative && char.name.alternative.length > 0
                 ? char.name.alternative.join(', ')
@@ -748,7 +763,7 @@ const DetalhesPage = {
                     </div>
                 </div>
             `;
-            
+
             // Hacky update of modal content since Common.openModal replaces everything
             const modalBody = document.querySelector('.modal-body');
             if (modalBody) modalBody.innerHTML = modalContent;
@@ -759,7 +774,7 @@ const DetalhesPage = {
             Common.closeModal();
         }
     },
-    
+
     /**
      * Retornar bandeira do idioma
      */
@@ -779,13 +794,13 @@ const DetalhesPage = {
         };
         return flags[language] || '🌍';
     },
-    
+
     /**
      * Toggle focus mode for trailer
      */
     toggleFocusMode() {
         document.body.classList.toggle('trailer-focus-mode');
-        
+
         // Add ESC key listener when entering focus mode
         if (document.body.classList.contains('trailer-focus-mode')) {
             document.addEventListener('keydown', this.handleEscKey);
@@ -793,13 +808,13 @@ const DetalhesPage = {
             document.removeEventListener('keydown', this.handleEscKey);
         }
     },
-    
+
     handleEscKey(e) {
         if (e.key === 'Escape') {
             DetalhesPage.toggleFocusMode();
         }
     },
-    
+
     /**
      * Play anime opening using OST Player
      */
@@ -809,11 +824,11 @@ const DetalhesPage = {
             Common.showNotification('Opening não disponível', 'error');
             return;
         }
-        
+
         // Extract video ID from YouTube URL
         let videoId = null;
         const trailer = anime.trailer;
-        
+
         if (trailer.includes('youtube.com/watch?v=')) {
             videoId = trailer.split('watch?v=')[1].split('&')[0];
         } else if (trailer.includes('youtube.com/embed/')) {
@@ -821,7 +836,7 @@ const DetalhesPage = {
         } else if (trailer.includes('youtu.be/')) {
             videoId = trailer.split('youtu.be/')[1].split('?')[0];
         }
-        
+
         if (videoId && typeof OSTPlayer !== 'undefined') {
             OSTPlayer.play(videoId, anime.title + ' - Opening');
         } else {

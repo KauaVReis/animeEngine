@@ -1,0 +1,579 @@
+/**
+ * AnimeEngine v6 MiniGames - Styles
+ * Based on Neo-Brutalist Design System from Site v6
+ */
+
+:root {
+    /* Colors (Dark Theme Default for Games) */
+    --bg: #0d0d12;
+    --surface: #1a1a24;
+    --text: #f0f0f5;
+    --text-sec: #b0b0c0;
+
+    --primary: #a855f7;
+    --secondary: #f59e0b;
+    --error: #cf6679;
+    --success: #22c55e;
+
+    --border-color: #3d3d4a;
+    --border-width: 3px;
+
+    --shadow-neo: 4px 4px 0 #0a0a0f;
+    --shadow-neo-hover: 6px 6px 0 rgba(168, 85, 247, 0.4);
+
+    --font-display: 'Archivo Black', sans-serif;
+    --font-body: 'Space Grotesk', sans-serif;
+
+    --header-height: 70px;
+    --sidebar-width: 240px;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    margin: 0;
+    padding: 0;
+    /* Reset padding to allow sidebar layout */
+    min-height: 100vh;
+    display: block;
+    /* Changed from flex center */
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* HEADER */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: var(--surface);
+    border-bottom: var(--border-width) solid var(--border-color);
+    z-index: 1000;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 24px;
+}
+
+.logo {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+}
+
+.logo-text {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: -1px;
+}
+
+.logo-version {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    transform: rotate(-3deg);
+}
+
+.search-container {
+    flex: 1;
+    max-width: 400px;
+    display: flex;
+    border: var(--border-width) solid var(--border-color);
+    margin: 0 20px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0 !important;
+    /* Override generic input */
+}
+
+.search-btn {
+    padding: 0 15px;
+    background: var(--surface);
+    color: var(--text);
+    border-left: var(--border-width) solid var(--border-color);
+    margin: 0 !important;
+    box-shadow: none !important;
+}
+
+.user-area .level-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: var(--border-width) solid var(--border-color);
+    background: var(--surface);
+}
+
+/* SIDEBAR */
+.sidebar {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--surface);
+    border-right: var(--border-width) solid var(--border-color);
+    padding: 20px 0;
+    overflow-y: auto;
+    z-index: 900;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 24px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    color: var(--text-sec);
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    background: var(--bg);
+    color: var(--text);
+}
+
+.nav-item.active {
+    color: var(--primary);
+    background: rgba(168, 85, 247, 0.1);
+    border-right: 4px solid var(--primary);
+}
+
+.nav-item i {
+    width: 20px;
+    text-align: center;
+}
+
+.nav-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 10px 0;
+}
+
+/* MAIN CONTENT */
+.main-content {
+    margin-left: var(--sidebar-width);
+    margin-top: var(--header-height);
+    padding: 40px;
+    min-height: calc(100vh - var(--header-height));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* --- Rest of Styles Preserved --- */
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-display);
+    color: var(--primary);
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Menu Grid */
+.menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.menu-item {
+    background: var(--surface);
+    padding: 25px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-item:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-neo-hover);
+    border-color: var(--primary);
+}
+
+.menu-item .icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+}
+
+.menu-item:hover .icon {
+    transform: scale(1.1);
+}
+
+.menu-item .title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.menu-item .desc {
+    color: var(--text-sec);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.badge.new {
+    background: var(--secondary);
+    color: black;
+}
+
+/* Game Area */
+.game-area {
+    background: var(--surface);
+    padding: 30px;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    text-align: center;
+}
+
+/* Forms & Inputs override for main area */
+.game-area input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    margin: 20px 0;
+    border: var(--border-width) solid var(--border-color);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1.1rem;
+    font-family: var(--font-body);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.game-area input[type="text"]:focus {
+    border-color: var(--primary);
+}
+
+/* Buttons */
+button {
+    background: var(--primary);
+    color: white;
+    border: var(--border-width) solid var(--border-color);
+    padding: 12px 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: var(--shadow-neo);
+    transition: all 0.2s;
+    font-family: var(--font-display);
+    margin: 5px;
+}
+
+button:hover:not(:disabled) {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-neo-hover);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+}
+
+/* Feedback */
+.feedback {
+    margin-top: 20px;
+    font-weight: bold;
+    padding: 15px;
+    border: var(--border-width) solid transparent;
+}
+
+.feedback.success {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+    border-color: var(--success);
+}
+
+.feedback.error {
+    background: rgba(207, 102, 121, 0.1);
+    color: var(--error);
+    border-color: var(--error);
+}
+
+/* Games Specifics */
+.visualizer-container {
+    background: var(--bg);
+    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: var(--border-width) solid var(--border-color);
+    overflow: hidden;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    /* Make it circular like a record/visualizer area */
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Vinyl Animation */
+.vinyl-record {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #222 20%, #111 21%, #111 25%, #222 26%, #222 30%, #111 31%, #000 70%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 5px solid #111;
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+    transition: transform 0.5s ease;
+}
+
+.vinyl-label {
+    width: 35%;
+    height: 35%;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 3px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+}
+
+.vinyl-record.spinning {
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Equalizer Bars (Fake) */
+.equalizer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 5px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.bar {
+    width: 15px;
+    background: var(--secondary);
+    animation: bounce 0.5s infinite alternate;
+}
+
+.bar:nth-child(odd) {
+    animation-duration: 0.6s;
+    background: var(--primary);
+}
+
+.bar:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.bar:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.bar:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+@keyframes bounce {
+    from {
+        height: 10%;
+    }
+
+    to {
+        height: 80%;
+    }
+}
+
+/* Original CharDle Stuff */
+.char-image-container {
+    width: 250px;
+    height: 250px;
+    margin: 20px auto;
+    overflow: hidden;
+    background: #000;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+}
+
+.char-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    filter: brightness(0);
+    transition: filter 1s ease;
+}
+
+/* Comparison Table */
+.comparison-container {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.comp-header {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--text-sec);
+}
+
+.comp-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    margin-bottom: 5px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.comp-cell {
+    padding: 10px 5px;
+    background: var(--surface);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    min-height: 50px;
+}
+
+.comp-cell.correct {
+    background: var(--success);
+    color: #000;
+    border-color: var(--success);
+}
+
+.comp-cell.incorrect {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+}
+
+.comp-cell.partial {
+    background: var(--secondary);
+    color: #000;
+    border-color: var(--secondary);
+}
+
+/* Pixel Cover */
+.pixel-container {
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+    overflow: hidden;
+    border: var(--border-width) solid var(--border-color);
+    position: relative;
+    background: #000;
+}
+
+.pixel-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(20);
+    transform-origin: center center;
+    transition: transform 0.5s ease;
+    pointer-events: none;
+}
+
+.pixel-img.revealed {
+    transform: scale(1);
+}
+
+.difficulty-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 2px 5px;
+    font-size: 0.7rem;
+}

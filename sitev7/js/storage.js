@@ -34,25 +34,25 @@ const Storage = {
     addXP(amount) {
         const user = this.getUser();
         user.xp += amount;
-        
+
         // Simple level up logic: Level N requires N * 100 XP
         // Or cumulative: 100, 300, 600...
         // Let's keep v6 logic or simple: Level = 1 + floor(sqrt(xp)/10) ? No, let's use the v6 logic if known, or simple linear
         const newLevel = Math.floor(user.xp / 500) + 1;
-        
+
         if (newLevel > user.level) {
             user.level = newLevel;
             // Common.showNotification ? We are in storage layer.
             // Dispatch event?
         }
-        
+
         this.set(this.KEYS.USER, user);
     },
 
     // ========================================
     // LISTS (Watching, Plan to Watch, etc)
     // ========================================
-    
+
     /**
      * Get list items
      */
@@ -84,6 +84,27 @@ const Storage = {
         return lists;
     },
 
+
+
+    /**
+     * Remove anime from all lists
+     */
+    removeFromAllLists(id) {
+        const lists = this.get(this.KEYS.LISTS, {
+            watching: [],
+            planToWatch: [],
+            completed: [],
+            dropped: [],
+            paused: []
+        });
+
+        Object.keys(lists).forEach(key => {
+            lists[key] = lists[key].filter(i => i.id != id);
+        });
+
+        this.set(this.KEYS.LISTS, lists);
+    },
+
     /**
      * Add or Update item in list
      * @param {string} listType 
@@ -100,7 +121,7 @@ const Storage = {
 
         // Remove from all other lists first (an anime can only be in one list status)
         Object.keys(lists).forEach(key => {
-            lists[key] = lists[key].filter(i => i.id !== anime.id);
+            lists[key] = lists[key].filter(i => i.id != anime.id);
         });
 
         // Add to target list
@@ -111,8 +132,7 @@ const Storage = {
             image: anime.image,
             score: null, // User score
             progress: listType === 'completed' ? (anime.episodes || anime.total_episodes || 0) : (anime.progress || 0),
-            total_episodes: anime.episodes,
-            total_episodes: anime.episodes,
+            total_episodes: anime.episodes || anime.total_episodes || anime.totalEpisodes || 0,
             updated_at: new Date().toISOString(),
             data: anime // Optional: cache full data
         };
@@ -149,7 +169,7 @@ const Storage = {
     toggleFavorite(anime) {
         let favs = this.getFavorites();
         const existingIndex = favs.findIndex(f => f.id == anime.id);
-        
+
         if (existingIndex >= 0) {
             favs.splice(existingIndex, 1);
         } else {
@@ -160,7 +180,7 @@ const Storage = {
                 added_at: new Date().toISOString()
             });
         }
-        
+
         this.set('animeengine_favorites_v6', favs);
     },
 
@@ -169,10 +189,10 @@ const Storage = {
     // ========================================
     addToHistory(anime, episode) {
         let history = this.get(this.KEYS.HISTORY, []);
-        
+
         // Remove existing entry for this anime
         history = history.filter(h => h.id !== anime.id);
-        
+
         // Add new to top
         history.unshift({
             id: anime.id,
@@ -181,10 +201,10 @@ const Storage = {
             episode: episode,
             viewed_at: new Date().toISOString()
         });
-        
+
         // Limit to 50
         if (history.length > 50) history.pop();
-        
+
         this.set(this.KEYS.HISTORY, history);
     },
 

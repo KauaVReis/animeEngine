@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Cover - Arcade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .autocomplete-items {
+            position: absolute;
+            border: 2px solid var(--border-color);
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .autocomplete-item:hover {
+            background-color: var(--bg);
+        }
+
+        .ac-thumb {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        #give-up-btn {
+            background-color: var(--error);
+            border-color: var(--error);
+            display: none;
+            margin-top: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version" style="background: var(--secondary); color: black;">ARCADE</span>
+            </a>
+
+            <button id="open-calendar-btn"
+                style="background: var(--surface); color: var(--text); border: 2px solid var(--border-color); display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-calendar-alt"></i> <span id="date-badge">📅 Hoje</span>
+            </button>
+
+            <div class="user-area">
+                <div class="level-badge"><span class="level-icon">🎮</span> <span class="level-text">Player</span></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-gamepad"></i> <span>Arcade Home</span></a>
+        <div class="nav-divider"></div>
+        <a href="music_quiz.html" class="nav-item"><i class="fas fa-music"></i> <span>Music Quiz</span></a>
+        <a href="char_dle.html" class="nav-item"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
+        <a href="pixel_cover.html" class="nav-item active"><i class="fas fa-image"></i> <span>Pixel Cover</span></a>
+        <div class="nav-divider"></div>
+        <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="container">
+            <h1>🖼️ Pixel Cover</h1>
+            <div class="game-area">
+                <div class="attempts-left">Tentativa <span id="attempt-count">1</span>/5</div>
+
+                <div class="pixel-container">
+                    <span class="difficulty-badge" id="zoom-badge">Zoom: 20x</span>
+                    <img id="cover-image" class="pixel-img" src="" alt="Capa Secreta">
+                </div>
+
+                <div class="input-wrapper">
+                    <input type="text" id="guess-input" placeholder="Nome do Anime..." autocomplete="off">
+                    <div id="autocomplete-list" class="autocomplete-items" style="display: none;"></div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button id="submit-btn" onclick="Game.checkGuess()">Adivinhar</button>
+                    <!-- Added ID skip-btn here -->
+                    <button id="skip-btn" class="btn-secondary" onclick="Game.skip()" style="font-size: 0.8rem;">Pular /
+                        Menos Zoom</button>
+                </div>
+
+                <button id="give-up-btn" onclick="Game.giveUp()">🏳️ Desistir</button>
+
+                <div id="feedback" class="feedback"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api_wrapper.js"></script>
+    <script src="js/calendar_system.js"></script>
+    <script>
+        // Init
+        CalendarSystem.init('pixel_cover');
+
+        const Game = {
+            anime: null,
+            attempts: 0,
+            maxAttempts: 5,
+            zoomLevel: 20,
+
+            async init() {
+                try {
+                    const seed = API.getDailySeed();
+                    const list = await API.getRandomAnime(seed);
+                    if (!list || list.length === 0) throw new Error("No data");
+
+                    this.anime = list[seed % list.length];
+                    console.log("Answer:", this.anime.title.romaji);
+
+                    document.getElementById('cover-image').src = this.anime.coverImage.extraLarge;
+
+                    const rX = (seed * 9301 + 49297) % 100;
+                    const rY = (seed * 49297 + 9301) % 100;
+                    document.getElementById('cover-image').style.transformOrigin = `${rX}% ${rY}%`;
+                    document.getElementById('cover-image').style.transform = `scale(${this.zoomLevel})`;
+
+                    // Enter Key Support
+                    document.getElementById('guess-input').addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') this.checkGuess();
+                    });
+
+                } catch (e) { console.error(e); }
+            },
+
+            checkGuess() {
+                if (this.attempts >= this.maxAttempts) return;
+                const input = document.getElementById('guess-input');
+                const guess = input.value.trim().toLowerCase();
+                if (!guess) return;
+
+                const titles = [this.anime.title.romaji, this.anime.title.english, this.anime.title.native]
+                    .filter(t => t).map(t => t.toLowerCase());
+
+                const isCorrect = titles.some(t => t === guess || (t.length > 4 && guess.includes(t)));
+                this.attempts++;
+
+                if (isCorrect) {
+                    this.endGame(true);
+                    document.getElementById('feedback').textContent = `🎉 Acertou! Era ${this.anime.title.romaji}`;
+                    document.getElementById('feedback').className = 'feedback success';
+                } else {
+                    this.reduceDifficulty();
+                    document.getElementById('feedback').textContent = "❌ Errado! Zoom diminuiu.";
+                    document.getElementById('feedback').className = 'feedback error';
+
+                    if (this.attempts >= this.maxAttempts) {
+                        this.endGame(false);
+                    } else {
+                        // Update counter
+                        document.getElementById('attempt-count').textContent = this.attempts + 1;
+                        if (this.attempts + 1 === this.maxAttempts) {
+                            document.getElementById('give-up-btn').style.display = 'block';
+                            // Disable Skip at 5/5
+                            document.getElementById('skip-btn').disabled = true;
+                        }
+                    }
+                }
+                input.value = '';
+            },
+
+            skip() {
+                if (this.attempts < this.maxAttempts) {
+                    this.attempts++;
+                    // Update counter
+                    if (this.attempts < this.maxAttempts) {
+                        document.getElementById('attempt-count').textContent = this.attempts + 1;
+                    }
+                    this.reduceDifficulty();
+
+                    if (this.attempts + 1 === this.maxAttempts) {
+                        document.getElementById('give-up-btn').style.display = 'block';
+                        // Disable Skip at 5/5 (since we are now ON the 5th attempt)
+                        document.getElementById('skip-btn').disabled = true;
+                    }
+                    if (this.attempts >= this.maxAttempts) {
+                        this.endGame(false);
+                        document.getElementById('feedback').textContent = "⚠️ Acabaram as 5 tentativas. Game Over.";
+                        document.getElementById('feedback').className = 'feedback error';
+                    }
+                }
+            },
+
+            giveUp() {
+                document.getElementById('cover-image').classList.add('revealed');
+                document.getElementById('cover-image').style.transform = `scale(1)`;
+                document.getElementById('feedback').textContent = `🏳️ Desististe. Era ${this.anime.title.romaji}`;
+                document.getElementById('feedback').className = 'feedback error';
+                this.endGame(false);
+            },
+
+            reduceDifficulty() {
+                this.zoomLevel = Math.max(1, this.zoomLevel - 4);
+                document.getElementById('cover-image').style.transform = `scale(${this.zoomLevel})`;
+                document.getElementById('zoom-badge').textContent = `Zoom: ${this.zoomLevel}x`;
+                if (this.zoomLevel <= 1) document.getElementById('cover-image').classList.add('revealed');
+            },
+
+            endGame(won) {
+                document.getElementById('cover-image').style.transform = `scale(1)`;
+                document.getElementById('submit-btn').disabled = true;
+                document.getElementById('guess-input').disabled = true;
+                // Ensure disabled at end
+                const skipBtn = document.getElementById('skip-btn');
+                if (skipBtn) skipBtn.disabled = true;
+
+                document.getElementById('give-up-btn').style.display = 'none';
+
+                // Save to Calendar
+                if (window.CalendarSystem && won) {
+                    CalendarSystem.markComplete();
+                }
+            }
+        };
+        Game.init();
+
+        /* Autocomplete logic preserved */
+        const input = document.getElementById('guess-input');
+        const list = document.getElementById('autocomplete-list');
+
+        input.addEventListener('input', async function (e) {
+            const val = this.value;
+            list.innerHTML = '';
+            list.style.display = 'none';
+            if (!val || val.length < 3) return;
+
+            const results = await API.searchAnime(val, 1, 5);
+            if (results && results.length > 0) {
+                list.style.display = 'block';
+                results.forEach(anime => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `<img src="${anime.coverImage.medium}" class="ac-thumb"> <span>${anime.title.romaji}</span>`;
+                    div.addEventListener('click', function () {
+                        input.value = anime.title.romaji;
+                        list.innerHTML = '';
+                        list.style.display = 'none';
+                    });
+                    list.appendChild(div);
+                });
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target !== input) list.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>

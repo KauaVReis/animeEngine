@@ -21,6 +21,8 @@
             /* v6 Primary */
             --color-primary-v5: #3366ff;
             /* v5 Blue Style */
+            --color-primary-arcade: #a855f7;
+            /* Arcade Purple */
 
             --border-width: 3px;
             --border-color: #1a1a1a;
@@ -51,7 +53,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             width: 100%;
         }
 
@@ -81,6 +83,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
+            justify-content: center;
         }
 
         .version-card {
@@ -127,6 +130,11 @@
             color: white;
         }
 
+        .arcade-theme .badge {
+            background: var(--color-primary-arcade);
+            color: white;
+        }
+
         /* Icons */
         .card-icon {
             font-size: 3rem;
@@ -139,6 +147,10 @@
 
         .v5-theme .card-icon {
             color: var(--color-primary-v5);
+        }
+
+        .arcade-theme .card-icon {
+            color: var(--color-primary-arcade);
         }
 
         /* Typography */
@@ -183,6 +195,10 @@
             color: var(--color-primary-v5);
         }
 
+        .arcade-theme .feature-list i {
+            color: var(--color-primary-arcade);
+        }
+
         /* Buttons */
         .btn {
             display: block;
@@ -204,8 +220,20 @@
             border-color: var(--color-black);
         }
 
+        .arcade-theme .btn {
+            background: var(--color-primary-arcade);
+            color: white;
+            border-color: var(--color-black);
+        }
+
         .v6-theme:hover .btn {
             background: #e02e5a;
+            box-shadow: 4px 4px 0 var(--border-color);
+            transform: translate(-1px, -1px);
+        }
+
+        .arcade-theme:hover .btn {
+            background: #9333ea;
             box-shadow: 4px 4px 0 var(--border-color);
             transform: translate(-1px, -1px);
         }
@@ -280,6 +308,24 @@
                     <li><i class="fas fa-check-circle"></i> Estável</li>
                 </ul>
                 <div class="btn">Acessar v5 (Clássico)</div>
+            </a>
+
+            <!-- ARCADE CARD (MiniGames) -->
+            <a href="miniGamesTeste/index.html" class="version-card arcade-theme">
+                <div class="badge">Beta</div>
+                <div class="card-icon">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <h2 class="card-title">Arcade</h2>
+                <p class="card-desc">
+                    Desafie seu conhecimento otaku com minigames diários: Music Quiz, CharacterDle e mais.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check-circle"></i> Music Quiz</li>
+                    <li><i class="fas fa-check-circle"></i> CharacterDle (OnePieceDle)</li>
+                    <li><i class="fas fa-check-circle"></i> Pixel Cover Zoom</li>
+                </ul>
+                <div class="btn">Jogar Agora</div>
             </a>
         </div>
 

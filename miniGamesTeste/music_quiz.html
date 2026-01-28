@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Quiz - Arcade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .autocomplete-items {
+            position: absolute;
+            border: 2px solid var(--border-color);
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .autocomplete-active {
+            background-color: var(--primary) !important;
+            color: #ffffff;
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .autocomplete-item:hover {
+            background-color: var(--bg);
+        }
+
+        .ac-thumb {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        #give-up-btn {
+            background-color: var(--error);
+            border-color: var(--error);
+            display: none;
+            /* Hidden by default */
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version" style="background: var(--secondary); color: black;">ARCADE</span>
+            </a>
+
+            <button id="open-calendar-btn"
+                style="background: var(--surface); color: var(--text); border: 2px solid var(--border-color); display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-calendar-alt"></i> <span id="date-badge">📅 Hoje</span>
+            </button>
+
+            <div class="user-area">
+                <div class="level-badge"><span class="level-icon">🎮</span> <span class="level-text">Player</span></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-gamepad"></i> <span>Arcade Home</span></a>
+        <div class="nav-divider"></div>
+        <a href="music_quiz.html" class="nav-item active"><i class="fas fa-music"></i> <span>Music Quiz</span></a>
+        <a href="char_dle.html" class="nav-item"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
+        <a href="pixel_cover.html" class="nav-item"><i class="fas fa-image"></i> <span>Pixel Cover</span></a>
+        <div class="nav-divider"></div>
+        <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="container">
+            <h1>🎵 Music Quiz</h1>
+
+            <div class="mode-selector" style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+                <button id="mode-op" onclick="Game.switchMode('OP')"
+                    style="background:var(--primary); opacity:1;">Aberturas (OP)</button>
+                <button id="mode-ed" onclick="Game.switchMode('ED')"
+                    style="background:var(--surface); opacity:0.6;">Encerramentos (ED)</button>
+            </div>
+
+            <div class="game-area">
+                <div class="attempts-left">Tentativa <span id="attempt-count">1</span>/5</div>
+
+                <div class="visualizer-container">
+                    <!-- Vinyl Animation -->
+                    <div id="vinyl" class="vinyl-record">
+                        <div class="vinyl-label"><i class="fas fa-music"></i></div>
+                    </div>
+
+                    <!-- Fake Equalizer (Hidden unless playing) -->
+                    <div id="equalizer" class="equalizer" style="display:none;">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                    </div>
+
+                    <!-- Video Hidden Overlay -->
+                    <video id="quiz-player"
+                        style="position:absolute; width:100%; height:100%; opacity:0; pointer-events:none;"
+                        playsinline></video>
+
+                    <!-- Cover Reveal -->
+                    <img id="quiz-cover" src=""
+                        style="display:none; position:absolute; width: 100%; height: 100%; object-fit: cover; z-index: 10;">
+
+                    <div class="visualizer-text" id="status-text"
+                        style="position: absolute; bottom: 10px; z-index: 20; background: rgba(0,0,0,0.7); padding: 2px 8px; font-size: 0.8rem;">
+                        Carregando...</div>
+                    <div id="loading-spinner"
+                        style="display:none; color: var(--primary); position:absolute; z-index:30; font-size:2rem;">⌛
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-bottom: 20px;">
+                    <button id="play-btn" disabled>▶️ Tocar Excerto</button>
+                </div>
+
+                <div class="input-wrapper">
+                    <input type="text" id="guess-input" placeholder="Digite o nome do Anime..." autocomplete="off">
+                    <div id="autocomplete-list" class="autocomplete-items" style="display: none;"></div>
+                </div>
+
+                <button id="submit-btn" onclick="Game.checkGuess()">Adivinhar</button>
+                <button id="give-up-btn" onclick="Game.giveUp()">🏳️ Desistir</button>
+
+                <div id="feedback" class="feedback"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api_wrapper.js"></script>
+    <script src="js/calendar_system.js"></script>
+    <script src="js/music_quiz.js"></script>
+    <script>
+        CalendarSystem.init('music_quiz');
+    </script>
+    <!-- Autocomplete Logic -->
+    <script>
+        const input = document.getElementById('guess-input');
+        const list = document.getElementById('autocomplete-list');
+
+        input.addEventListener('input', async function (e) {
+            const val = this.value;
+            list.innerHTML = '';
+            list.style.display = 'none';
+            if (!val || val.length < 3) return;
+
+            const results = await API.searchAnime(val, 1, 5);
+            if (results && results.length > 0) {
+                list.style.display = 'block';
+                results.forEach(anime => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `<img src="${anime.coverImage.medium}" class="ac-thumb"> <span>${anime.title.romaji}</span>`;
+                    div.addEventListener('click', function () {
+                        input.value = anime.title.romaji;
+                        list.innerHTML = '';
+                        list.style.display = 'none';
+                    });
+                    list.appendChild(div);
+                });
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target !== input) list.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>
