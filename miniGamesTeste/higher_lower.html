@@ -204,6 +204,79 @@
         <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
     </nav>
 
+    <!-- MODE SELECTOR -->
+    <div id="mode-panel"
+        style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 100; background: var(--surface); padding: 10px 15px; border: 2px solid var(--border-color); border-radius: 8px;">
+        <div id="mode-buttons" style="display: flex; gap: 10px;">
+            <button class="mode-btn active" data-mode="popularity" onclick="Game.switchMode('popularity')"
+                style="background: var(--bg); border: 1px solid var(--border-color); color: var(--text); padding: 8px 15px; cursor: pointer; border-radius: 5px;">📊
+                Membros</button>
+            <button class="mode-btn" data-mode="score" onclick="Game.switchMode('score')"
+                style="background: var(--bg); border: 1px solid var(--border-color); color: var(--text); padding: 8px 15px; cursor: pointer; border-radius: 5px;">⭐
+                Nota</button>
+            <button class="mode-btn" data-mode="favorites" onclick="Game.switchMode('favorites')"
+                style="background: var(--bg); border: 1px solid var(--border-color); color: var(--text); padding: 8px 15px; cursor: pointer; border-radius: 5px;">❤️
+                Favoritos</button>
+            <button class="mode-btn" data-mode="episodes" onclick="Game.switchMode('episodes')"
+                style="background: var(--bg); border: 1px solid var(--border-color); color: var(--text); padding: 8px 15px; cursor: pointer; border-radius: 5px;">📺
+                Episódios</button>
+        </div>
+        <button class="close-btn" onclick="toggleModePanel()"><i class="fas fa-times"></i></button>
+    </div>
+    <button id="show-mode-btn" class="toggle-btn" onclick="toggleModePanel()" style="display: none;"><i
+            class="fas fa-cog"></i> Modos</button>
+    <style>
+        .mode-btn.active {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+
+        .mode-btn:hover {
+            opacity: 0.8;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--surface);
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .toggle-btn {
+            position: fixed;
+            top: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: var(--surface);
+            padding: 8px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--primary);
+        }
+    </style>
+
     <div class="score-board">Score: <span id="current-score">0</span> | High: <span id="high-score">0</span></div>
 
     <!-- MAIN GAME AREA -->
@@ -254,8 +327,43 @@
         </div>
     </div>
 
+    <!-- GAME INFO -->
+    <div id="info-panel"
+        style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface); padding: 12px 20px; border: 2px solid var(--border-color); border-radius: 8px; z-index: 50; text-align: center; max-width: 550px;">
+        <strong>⚖️ Higher or Lower</strong><br>
+        <span id="game-info-text" style="color: var(--text-sec); font-size: 0.9rem;">Adivinha se o próximo anime tem
+            MAIS ou MENOS membros. Quantos consegues acertar?</span>
+        <button class="close-btn" onclick="toggleInfoPanel()"><i class="fas fa-times"></i></button>
+    </div>
+    <button id="show-info-btn" class="toggle-btn" onclick="toggleInfoPanel()"
+        style="display: none; top: auto; bottom: 20px;"><i class="fas fa-question-circle"></i> Info</button>
+
     <script src="js/api_wrapper.js"></script>
     <script src="js/higher_lower.js"></script>
+    <script>
+        function toggleModePanel() {
+            const panel = document.getElementById('mode-panel');
+            const btn = document.getElementById('show-mode-btn');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.style.display = 'none';
+            } else {
+                panel.style.display = 'none';
+                btn.style.display = 'block';
+            }
+        }
+        function toggleInfoPanel() {
+            const panel = document.getElementById('info-panel');
+            const btn = document.getElementById('show-info-btn');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.style.display = 'none';
+            } else {
+                panel.style.display = 'none';
+                btn.style.display = 'block';
+            }
+        }
+    </script>
 </body>
 
 </html>

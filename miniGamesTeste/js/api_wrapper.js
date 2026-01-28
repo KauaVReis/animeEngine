@@ -202,18 +202,20 @@ const API = {
     },
 
     /**
-     * Get Anime for Higher/Lower (Needs Popularity)
+     * Get Anime for Higher/Lower (Multiple metrics)
      */
     async getHigherLowerAnime(page = 1) {
         const query = `
         query ($page: Int) {
             Page (page: $page, perPage: 50) {
-                media (type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+                media (type: ANIME, sort: POPULARITY_DESC, isAdult: false, format: TV) {
                     id
                     title { romaji }
                     coverImage { extraLarge }
                     popularity
-                    format
+                    meanScore
+                    favourites
+                    episodes
                 }
             }
         }`;
