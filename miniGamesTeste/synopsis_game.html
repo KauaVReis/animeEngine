@@ -4,12 +4,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CharacterDle - Arcade</title>
+    <title>Sinopse Censurada - Arcade</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <style>
+        .synopsis-box {
+            background: var(--surface);
+            padding: 25px;
+            border: 2px solid var(--border-color);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            text-align: justify;
+            margin-bottom: 20px;
+            min-height: 120px;
+        }
+
+        .redacted {
+            background: var(--text);
+            color: var(--text);
+            padding: 0 5px;
+            border-radius: 4px;
+            user-select: none;
+        }
+
+        .hints-area {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .genre-tag {
+            background: #333;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            display: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .genre-tag.revealed {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .hint-btn {
+            background: var(--surface);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            font-size: 0.9rem;
+            padding: 8px 16px;
+        }
+
+        .hint-btn:hover {
+            background: var(--secondary);
+            color: black;
+        }
+
+        .cover-reveal {
+            max-width: 180px;
+            margin: 20px auto;
+            border: 3px solid var(--success);
+            display: none;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 15px auto;
+        }
+
         .autocomplete-items {
             position: absolute;
             border: 2px solid var(--border-color);
@@ -43,20 +125,6 @@
             object-fit: cover;
             border-radius: 4px;
         }
-
-        .input-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        #give-up-btn {
-            background-color: var(--error);
-            border-color: var(--error);
-            display: none;
-            margin-top: 10px;
-        }
     </style>
 </head>
 
@@ -86,12 +154,13 @@
         <a href="index.html" class="nav-item"><i class="fas fa-gamepad"></i> <span>Arcade Home</span></a>
         <div class="nav-divider"></div>
         <a href="music_quiz.html" class="nav-item"><i class="fas fa-music"></i> <span>Music Quiz</span></a>
-        <a href="char_dle.html" class="nav-item active"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
+        <a href="char_dle.html" class="nav-item"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
         <a href="pixel_cover.html" class="nav-item"><i class="fas fa-image"></i> <span>Pixel Cover</span></a>
         <a href="higher_lower.html" class="nav-item"><i class="fas fa-balance-scale"></i> <span>Higher or
                 Lower</span></a>
         <a href="seiyuu_quiz.html" class="nav-item"><i class="fas fa-microphone"></i> <span>Seiyuu Quiz</span></a>
-        <a href="synopsis_game.html" class="nav-item"><i class="fas fa-file-alt"></i> <span>Sinopse Censurada</span></a>
+        <a href="synopsis_game.html" class="nav-item active"><i class="fas fa-file-alt"></i> <span>Sinopse
+                Censurada</span></a>
         <a href="timeline.html" class="nav-item"><i class="fas fa-clock"></i> <span>Timeline Challenge</span></a>
         <div class="nav-divider"></div>
         <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
@@ -100,45 +169,47 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
         <div class="container">
-            <h1>👤 CharacterDle</h1>
-            <div class="game-area">
-                <div class="attempts-left">Tentativa <span id="attempt-count">1</span>/8</div>
+            <h1>📝 Sinopse Censurada</h1>
 
-                <div class="char-image-container">
-                    <img id="char-image" class="char-image" src="" alt="Personagem Secreto">
+            <div class="game-area">
+                <div class="attempts-left">Pontos: <span id="score">0</span></div>
+
+                <div class="synopsis-box" id="synopsis-text">
+                    Carregando...
+                </div>
+
+                <div class="hints-area" id="genres-area">
+                    <!-- Genres go here -->
+                </div>
+
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <button class="hint-btn" onclick="Game.buyHint()">
+                        <i class="fas fa-lightbulb"></i> Revelar Gênero (-50 pts)
+                    </button>
                 </div>
 
                 <div class="input-wrapper">
-                    <input type="text" id="guess-input" placeholder="Digite o nome do personagem..." autocomplete="off">
+                    <input type="text" id="guess-input" placeholder="Qual é o anime?" autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-items" style="display: none;"></div>
                 </div>
 
                 <button id="submit-btn" onclick="Game.checkGuess()">Adivinhar</button>
-                <button id="give-up-btn" onclick="Game.giveUp()">🏳️ Desistir</button>
 
                 <div id="feedback" class="feedback"></div>
-                <div id="game-actions" class="game-actions"></div>
 
-                <div class="comparison-container">
-                    <div class="comp-header">
-                        <div>Personagem</div>
-                        <div>Género</div>
-                        <div>Anime</div>
-                        <div>Ano</div>
-                        <div>Idade</div>
-                    </div>
-                    <div id="comparison-rows"></div>
+                <img id="cover-reveal" class="cover-reveal" src="" alt="Cover">
+
+                <div id="game-actions" class="game-actions">
+                    <button id="next-btn" style="display:none;" onclick="Game.nextRound()">Próximo Round ➡</button>
                 </div>
             </div>
         </div>
     </main>
 
     <script src="js/api_wrapper.js"></script>
-    <script src="js/calendar_system.js"></script>
-    <script src="js/char_dle.js"></script>
+    <script src="js/synopsis_game.js"></script>
+    <!-- Autocomplete Logic -->
     <script>
-        CalendarSystem.init('char_dle');
-
         const input = document.getElementById('guess-input');
         const list = document.getElementById('autocomplete-list');
 
@@ -148,36 +219,21 @@
             list.style.display = 'none';
             if (!val || val.length < 3) return;
 
-            try {
-                // Use generic query for autocomplete since wrapper was fixed
-                const query = `
-                query ($search: String) {
-                    Page (perPage: 5) {
-                        characters(search: $search, sort: FAVOURITES_DESC) {
-                            id
-                            name { full }
-                            image { medium }
-                        }
-                    }
-                }`;
-                const data = await API.query(query, { search: val });
-                const results = data.Page.characters;
-
-                if (results && results.length > 0) {
-                    list.style.display = 'block';
-                    results.forEach(char => {
-                        const div = document.createElement('div');
-                        div.className = 'autocomplete-item';
-                        div.innerHTML = `<img src="${char.image.medium}" class="ac-thumb"> <span>${char.name.full}</span>`;
-                        div.addEventListener('click', function () {
-                            input.value = char.name.full;
-                            list.innerHTML = '';
-                            list.style.display = 'none';
-                        });
-                        list.appendChild(div);
+            const results = await API.searchAnime(val, 1, 5);
+            if (results && results.length > 0) {
+                list.style.display = 'block';
+                results.forEach(anime => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-item';
+                    div.innerHTML = `<img src="${anime.coverImage.medium}" class="ac-thumb"> <span>${anime.title.romaji}</span>`;
+                    div.addEventListener('click', function () {
+                        input.value = anime.title.romaji;
+                        list.innerHTML = '';
+                        list.style.display = 'none';
                     });
-                }
-            } catch (e) { console.error(e); }
+                    list.appendChild(div);
+                });
+            }
         });
 
         document.addEventListener('click', function (e) {

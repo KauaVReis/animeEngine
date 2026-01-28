@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Higher or Lower: Anime Edition</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Archivo+Black&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .split-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            margin-top: 70px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            text-align: center;
+            color: white;
+            padding: 20px;
+            transition: width 0.5s ease;
+        }
+
+        .side::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .anime-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .popularity-count {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .label {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+        }
+
+        .versus-badge {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: black;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1.2rem;
+            z-index: 10;
+            border: 4px solid var(--bg);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Buttons Area (Right Side) */
+        .btn-large {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            width: 200px;
+            padding: 15px;
+            margin: 10px;
+            background: transparent;
+            border: 3px solid white;
+            color: white;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-large:hover {
+            background: white;
+            color: black;
+            transform: scale(1.05);
+        }
+
+        .btn-higher:hover {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .btn-lower:hover {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+        }
+
+        .score-board {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--surface);
+            padding: 10px 20px;
+            border: 2px solid var(--border-color);
+            z-index: 100;
+            font-weight: bold;
+        }
+
+        .game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .split-container {
+                flex-direction: column;
+            }
+
+            .side {
+                width: 100% !important;
+            }
+
+            .versus-badge {
+                top: auto;
+                bottom: -30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version" style="background: var(--secondary); color: black;">ARCADE</span>
+            </a>
+            <div class="user-area">
+                <span id="date-badge" class="level-badge">📅 Hoje</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-gamepad"></i> <span>Arcade Home</span></a>
+        <div class="nav-divider"></div>
+        <a href="music_quiz.html" class="nav-item"><i class="fas fa-music"></i> <span>Music Quiz</span></a>
+        <a href="char_dle.html" class="nav-item"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
+        <a href="pixel_cover.html" class="nav-item"><i class="fas fa-image"></i> <span>Pixel Cover</span></a>
+        <a href="higher_lower.html" class="nav-item active"><i class="fas fa-balance-scale"></i> <span>Higher or
+                Lower</span></a>
+        <a href="seiyuu_quiz.html" class="nav-item"><i class="fas fa-microphone"></i> <span>Seiyuu Quiz</span></a>
+        <a href="synopsis_game.html" class="nav-item"><i class="fas fa-file-alt"></i> <span>Sinopse Censurada</span></a>
+        <a href="timeline.html" class="nav-item"><i class="fas fa-clock"></i> <span>Timeline Challenge</span></a>
+        <div class="nav-divider"></div>
+        <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
+    </nav>
+
+    <div class="score-board">Score: <span id="current-score">0</span> | High: <span id="high-score">0</span></div>
+
+    <!-- MAIN GAME AREA -->
+    <div class="split-container" id="game-container">
+        <!-- Versus Badge -->
+        <div class="versus-badge">VS</div>
+
+        <!-- Left Side (Base) -->
+        <div class="side" id="side-left">
+            <div class="content">
+                <div class="anime-title" id="left-title">Loading...</div>
+                <div class="popularity-count" id="left-pop">...</div>
+                <div class="label">Membros</div>
+            </div>
+        </div>
+
+        <!-- Right Side (Challenger) -->
+        <div class="side" id="side-right">
+            <div class="content" id="right-content">
+                <div class="anime-title" id="right-title">Loading...</div>
+                <div class="label">tem</div>
+
+                <div id="buttons-area">
+                    <button class="btn-large btn-higher" onclick="Game.guess('higher')">
+                        <i class="fas fa-caret-up"></i> Mais
+                    </button>
+                    <button class="btn-large btn-lower" onclick="Game.guess('lower')">
+                        <i class="fas fa-caret-down"></i> Menos
+                    </button>
+                </div>
+
+                <div id="result-area" style="display:none;">
+                    <div class="popularity-count" id="right-pop">...</div>
+                    <div class="label">Membros</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY -->
+    <div class="game-over-overlay" id="game-over">
+        <h1 style="color:var(--error); font-size:4rem; margin:0;">GAME OVER</h1>
+        <h2 style="margin:20px 0;">Score Final: <span id="final-score">0</span></h2>
+
+        <div id="game-actions" class="game-actions" style="margin-top:40px;">
+            <button onclick="location.reload()">🔄 Jogar Novamente</button>
+            <button class="action-btn-secondary" onclick="window.location.href='index.html'">🏠 Voltar ao Menu</button>
+        </div>
+    </div>
+
+    <script src="js/api_wrapper.js"></script>
+    <script src="js/higher_lower.js"></script>
+</body>
+
+</html>

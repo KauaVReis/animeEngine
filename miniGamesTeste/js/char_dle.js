@@ -152,6 +152,26 @@ const Game = {
         if (window.CalendarSystem && won) {
             CalendarSystem.markComplete();
         }
+
+        // Add "Play Previous Day" Button
+        const feedback = document.getElementById('feedback');
+
+        // Calculate Previous Day
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentStr = urlParams.get('date');
+        let d = currentStr ? new Date(currentStr) : new Date();
+        d.setDate(d.getDate() - 1);
+        const prevDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+        const prevBtn = document.createElement('button');
+        prevBtn.innerHTML = `<i class="fas fa-history"></i> Jogar Dia Anterior (${prevDateStr})`;
+        prevBtn.className = 'btn-secondary'; // Revert to btn-secondary for style consistency with original layout
+        prevBtn.style.marginTop = '10px';
+        prevBtn.style.display = 'block';
+        prevBtn.style.width = '100%';
+        prevBtn.onclick = () => window.location.href = `?date=${prevDateStr}`;
+
+        feedback.appendChild(prevBtn);
     }
 };
 

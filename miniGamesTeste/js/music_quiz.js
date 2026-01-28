@@ -335,10 +335,56 @@ const Game = {
         document.getElementById('guess-input').disabled = true;
         document.getElementById('give-up-btn').style.display = 'none';
 
-        // Save Complete Status in Calendar
-        if (window.CalendarSystem) {
+        if (window.CalendarSystem && won) {
             CalendarSystem.markComplete();
         }
+
+        const feedback = document.getElementById('feedback');
+
+        // Add "Play Other Mode" Button (OP/ED)
+        const otherMode = this.currentMode === 'OP' ? 'ED' : 'OP';
+        const otherLabel = this.currentMode === 'OP' ? 'Encerramento (ED)' : 'Abertura (OP)';
+
+        // Check completion
+        const urlParams = new URLSearchParams(window.location.search);
+        let dateStr = urlParams.get('date');
+        if (!dateStr) {
+            const now = new Date();
+            dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
+        const key = `music_quiz_${otherMode.toLowerCase()}_completed`;
+        const history = JSON.parse(localStorage.getItem(key) || '[]');
+        const isOtherCompleted = history.includes(dateStr);
+
+        if (!isOtherCompleted) {
+            const switchBtn = document.createElement('button');
+            switchBtn.innerHTML = `<i class="fas fa-random"></i> Jogar ${otherLabel}`;
+            switchBtn.className = 'btn-secondary';
+            switchBtn.style.marginTop = '20px';
+            switchBtn.style.display = 'block';
+            switchBtn.style.width = '100%';
+            switchBtn.style.background = 'var(--primary)';
+            switchBtn.style.color = 'white';
+            switchBtn.onclick = () => this.switchMode(otherMode);
+
+            feedback.appendChild(switchBtn);
+        }
+
+        // Add "Play Previous Day" Button
+        let d = dateStr ? new Date(dateStr) : new Date();
+        d.setDate(d.getDate() - 1);
+        const prevDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+        const btn = document.createElement('button');
+        btn.innerHTML = `<i class="fas fa-history"></i> Jogar Dia Anterior (${prevDateStr})`;
+        btn.className = 'btn-secondary';
+        btn.style.marginTop = '10px';
+        btn.style.display = 'block';
+        btn.style.width = '100%';
+        btn.onclick = () => window.location.href = `?date=${prevDateStr}`;
+
+        feedback.appendChild(btn);
     }
 };
 

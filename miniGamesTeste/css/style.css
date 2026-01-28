@@ -577,3 +577,45 @@ button:disabled {
     padding: 2px 5px;
     font-size: 0.7rem;
 }
+
+/* Post-Game Actions */
+.game-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.game-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.game-actions button:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.action-btn-primary {
+    background: var(--primary);
+    color: white;
+    font-weight: bold;
+}
+
+.action-btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 2px solid var(--border-color) !important;
+}

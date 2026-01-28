@@ -89,6 +89,11 @@
         <a href="music_quiz.html" class="nav-item"><i class="fas fa-music"></i> <span>Music Quiz</span></a>
         <a href="char_dle.html" class="nav-item"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
         <a href="pixel_cover.html" class="nav-item active"><i class="fas fa-image"></i> <span>Pixel Cover</span></a>
+        <a href="higher_lower.html" class="nav-item"><i class="fas fa-balance-scale"></i> <span>Higher or
+                Lower</span></a>
+        <a href="seiyuu_quiz.html" class="nav-item"><i class="fas fa-microphone"></i> <span>Seiyuu Quiz</span></a>
+        <a href="synopsis_game.html" class="nav-item"><i class="fas fa-file-alt"></i> <span>Sinopse Censurada</span></a>
+        <a href="timeline.html" class="nav-item"><i class="fas fa-clock"></i> <span>Timeline Challenge</span></a>
         <div class="nav-divider"></div>
         <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
     </nav>
@@ -120,6 +125,8 @@
                 <button id="give-up-btn" onclick="Game.giveUp()">🏳️ Desistir</button>
 
                 <div id="feedback" class="feedback"></div>
+                <!-- New Container for Buttons -->
+                <div id="game-actions" class="game-actions"></div>
             </div>
         </div>
     </main>
@@ -227,9 +234,22 @@
             },
 
             reduceDifficulty() {
-                this.zoomLevel = Math.max(1, this.zoomLevel - 4);
+                // If we are about to start the Last Attempt (attempts == max - 1)
+                // Note: attempts is already incremented in checkGuess before calling this? 
+                // Wait, checkGuess calls this.attempts++ BEFORE.
+                // So if we just failed 4th time. attempts = 4. max = 5.
+                // We are showing outcome of 4. preparing for 5.
+
+                if (this.attempts + 1 === this.maxAttempts) {
+                    this.zoomLevel = 1; // Full Reveal
+                    document.getElementById('zoom-badge').textContent = `Zoom: 1x (Full)`;
+                    document.getElementById('cover-image').classList.add('revealed');
+                } else {
+                    this.zoomLevel = Math.max(1, this.zoomLevel - 4);
+                    document.getElementById('zoom-badge').textContent = `Zoom: ${this.zoomLevel}x`;
+                }
+
                 document.getElementById('cover-image').style.transform = `scale(${this.zoomLevel})`;
-                document.getElementById('zoom-badge').textContent = `Zoom: ${this.zoomLevel}x`;
                 if (this.zoomLevel <= 1) document.getElementById('cover-image').classList.add('revealed');
             },
 
@@ -247,6 +267,25 @@
                 if (window.CalendarSystem && won) {
                     CalendarSystem.markComplete();
                 }
+
+                // Add "Play Previous Day" Button
+                const actionsContainer = document.getElementById('game-actions');
+                actionsContainer.innerHTML = ''; // Clear previous
+
+                // Calculate Previous Day
+                const urlParams = new URLSearchParams(window.location.search);
+                let currentStr = urlParams.get('date');
+                let d = currentStr ? new Date(currentStr) : new Date();
+                d.setDate(d.getDate() - 1);
+                const prevDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+                const prevBtn = document.createElement('button');
+                prevBtn.innerHTML = `<i class="fas fa-history"></i> Jogar Dia Anterior (${prevDateStr})`;
+                prevBtn.className = 'action-btn-secondary'; // Use new styling class
+                // No width/margin styles needed as CSS handles .game-actions children
+                prevBtn.onclick = () => window.location.href = `?date=${prevDateStr}`;
+
+                actionsContainer.appendChild(prevBtn);
             }
         };
         Game.init();

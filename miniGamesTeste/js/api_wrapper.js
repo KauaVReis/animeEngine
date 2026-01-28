@@ -168,6 +168,99 @@ const API = {
         }`;
         const data = await this.query(query, { page });
         return data.Page.media;
+    },
+
+    /**
+     * Get Staff Details & Characters (for Seiyuu Quiz)
+     */
+    async getStaffDetails() {
+        // Fetch random popular staff using pagination
+        const query = `
+        query ($page: Int) {
+            Page(page: $page, perPage: 1) {
+                staff(sort: FAVOURITES_DESC) {
+                    id
+                    name { full native }
+                    image { large }
+                    characters(sort: FAVOURITES_DESC, perPage: 20) {
+                        nodes {
+                            id
+                            name { full }
+                            image { large }
+                            media(sort: POPULARITY_DESC, perPage: 1) {
+                                nodes { title { romaji } }
+                            }
+                        }
+                    }
+                }
+            }
+        }`;
+
+        const page = Math.floor(Math.random() * 50) + 1;
+        const data = await this.query(query, { page });
+        return data.Page.staff[0];
+    },
+
+    /**
+     * Get Anime for Higher/Lower (Needs Popularity)
+     */
+    async getHigherLowerAnime(page = 1) {
+        const query = `
+        query ($page: Int) {
+            Page (page: $page, perPage: 50) {
+                media (type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+                    id
+                    title { romaji }
+                    coverImage { extraLarge }
+                    popularity
+                    format
+                }
+            }
+        }`;
+        const data = await this.query(query, { page });
+        return data.Page.media;
+    },
+
+    /**
+     * Get Anime for Timeline (Needs StartDate)
+     */
+    async getTimelineAnime(page = 1) {
+        const query = `
+        query ($page: Int) {
+            Page (page: $page, perPage: 50) {
+                media (type: ANIME, sort: POPULARITY_DESC, isAdult: false, format: TV) {
+                    id
+                    title { romaji }
+                    coverImage { large }
+                    startDate { year month day }
+                    season
+                    seasonYear
+                }
+            }
+        }`;
+        const data = await this.query(query, { page });
+        return data.Page.media;
+    },
+
+    /**
+     * Get Anime for Synopsis Game (Needs Description & Genres)
+     */
+    async getSynopsisAnime(page = 1) {
+        const query = `
+        query ($page: Int) {
+            Page (page: $page, perPage: 50) {
+                media (type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+                    id
+                    title { romaji english native }
+                    description(asHtml: false)
+                    genres
+                    meanScore
+                    coverImage { large }
+                }
+            }
+        }`;
+        const data = await this.query(query, { page });
+        return data.Page.media;
     }
 };
 

@@ -108,21 +108,41 @@ const CalendarSystem = {
         }
 
         // Days
+        // Days
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const isCompleted = history.includes(dateStr);
-            const isToday = (new Date().toDateString() === new Date(year, month, d).toDateString());
+            const checkDate = new Date(year, month, d);
+            const isFuture = checkDate > today;
 
-            const bg = isCompleted ? 'var(--success)' : 'var(--bg)';
-            const border = isToday ? '2px solid var(--secondary)' : '1px solid var(--border-color)';
-            const color = isCompleted ? '#000' : 'var(--text)';
+            const isCompleted = history.includes(dateStr);
+            const isToday = (today.toDateString() === checkDate.toDateString());
+
+            let bg = isCompleted ? 'var(--success)' : 'var(--bg)';
+            let border = isToday ? '2px solid var(--secondary)' : '1px solid var(--border-color)';
+            let color = isCompleted ? '#000' : 'var(--text)';
+            let cursor = 'pointer';
+            let opacity = '1';
+
+            if (isFuture) {
+                bg = 'var(--bg)';
+                border = '1px solid var(--border-color)';
+                color = 'var(--text-sec)';
+                cursor = 'not-allowed';
+                opacity = '0.3';
+            }
 
             const cell = document.createElement('div');
-            cell.style.cssText = `background:${bg}; border:${border}; color:${color}; padding:8px; cursor:pointer; font-weight:bold;`;
+            cell.style.cssText = `background:${bg}; border:${border}; color:${color}; padding:8px; cursor:${cursor}; font-weight:bold; opacity:${opacity};`;
             cell.textContent = d;
-            cell.onclick = () => {
-                window.location.href = `?date=${dateStr}`;
-            };
+
+            if (!isFuture) {
+                cell.onclick = () => {
+                    window.location.href = `?date=${dateStr}`;
+                };
+            }
             grid.appendChild(cell);
         }
     },
