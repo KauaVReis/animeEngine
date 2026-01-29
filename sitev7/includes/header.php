@@ -48,8 +48,8 @@ $pagina_atual = basename($_SERVER['PHP_SELF'], '.php');
                         <i class="fas fa-sign-out-alt"></i>
                     </a>
                 <?php else: ?>
-                    <a href="login.php" class="btn btn-primary btn-sm">
-                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    <a href="login.php" class="icon-btn btn-login" title="Entrar">
+                        <i class="fas fa-user"></i>
                     </a>
                 <?php endif; ?>
             </div>
