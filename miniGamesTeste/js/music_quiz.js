@@ -1,80 +1,90 @@
 /**
- * Music Quiz Logic
- * Uses Daily Seed to ensure same challenge for everyone on the same day.
- * Implements Blob URL to mask video source (with fallback for CORS).
+ * Music Quiz Logic - Refactored for Neo-Brutalist Layout
+ * Uses Daily Seed + Fixed Pool + Levels System
  */
+
+const GAME_CONFIG = {
+    maxLives: 5,
+    levels: [
+        { blur: 40, duration: 5 },  // Tentativa 1 (5 Vidas)
+        { blur: 25, duration: 10 }, // Tentativa 2 (4 Vidas)
+        { blur: 15, duration: 15 }, // Tentativa 3 (3 Vidas)
+        { blur: 5, duration: 20 },  // Tentativa 4 (2 Vidas)
+        { blur: 0, duration: 25 }   // Tentativa 5 (1 Vida)
+    ]
+};
 
 const Game = {
     attempts: 0,
-    maxAttempts: 5,
+    currentLives: 5,
     todayAnime: null,
     isPlaying: false,
-    blurLevel: 30,
     currentMode: 'OP', // 'OP' or 'ED'
+    maxDurationForLevel: 5,
+    isRoundOver: false,
 
     async init() {
-        // Init UI based on Mode
         this.updateModeUI();
 
         // 1. Get Daily Seed
-        // We use a modifier for the seed based on mode to ensure different visual/anime for OP vs ED
         const baseSeed = API.getDailySeed();
         const modeModifier = this.currentMode === 'OP' ? 0 : 9999;
         const seed = baseSeed + modeModifier;
-
         console.log(`Daily Seed (${this.currentMode}):`, seed);
 
-        // Update Calendar Context
         if (window.CalendarSystem) {
             CalendarSystem.init(`music_quiz_${this.currentMode.toLowerCase()}`);
         }
 
-        this.resetGameUI();
-
-        // 2. Mock Pool (Expanded)
+        // 2. Real Pool (AnimeThemes)
         const pool = [
-            { type: 'OP', title: 'Naruto', file: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20-YJvLbgJQPUpI.jpg' },
-            { type: 'OP', title: 'One Piece', file: 'https://www.w3schools.com/html/mov_bbb.mp4', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/nx21-tXMN3Y20PIL9.jpg' },
-            { type: 'ED', title: 'Bleach', file: 'https://media.w3.org/2010/05/sintel/trailer.mp4', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx269-K507sfd90bZ2.png' },
-            { type: 'ED', title: 'Jujutsu Kaisen', file: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-bbBWj4pEfseh.jpg' },
-            { type: 'OP', title: 'Demon Slayer', file: 'https://www.w3schools.com/html/mov_bbb.mp4', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101922-PEn1CTc93blC.jpg' }
+            { type: 'OP', title: 'Shingeki no Kyojin', file: 'https://animethemes.moe/video/ShingekiNoKyojin-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-m5ZMNtFioc7j.jpg' },
+            { type: 'OP', title: 'Naruto Shippuuden', file: 'https://animethemes.moe/video/NarutoShippuuden-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1735-6lY3X0er9ZtA.jpg' },
+            { type: 'OP', title: 'Death Note', file: 'https://animethemes.moe/video/DeathNote-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1535-lawCwhwk98z2.jpg' },
+            { type: 'OP', title: 'One Punch Man', file: 'https://animethemes.moe/video/OnePunchMan-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21087-2lgnxbRrRix7.jpg' },
+            { type: 'OP', title: 'Sword Art Online', file: 'https://animethemes.moe/video/SwordArtOnline-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11757-Q9P2jV7577ac.jpg' },
+            { type: 'OP', title: 'Tokyo Ghoul', file: 'https://animethemes.moe/video/TokyoGhoul-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20605-fmnHdQzyboSC.jpg' },
+            { type: 'OP', title: 'No Game No Life', file: 'https://animethemes.moe/video/NoGameNoLife-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx19815-5Wk1XfA29i0M.jpg' },
+            { type: 'OP', title: 'Noragami', file: 'https://animethemes.moe/video/Noragami-OP1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20447-oH8pU5ZJq762.jpg' },
+            { type: 'ED', title: 'Jujutsu Kaisen', file: 'https://animethemes.moe/video/JujutsuKaisen-ED1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-bbBWj4pEfseh.jpg' },
+            { type: 'ED', title: 'Chainsaw Man', file: 'https://animethemes.moe/video/ChainsawMan-ED1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx127230-FloXw0zD16jX.jpg' },
+            { type: 'ED', title: 'Spy x Family', file: 'https://animethemes.moe/video/SpyXFamily-ED1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx140960-Yl5M3AiLjmvr.jpg' },
+            { type: 'ED', title: 'Kaguya-sama', file: 'https://animethemes.moe/video/KaguyaSama-ED2.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101921-VvdHhaZ8L4A9.jpg' },
+            { type: 'ED', title: 'Hunter x Hunter (2011)', file: 'https://animethemes.moe/video/HunterHunter2011-ED1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11061-sIpBprNRfzCe.png' },
+            { type: 'ED', title: 'Toradora!', file: 'https://animethemes.moe/video/Toradora-ED1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx4224-3Bh0rm99N6ur.jpg' },
+            { type: 'ED', title: 'Angel Beats!', file: 'https://animethemes.moe/video/AngelBeats-ED1.webm', cover: 'https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx6547-3i79Cj1w8F1u.png' }
         ];
 
-        // 3. Filter by Mode
+        // 3. Select Anime
         const filteredPool = pool.filter(item => item.type === this.currentMode);
-
-        if (filteredPool.length === 0) {
-            console.error("No songs for this mode");
-            return;
-        }
+        if (filteredPool.length === 0) return;
 
         const index = seed % filteredPool.length;
         this.todayAnime = filteredPool[index];
-
         console.log("Target:", this.todayAnime.title);
 
-        // 4. Secure Loading
+        this.resetGameUI();
         await this.setupSecurePlayer(this.todayAnime.file);
 
-        // Setup Cover
-        const cover = document.getElementById('quiz-cover');
-        cover.src = this.todayAnime.cover;
-        cover.style.display = 'none';
+        // Setup Button Listeners
+        const playBtn = document.getElementById('play-btn');
+        playBtn.onclick = () => this.playSnippet();
 
-        document.getElementById('loading-spinner').style.display = 'none';
+        // Progress Bar Logic
+        const video = document.getElementById('game-video');
+        video.ontimeupdate = () => {
+            if (!this.isPlaying) return;
 
-        // Setup Video CSS
-        const player = document.getElementById('quiz-player');
-        player.style.filter = `blur(${this.blurLevel}px)`;
-        player.style.opacity = '1';
+            const currentTime = video.currentTime;
+            const percentage = (currentTime / this.maxDurationForLevel) * 100;
+            document.getElementById('progress-bar').style.width = `${Math.min(percentage, 100)}%`;
 
-        // Input Listener
-        if (!this.inputListenerAttached) {
-            document.getElementById('guess-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') this.checkGuess();
-            });
-            this.inputListenerAttached = true;
-        }
+            if (currentTime >= this.maxDurationForLevel && !this.isRoundOver) {
+                video.pause();
+                this.isPlaying = false;
+                playBtn.disabled = false;
+            }
+        };
     },
 
     switchMode(mode) {
@@ -86,305 +96,201 @@ const Game = {
     updateModeUI() {
         const btnOp = document.getElementById('mode-op');
         const btnEd = document.getElementById('mode-ed');
-
         if (this.currentMode === 'OP') {
-            btnOp.style.background = 'var(--primary)'; btnOp.style.opacity = '1';
-            btnEd.style.background = 'var(--surface)'; btnEd.style.opacity = '0.6';
+            btnOp.style.opacity = '1'; btnOp.classList.remove('secondary');
+            btnEd.style.opacity = '0.6'; btnEd.classList.add('secondary');
         } else {
-            console.log('Switching UI to ED');
-            btnOp.style.background = 'var(--surface)'; btnOp.style.opacity = '0.6';
-            btnEd.style.background = 'var(--primary)'; btnEd.style.opacity = '1';
+            btnOp.style.opacity = '0.6'; btnOp.classList.add('secondary');
+            btnEd.style.opacity = '1'; btnEd.classList.remove('secondary');
         }
     },
 
     resetGameUI() {
         this.attempts = 0;
-        this.blurLevel = 30;
-        this.isPlaying = false;
+        this.currentLives = 5;
+        this.isRoundOver = false;
 
-        document.getElementById('attempt-count').textContent = '1';
-        document.getElementById('status-text').textContent = "Sorteando Anime...";
-        document.getElementById('status-text').style.display = 'block';
-        document.getElementById('loading-spinner').style.display = 'block';
-
+        this.updateLivesUI();
+        document.getElementById('round-display').textContent = "1/5";
+        document.getElementById('guess-input').value = "";
         document.getElementById('guess-input').disabled = false;
-        document.getElementById('guess-input').value = '';
         document.getElementById('submit-btn').disabled = false;
         document.getElementById('give-up-btn').style.display = 'none';
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('game-actions').innerHTML = '';
 
-        document.getElementById('quiz-player').src = '';
-        document.getElementById('quiz-player').style.display = 'block';
+        // Overlays
+        document.getElementById('loading-overlay').classList.remove('hidden');
+        document.getElementById('start-overlay').classList.add('hidden');
+        document.getElementById('result-overlay').classList.add('hidden');
 
-        this.updateVisuals(false);
-        const feedback = document.getElementById('feedback');
-        feedback.textContent = '';
-        feedback.className = 'feedback';
+        // Reset Video
+        const video = document.getElementById('game-video');
+        video.style.filter = `blur(${GAME_CONFIG.levels[0].blur}px)`;
+        document.getElementById('progress-bar').style.width = '0%';
+    },
 
-        const cover = document.getElementById('quiz-cover');
-        cover.style.display = 'none';
+    updateLivesUI() {
+        let hearts = "";
+        for (let i = 0; i < this.currentLives; i++) hearts += "❤️";
+        for (let i = this.currentLives; i < 5; i++) hearts += "🖤";
+        document.getElementById('lives-display').textContent = hearts;
+    },
+
+    updateLevelConfig() {
+        const levelIndex = 5 - this.currentLives;
+        if (levelIndex >= 5) return; // Should not happen
+
+        const config = GAME_CONFIG.levels[levelIndex];
+        this.maxDurationForLevel = config.duration;
+
+        const video = document.getElementById('game-video');
+        video.style.filter = `blur(${config.blur}px)`;
+
+        // Update Overlay Text for Next Try
+        document.getElementById('overlay-desc').textContent = `Blur: ${config.blur}px | Tempo: ${config.duration}s`;
     },
 
     async setupSecurePlayer(url) {
-        const player = document.getElementById('quiz-player');
-        const status = document.getElementById('status-text');
-
-        status.textContent = "Baixando...";
+        const video = document.getElementById('game-video');
+        const loadText = document.getElementById('loading-text');
 
         try {
             const req = await fetch(url);
             if (!req.ok) throw new Error("Fetch failed");
-
             const blob = await req.blob();
             const blobUrl = URL.createObjectURL(blob);
-
-            player.src = blobUrl;
-            status.textContent = ""; // Clear text when ready
-            this.enableControls();
-
+            video.src = blobUrl;
         } catch (e) {
-            console.warn("CORS/Fetch error, falling back to direct URL", e);
-            player.src = url;
-            status.textContent = "";
-            this.enableControls();
+            console.warn("Fallback to direct URL");
+            video.src = url;
         }
 
-        player.onended = () => {
-            this.isPlaying = false;
-            document.getElementById('play-btn').textContent = "▶️ Tocar Excerto";
-            this.updateVisuals(false);
+        video.onloadedmetadata = () => {
+            document.getElementById('loading-overlay').classList.add('hidden');
+            this.showStartOverlay();
+            this.updateLevelConfig();
         };
 
-        player.onplay = () => {
-            this.isPlaying = true;
-            document.getElementById('play-btn').textContent = "⏸️ Pausar";
-            this.updateVisuals(true);
+        video.onerror = () => {
+            loadText.textContent = "Erro ao carregar vídeo.";
         };
 
-        player.onpause = () => {
-            this.isPlaying = false;
-            document.getElementById('play-btn').textContent = "▶️ Tocar Excerto";
-            this.updateVisuals(false);
-        };
-
-        player.volume = 0.5;
+        video.volume = 0.5;
     },
 
-    enableControls() {
-        document.getElementById('play-btn').disabled = false;
-        document.getElementById('play-btn').onclick = () => this.togglePlay();
+    showStartOverlay() {
+        if (this.isRoundOver) return;
+        document.getElementById('start-overlay').classList.remove('hidden');
+        document.getElementById('overlay-title').textContent = this.currentLives === 5 ? "Começar" : "Tentar Novamente";
     },
 
-    async togglePlay() {
-        const player = document.getElementById('quiz-player');
-        try {
-            if (player.paused) await player.play();
-            else player.pause();
-        } catch (err) { console.error("Playback error:", err); }
-    },
+    playSnippet() {
+        const video = document.getElementById('game-video');
+        document.getElementById('start-overlay').classList.add('hidden');
 
-    updateVisuals(playing) {
-        const vinyl = document.getElementById('vinyl');
-        const eq = document.getElementById('equalizer');
-
-        if (playing) {
-            vinyl.classList.add('spinning');
-            eq.style.display = 'flex';
-        } else {
-            vinyl.classList.remove('spinning');
-            eq.style.display = 'none';
-        }
+        video.currentTime = 0;
+        video.play();
+        this.isPlaying = true;
     },
 
     checkGuess() {
-        if (this.attempts >= this.maxAttempts) return;
+        if (this.isRoundOver) return;
 
         const input = document.getElementById('guess-input');
-        const guess = input.value.trim().toLowerCase();
-
-        if (!guess) return;
-
+        const val = input.value.trim().toLowerCase();
         const correct = this.todayAnime.title.toLowerCase();
-        const feedback = document.getElementById('feedback');
-        const player = document.getElementById('quiz-player');
 
-        this.attempts++;
-        document.getElementById('attempt-count').textContent = this.attempts;
+        if (!val) return;
 
-        // Show "Give Up" button if this is the last attempt (Current attempts = max - 1 before increment, now attempts count is updated)
-        // If attempts became maxAttempts, user just used their last attempt? No.
-        // User starts at 0. Tries 1. Count shows 1/5.
-        // Tries 4. Count shows 4/5. Next try is 5 (The last one).
-        // UI Request: "Quando for Tentativa 5/5 aparece desistir".
-        // This means when we UPDATE the counter to 5.
-        // Or if we failed the 4th attempt and are now staring at "5/5".
-
-        // Logic: If attempts == maxAttempts - 1 (So we are at 4, next is 5). Wait, UI Update logic:
-        // Here attempts is incremented. If attempts == 5 (We just made the 5th guess), it's game over if wrong.
-        // So the button should appear BEFORE the 5th guess is made?
-        // "Quando for Tentativa 5/5". The counter updates when?
-        // Ah, typically: attempts starts 0. Display "1/5".
-        // Guess 1 wrong -> attempts=1. Display "2/5".
-        // Guess 4 wrong -> attempts=4. Display "5/5". -> show button NOW.
-
-        if (this.attempts === this.maxAttempts - 1) {
-            // We just finished attempt 4 (so index 3, but count is 4).
-            // Next one is 5.
-            // Wait, my attempts var is actually "number of guesses made".
-            // So if attempts == 4, we have made 4 guesses. The user is about to make the 5th.
-            // UI shows attempt-count = attempts + 1 usually? 
-            // In my code: document.getElementById('attempt-count').textContent = this.attempts;
-            // No, my code sets textContent = this.attempts which means "Guesses Made".
-            // But usually UI says "Attempt X of 5". If 0 made, it says "1".
-            // Let's fix the initial HTML to say "1" (static).
-            // Code: this.attempts++; textContent = this.attempts + 1; ?
-            // Current code: `this.attempts++; ... textContent = this.attempts;`
-            // So if I guess once, it says "1/5". Correct.
-            // If I guess 4 times, it says "4/5".
-            // So when I AM AT 4 tries, I am ABOUT to do the 5th.
-            // The user wants "When it is Attempt 5 do X".
-            // So if attempts == 4 (meaning 4 faild), display is 4/5? No wait.
-            // If I failed 4 times. Display shows 4/5. 
-            // The *next* try is number 5.
-            // I should update the display to explicitly show "current attempt number"? 
-            // Currently it shows "past attempts count" effectively?
-            // If I start, attempts=0. HTML static says "1".
-            // Guess 1. attempts becomes 1. Text becomes "1". (Wait, that means "1 attempt used").
-            // User likely sees "1/5" meaning "I used 1". The next is 2.
-            // So "Tentativa 5/5" means "I have used 5 attempts". That is GAME OVER.
-
-            // Let's assume standard game logic: "Tentativa X" means "Current Try".
-            // Start: 1/5.
-            // Fail 1: 2/5.
-            // Fail 4: 5/5. (This is the last chance).
-            // Logic needs fix: `document.getElementById('attempt-count').textContent = this.attempts + 1;`
-            // And `this.attempts` handles "used attempts".
-        }
-
-        // Let's update checkGuess to update counter for NEXT attempt if wrong.
-
-        if (guess === correct || (correct.length > 5 && guess.includes(correct))) {
-            feedback.textContent = `🎉 Correto! O anime era ${this.todayAnime.title}.`;
-            feedback.className = 'feedback success';
-            this.revealVideo(true);
-            this.endGame(true);
+        // Lenient check
+        if (val === correct || (correct.length > 4 && (correct.includes(val) || val.includes(correct)))) {
+            this.handleWin();
         } else {
-            // WRONG GUESS
-            this.blurLevel = Math.max(0, this.blurLevel - 6);
-            player.style.filter = `blur(${this.blurLevel}px)`;
-
-            if (this.attempts >= this.maxAttempts) {
-                // Game Over
-                feedback.textContent = `❌ Game Over. A resposta era ${this.todayAnime.title}.`;
-                feedback.className = 'feedback error';
-                this.revealVideo(true);
-                this.endGame(false);
-            } else {
-                // Continue
-                feedback.textContent = `❌ Incorreto. O vídeo ficou mais nítido.`;
-                feedback.className = 'feedback error';
-
-                // Update counter to show CURRENT attempt number (Next one)
-                document.getElementById('attempt-count').textContent = this.attempts + 1;
-
-                // Check if we are now at the last attempt
-                if (this.attempts + 1 === this.maxAttempts) {
-                    document.getElementById('give-up-btn').style.display = 'inline-block';
-                }
-            }
+            this.handleLoss();
         }
-        input.value = '';
+        input.value = "";
+    },
+
+    handleWin() {
+        this.isRoundOver = true;
+        const video = document.getElementById('game-video');
+        video.style.filter = 'blur(0px)';
+        this.maxDurationForLevel = 999;
+        video.play(); // Play full video
+        this.isPlaying = true; // Let it play
+
+        const feedback = document.getElementById('feedback');
+        feedback.textContent = "🎉 ACERTASTE!";
+        feedback.className = "success";
+
+        this.showResult(true);
+        if (window.CalendarSystem) CalendarSystem.markComplete();
+    },
+
+    handleLoss() {
+        this.currentLives--;
+        this.attempts++;
+        this.updateLivesUI();
+        document.getElementById('round-display').textContent = `${this.attempts + 1}/5`;
+
+        const feedback = document.getElementById('feedback');
+        feedback.textContent = "❌ Incorreto!";
+        feedback.className = "error";
+
+        if (this.currentLives <= 0) {
+            this.giveUp();
+        } else {
+            // Check if last attempt to show give up button
+            if (this.currentLives === 1) {
+                document.getElementById('give-up-btn').style.display = 'block';
+            }
+
+            setTimeout(() => {
+                this.updateLevelConfig();
+                this.showStartOverlay();
+                feedback.textContent = "";
+            }, 1000);
+        }
     },
 
     giveUp() {
-        const feedback = document.getElementById('feedback');
-        feedback.textContent = `🏳️ Desististe. A resposta era ${this.todayAnime.title}.`;
-        feedback.className = 'feedback error';
-        this.revealVideo(true);
-        this.endGame(false);
-        document.getElementById('give-up-btn').style.display = 'none';
-    },
-
-    revealVideo(full) {
-        const player = document.getElementById('quiz-player');
-        const cover = document.getElementById('quiz-cover');
-        const textArea = document.getElementById('status-text');
-        const vinyl = document.getElementById('vinyl');
-        const eq = document.getElementById('equalizer');
-
-        // Hide Visual Elements
-        vinyl.style.display = 'none';
-        eq.style.display = 'none';
-
-        player.style.filter = 'blur(0px)';
-        player.style.width = '100%';
-        player.style.height = 'auto';
-        player.style.display = 'block';
-        player.opacity = 1;
-        player.controls = true;
-
-        cover.style.display = 'block';
-        cover.style.marginTop = '15px';
-        cover.style.height = 'auto';
-
-        textArea.style.display = 'none';
-        document.getElementById('play-btn').style.display = 'none';
-    },
-
-    endGame(won) {
-        document.getElementById('submit-btn').disabled = true;
-        document.getElementById('guess-input').disabled = true;
-        document.getElementById('give-up-btn').style.display = 'none';
-
-        if (window.CalendarSystem && won) {
-            CalendarSystem.markComplete();
-        }
+        this.isRoundOver = true;
+        const video = document.getElementById('game-video');
+        video.style.filter = 'blur(0px)';
+        this.maxDurationForLevel = 999;
+        video.play();
 
         const feedback = document.getElementById('feedback');
+        feedback.textContent = "🏳️ Game Over.";
+        feedback.className = "error";
 
-        // Add "Play Other Mode" Button (OP/ED)
+        this.showResult(false);
+    },
+
+    showResult(won) {
+        document.getElementById('result-overlay').classList.remove('hidden');
+        document.getElementById('result-title').textContent = won ? "VITORIA!" : "DERROTA";
+        document.getElementById('result-title').style.color = won ? "var(--secondary-accent)" : "var(--danger)";
+        document.getElementById('result-anime').textContent = this.todayAnime.title;
+
+        // Add Switch Mode Button
+        const actions = document.getElementById('game-actions');
         const otherMode = this.currentMode === 'OP' ? 'ED' : 'OP';
-        const otherLabel = this.currentMode === 'OP' ? 'Encerramento (ED)' : 'Abertura (OP)';
 
-        // Check completion
-        const urlParams = new URLSearchParams(window.location.search);
-        let dateStr = urlParams.get('date');
-        if (!dateStr) {
-            const now = new Date();
-            dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-        }
+        actions.innerHTML = `
+            <button class="neo-btn secondary" onclick="Game.switchMode('${otherMode}')" style="width:100%; margin-top:10px;">
+                Jogar ${otherMode}
+            </button>
+            <button class="neo-btn" onclick="location.reload()" style="width:100%; margin-top:10px;">
+                Reiniciar
+            </button>
+        `;
 
-        const key = `music_quiz_${otherMode.toLowerCase()}_completed`;
-        const history = JSON.parse(localStorage.getItem(key) || '[]');
-        const isOtherCompleted = history.includes(dateStr);
-
-        if (!isOtherCompleted) {
-            const switchBtn = document.createElement('button');
-            switchBtn.innerHTML = `<i class="fas fa-random"></i> Jogar ${otherLabel}`;
-            switchBtn.className = 'btn-secondary';
-            switchBtn.style.marginTop = '20px';
-            switchBtn.style.display = 'block';
-            switchBtn.style.width = '100%';
-            switchBtn.style.background = 'var(--primary)';
-            switchBtn.style.color = 'white';
-            switchBtn.onclick = () => this.switchMode(otherMode);
-
-            feedback.appendChild(switchBtn);
-        }
-
-        // Add "Play Previous Day" Button
-        let d = dateStr ? new Date(dateStr) : new Date();
-        d.setDate(d.getDate() - 1);
-        const prevDateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-        const btn = document.createElement('button');
-        btn.innerHTML = `<i class="fas fa-history"></i> Jogar Dia Anterior (${prevDateStr})`;
-        btn.className = 'btn-secondary';
-        btn.style.marginTop = '10px';
-        btn.style.display = 'block';
-        btn.style.width = '100%';
-        btn.onclick = () => window.location.href = `?date=${prevDateStr}`;
-
-        feedback.appendChild(btn);
+        // Disable Inputs
+        document.getElementById('guess-input').disabled = true;
+        document.getElementById('submit-btn').disabled = true;
+        document.getElementById('give-up-btn').style.display = 'none';
     }
 };
 

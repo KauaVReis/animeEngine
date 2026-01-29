@@ -82,12 +82,19 @@ const API = {
                     dateOfBirth { year month day }
                     bloodType
                     media(sort: POPULARITY_DESC, type: ANIME, perPage: 1) {
-                        nodes {
-                            id
-                            title { romaji }
-                            seasonYear
-                            genres
-                            studios { nodes { name } }
+                        edges {
+                            node {
+                                id
+                                title { romaji }
+                                seasonYear
+                                genres
+                                studios { nodes { name } }
+                            }
+                            characterRole
+                            voiceActors(language: JAPANESE, sort: RELEVANCE) {
+                                id
+                                name { full }
+                            }
                         }
                     }
                 }
@@ -113,13 +120,21 @@ const API = {
                     age
                     dateOfBirth { year month day }
                     bloodType
+                    bloodType
                     media(sort: POPULARITY_DESC, type: ANIME, perPage: 1) {
-                        nodes {
-                            id
-                            title { romaji }
-                            seasonYear
-                            genres
-                            studios { nodes { name } }
+                        edges {
+                            node {
+                                id
+                                title { romaji }
+                                seasonYear
+                                genres
+                                studios { nodes { name } }
+                            }
+                            characterRole
+                            voiceActors(language: JAPANESE, sort: RELEVANCE) {
+                                id
+                                name { full }
+                            }
                         }
                     }
                 }

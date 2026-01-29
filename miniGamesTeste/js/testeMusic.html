@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blurry Anime Music Quiz</title>
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --bg-color: #f0f0f0;
+            --main-accent: #8b5cf6;
+            /* Roxo Elétrico */
+            --secondary-accent: #10b981;
+            /* Verde Esmeralda */
+            --danger: #ef4444;
+            /* Vermelho */
+            --text-color: #1f2937;
+            --border-color: #000000;
+            --border-width: 3px;
+            --shadow-offset: 4px;
+            --font-family: 'Courier New', Courier, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        /* --- NEO-BRUTALISM UTILS --- */
+        .neo-box {
+            background: white;
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--border-color);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .neo-btn {
+            background: var(--main-accent);
+            color: white;
+            border: var(--border-width) solid var(--border-color);
+            padding: 0.8rem 1.5rem;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--border-color);
+            transition: transform 0.1s, box-shadow 0.1s;
+            text-transform: uppercase;
+        }
+
+        .neo-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px var(--border-color);
+        }
+
+        .neo-btn.secondary {
+            background: var(--secondary-accent);
+        }
+
+        .neo-btn.danger {
+            background: var(--danger);
+        }
+
+        .neo-input {
+            width: 100%;
+            padding: 1rem;
+            border: var(--border-width) solid var(--border-color);
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            background: #fff;
+            box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        /* --- LAYOUT --- */
+        #app {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        header {
+            text-align: center;
+            background: #facc15;
+            /* Amarelo */
+            border: var(--border-width) solid var(--border-color);
+            padding: 1rem;
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        /* --- VIDEO CONTAINER --- */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: black;
+            overflow: hidden;
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--border-color);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Transition suave para o blur */
+            transition: filter 0.5s ease;
+        }
+
+        /* Overlay para loadings e estados */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        /* --- GAME INFO --- */
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .lives-container span {
+            color: var(--danger);
+            font-size: 1.2rem;
+        }
+
+        /* --- PROGRESS BAR --- */
+        .progress-container {
+            height: 20px;
+            border: var(--border-width) solid var(--border-color);
+            background: white;
+            position: relative;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--main-accent);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .limit-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--danger);
+            z-index: 2;
+        }
+
+        /* --- AUTOCOMPLETE --- */
+        .input-group {
+            position: relative;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: var(--border-width) solid var(--border-color);
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+        }
+
+        .suggestions-list.active {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 0.8rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background: #f0f0f0;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        /* --- FEEDBACK MESSAGE --- */
+        #feedback {
+            min-height: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .success {
+            color: var(--secondary-accent);
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        /* --- LOADING SPINNER --- */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 5px solid #fff;
+            border-top: 5px solid var(--main-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <header>
+            <h1>Blurry Anime Quiz</h1>
+        </header>
+
+        <div class="neo-box">
+            <div class="game-stats">
+                <div>Ronda: <span id="round-display">1</span></div>
+                <div class="lives-container">Vidas: <span id="lives-display">❤️❤️❤️❤️❤️</span></div>
+            </div>
+
+            <div class="video-wrapper">
+                <video id="game-video" playsinline crossorigin="anonymous"></video>
+
+                <!-- Loading Overlay -->
+                <div id="loading-overlay" class="overlay">
+                    <div class="spinner"></div>
+                    <p id="loading-text">A carregar vídeo e a esconder URL...</p>
+                </div>
+
+                <!-- Start/Retry Overlay -->
+                <div id="start-overlay" class="overlay hidden">
+                    <h2 id="overlay-title">Preparado?</h2>
+                    <p id="overlay-desc" style="margin: 1rem 0;">Nível de Blur: 40px | Tempo: 5s</p>
+                    <button id="play-btn" class="neo-btn">Ouvir / Tocar</button>
+                </div>
+
+                <!-- Game Over / Win Overlay -->
+                <div id="result-overlay" class="overlay hidden">
+                    <h2 id="result-title"></h2>
+                    <div id="result-anime" style="margin: 1rem 0; font-size: 1.2rem; color: #facc15;"></div>
+                    <button id="next-round-btn" class="neo-btn secondary">Próxima Ronda</button>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-fill"></div>
+                <!-- Marker visual para mostrar até onde vai tocar -->
+                <div id="limit-marker" class="limit-marker" style="left: 20%"></div>
+            </div>
+
+            <div id="feedback"></div>
+        </div>
+
+        <div class="neo-box input-group">
+            <input type="text" id="anime-input" class="neo-input"
+                placeholder="Que anime é este? (Escreve para pesquisar)" autocomplete="off">
+            <div id="suggestions" class="suggestions-list"></div>
+            <button id="submit-btn" class="neo-btn" style="width: 100%; margin-top: 1rem;">Confirmar Resposta</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * CONFIGURAÇÃO E ESTADO DO JOGO
+         */
+        const GAME_CONFIG = {
+            maxLives: 5,
+            levels: [
+                { blur: 40, duration: 5 },  // Tentativa 1 (5 Vidas)
+                { blur: 20, duration: 10 }, // Tentativa 2 (4 Vidas)
+                { blur: 10, duration: 15 }, // Tentativa 3 (3 Vidas)
+                { blur: 5, duration: 20 },  // Tentativa 4 (2 Vidas)
+                { blur: 0, duration: 25 }   // Tentativa 5 (1 Vida)
+            ]
+        };
+
+        let state = {
+            currentLives: 5,
+            currentRound: 1,
+            currentAnimeName: "",
+            currentVideoBlobUrl: null,
+            isPlaying: false,
+            maxDurationForLevel: 5,
+            videoDuration: 0,
+            isRoundOver: false,
+            retryCount: 0
+        };
+
+        /**
+         * ELEMENTOS DOM
+         */
+        const dom = {
+            video: document.getElementById('game-video'),
+            input: document.getElementById('anime-input'),
+            suggestions: document.getElementById('suggestions'),
+            lives: document.getElementById('lives-display'),
+            round: document.getElementById('round-display'),
+            progressBar: document.getElementById('progress-bar'),
+            limitMarker: document.getElementById('limit-marker'),
+            feedback: document.getElementById('feedback'),
+            loadingOverlay: document.getElementById('loading-overlay'),
+            startOverlay: document.getElementById('start-overlay'),
+            resultOverlay: document.getElementById('result-overlay'),
+            playBtn: document.getElementById('play-btn'),
+            submitBtn: document.getElementById('submit-btn'),
+            nextBtn: document.getElementById('next-round-btn'),
+            loadingText: document.getElementById('loading-text'),
+            overlayTitle: document.getElementById('overlay-title'),
+            overlayDesc: document.getElementById('overlay-desc'),
+            resultTitle: document.getElementById('result-title'),
+            resultAnime: document.getElementById('result-anime')
+        };
+
+        /**
+         * GESTOR DE API (AnimeThemes & AniList)
+         */
+        const APIManager = {
+            // Busca um vídeo aleatório (Usando endpoint animetheme para maior estabilidade)
+            async fetchRandomVideo() {
+                try {
+                    // Fetch de temas aleatórios
+                    const response = await fetch('https://api.animethemes.moe/animetheme?sort=random&include=anime,animethemeentries.videos&page[size]=1');
+
+                    if (!response.ok) {
+                        throw new Error(`Status da API: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.animethemes || data.animethemes.length === 0) {
+                        // Retry interno se vier vazio
+                        throw new Error("Dados da API vazios");
+                    }
+
+                    const theme = data.animethemes[0];
+                    const animeName = theme.anime.name;
+
+                    // Encontrar o primeiro entry que tenha vídeos
+                    const validEntry = theme.animethemeentries.find(entry => entry.videos && entry.videos.length > 0);
+
+                    if (!validEntry) {
+                        throw new Error("Tema sem ficheiros de vídeo associados");
+                    }
+
+                    const videoUrl = validEntry.videos[0].link;
+
+                    return { animeName, videoUrl };
+
+                } catch (error) {
+                    console.error("API Error Detail:", error);
+                    throw error;
+                }
+            },
+
+            // Anti-Cheat: Tenta converter para Blob, mas faz fallback para URL direto se falhar (CORS)
+            async secureVideo(url) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error("Falha no fetch");
+                    const blob = await response.blob();
+                    return URL.createObjectURL(blob);
+                } catch (e) {
+                    console.warn("CORS bloqueou Blob. A usar URL direta como fallback.", e);
+                    // Fallback CRÍTICO: Retorna a URL original para que o jogo não encrave
+                    return url;
+                }
+            },
+
+            // Autocomplete da AniList
+            async searchAnime(query) {
+                if (query.length < 3) return [];
+
+                const queryGraph = `
+            query ($search: String) {
+                Page(perPage: 5) {
+                    media(search: $search, type: ANIME) {
+                        title {
+                            romaji
+                            english
+                        }
+                    }
+                }
+            }`;
+
+                try {
+                    const response = await fetch('https://graphql.anilist.co', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            query: queryGraph,
+                            variables: { search: query }
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (!data.data || !data.data.Page) return [];
+                    return data.data.Page.media.map(m => m.title.romaji || m.title.english);
+                } catch (e) {
+                    console.error("AniList Error:", e);
+                    return [];
+                }
+            }
+        };
+
+        /**
+         * LÓGICA DO JOGO
+         */
+
+        async function initRound() {
+            // Reset Estado da Ronda
+            state.currentLives = 5;
+            state.isRoundOver = false;
+            state.isPlaying = false;
+            updateLevelConfig();
+
+            // Reset UI
+            dom.input.value = '';
+            dom.input.disabled = false;
+            dom.submitBtn.disabled = false;
+            dom.feedback.textContent = '';
+            updateLivesUI();
+            dom.round.textContent = state.currentRound;
+
+            // Mostrar Loading
+            dom.loadingOverlay.classList.remove('hidden');
+            dom.startOverlay.classList.add('hidden');
+            dom.resultOverlay.classList.add('hidden');
+            dom.loadingText.textContent = "A carregar nova ronda...";
+
+            // Limpar Blob anterior para memória (apenas se for blob)
+            if (state.currentVideoBlobUrl && state.currentVideoBlobUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(state.currentVideoBlobUrl);
+            }
+            state.currentVideoBlobUrl = null;
+
+            await attemptFetchVideo();
+        }
+
+        async function attemptFetchVideo() {
+            try {
+                const data = await APIManager.fetchRandomVideo();
+
+                state.currentAnimeName = data.animeName;
+                console.log("Debug Anime:", state.currentAnimeName);
+
+                dom.loadingText.textContent = "A carregar vídeo...";
+                // Tenta criar blob seguro, mas aceita URL direta se falhar
+                state.currentVideoBlobUrl = await APIManager.secureVideo(data.videoUrl);
+
+                // Sucesso: Reset retry count
+                state.retryCount = 0;
+                setupVideo();
+
+            } catch (error) {
+                console.warn("Tentativa falhou:", error);
+                state.retryCount++;
+
+                if (state.retryCount > 4) {
+                    // FALLBACK DE EMERGÊNCIA FINAL
+                    console.error("API Falhou várias vezes. A usar Fallback Fixo.");
+                    state.currentAnimeName = "Neon Genesis Evangelion";
+                    state.currentVideoBlobUrl = "https://animethemes.moe/video/NeonGenesisEvangelion-OP1.webm";
+                    dom.loadingText.textContent = "Modo Offline: A carregar clássico...";
+                    setupVideo();
+                } else {
+                    dom.loadingText.textContent = `A tentar vídeo alternativo (${state.retryCount}/4)...`;
+                    // Espera um pouco antes de tentar novamente
+                    setTimeout(attemptFetchVideo, 1000);
+                }
+            }
+        }
+
+        function setupVideo() {
+            dom.video.src = state.currentVideoBlobUrl;
+            dom.video.load();
+
+            // Timeout de segurança caso o metadata nunca carregue (ex: formato inválido)
+            const safetyTimeout = setTimeout(() => {
+                if (!dom.loadingOverlay.classList.contains('hidden') && !state.isRoundOver) {
+                    dom.loadingText.textContent = "Vídeo lento ou inválido. A saltar...";
+                    setTimeout(() => {
+                        state.retryCount++; // Incrementa para não ficar num loop infinito
+                        attemptFetchVideo();
+                    }, 1000);
+                }
+            }, 10000);
+
+            dom.video.onloadedmetadata = () => {
+                clearTimeout(safetyTimeout);
+                state.videoDuration = dom.video.duration;
+                dom.loadingOverlay.classList.add('hidden');
+                showStartOverlay();
+                updateLevelConfig();
+            };
+
+            dom.video.onerror = (e) => {
+                console.error("Erro no player de vídeo:", e);
+                clearTimeout(safetyTimeout);
+                dom.loadingText.textContent = "Erro no ficheiro. A tentar outro...";
+                setTimeout(attemptFetchVideo, 1000);
+            };
+        }
+
+        function updateLevelConfig() {
+            const levelIndex = 5 - state.currentLives;
+            const config = GAME_CONFIG.levels[levelIndex];
+
+            state.maxDurationForLevel = config.duration;
+
+            dom.video.style.filter = `blur(${config.blur}px)`;
+            dom.overlayDesc.textContent = `Vidas: ${state.currentLives} | Blur: ${config.blur}px | Tempo: ${config.duration}s`;
+        }
+
+        function showStartOverlay() {
+            if (state.isRoundOver) return;
+            dom.startOverlay.classList.remove('hidden');
+            dom.overlayTitle.textContent = state.currentLives === 5 ? "Nova Ronda" : "Tentar Novamente";
+            dom.video.pause();
+            dom.video.currentTime = 0;
+        }
+
+        function playVideo() {
+            dom.startOverlay.classList.add('hidden');
+            dom.video.currentTime = 0;
+            dom.video.volume = 0.5;
+
+            const playPromise = dom.video.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    state.isPlaying = true;
+                }).catch(error => {
+                    console.log("Autoplay bloqueado pelo browser");
+                });
+            }
+        }
+
+        // Core Mechanic: Limite de Tempo
+        dom.video.addEventListener('timeupdate', () => {
+            if (!state.isPlaying) return;
+
+            const currentTime = dom.video.currentTime;
+            const percentage = (currentTime / state.maxDurationForLevel) * 100;
+            dom.progressBar.style.width = `${Math.min(percentage, 100)}%`;
+
+            if (currentTime >= state.maxDurationForLevel) {
+                dom.video.pause();
+                state.isPlaying = false;
+                dom.feedback.textContent = "Tempo esgotado! Tenta adivinhar ou toca para ouvir novamente.";
+                dom.feedback.className = "";
+            }
+        });
+
+        function checkAnswer() {
+            if (state.isRoundOver) return;
+
+            const userGuess = dom.input.value.trim().toLowerCase();
+            const correct = state.currentAnimeName.toLowerCase();
+
+            if (!userGuess) {
+                dom.feedback.textContent = "Escreve o nome de um anime!";
+                dom.feedback.className = "error";
+                return;
+            }
+
+            // Validação (Fuzzy simples: verifica se contem parte do nome se for longo)
+            const isCorrect = userGuess === correct || (correct.length > 5 && correct.includes(userGuess));
+
+            if (isCorrect) {
+                handleWin();
+            } else {
+                handleLoss();
+            }
+        }
+
+        function handleWin() {
+            state.isRoundOver = true;
+            dom.video.style.filter = "blur(0px)";
+            dom.video.play();
+            state.maxDurationForLevel = 999;
+
+            dom.resultTitle.textContent = "ACERTASTE! 🎉";
+            dom.resultTitle.style.color = "var(--secondary-accent)";
+            dom.resultAnime.textContent = state.currentAnimeName;
+            dom.resultOverlay.classList.remove('hidden');
+            dom.nextBtn.textContent = "Próxima Ronda";
+            dom.nextBtn.onclick = () => {
+                state.currentRound++;
+                initRound();
+            };
+        }
+
+        function handleLoss() {
+            state.currentLives--;
+            updateLivesUI();
+
+            if (state.currentLives === 0) {
+                gameOver();
+            } else {
+                dom.feedback.textContent = "Errado! O vídeo vai ficar mais nítido...";
+                dom.feedback.className = "error";
+                setTimeout(() => {
+                    updateLevelConfig();
+                    showStartOverlay();
+                }, 1500);
+            }
+        }
+
+        function gameOver() {
+            state.isRoundOver = true;
+            dom.video.style.filter = "blur(0px)";
+            state.maxDurationForLevel = 999;
+            dom.video.play();
+
+            dom.resultTitle.textContent = "GAME OVER 💀";
+            dom.resultTitle.style.color = "var(--danger)";
+            dom.resultAnime.textContent = `Era: ${state.currentAnimeName}`;
+            dom.resultOverlay.classList.remove('hidden');
+            dom.nextBtn.textContent = "Reiniciar Jogo";
+            dom.nextBtn.onclick = () => {
+                state.currentRound = 1;
+                initRound();
+            };
+        }
+
+        function updateLivesUI() {
+            let hearts = "";
+            for (let i = 0; i < state.currentLives; i++) hearts += "❤️";
+            for (let i = state.currentLives; i < 5; i++) hearts += "🖤";
+            dom.lives.textContent = hearts;
+        }
+
+        /**
+         * AUTOCOMPLETE UI
+         */
+        let debounceTimer;
+        dom.input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            clearTimeout(debounceTimer);
+
+            if (val.length < 3) {
+                dom.suggestions.classList.remove('active');
+                return;
+            }
+
+            debounceTimer = setTimeout(async () => {
+                const results = await APIManager.searchAnime(val);
+                renderSuggestions(results);
+            }, 300);
+        });
+
+        function renderSuggestions(list) {
+            dom.suggestions.innerHTML = '';
+            if (list.length === 0) {
+                dom.suggestions.classList.remove('active');
+                return;
+            }
+
+            list.forEach(anime => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.textContent = anime;
+                div.onclick = () => {
+                    dom.input.value = anime;
+                    dom.suggestions.classList.remove('active');
+                };
+                dom.suggestions.appendChild(div);
+            });
+            dom.suggestions.classList.add('active');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!dom.input.contains(e.target) && !dom.suggestions.contains(e.target)) {
+                dom.suggestions.classList.remove('active');
+            }
+        });
+
+        /**
+         * EVENT LISTENERS GERAIS
+         */
+        dom.playBtn.addEventListener('click', playVideo);
+        dom.submitBtn.addEventListener('click', checkAnswer);
+        dom.input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+
+        // INICIAR JOGO
+        initRound();
+
+    </script>
+
+</body>
+
+</html>

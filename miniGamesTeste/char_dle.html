@@ -57,6 +57,117 @@
             display: none;
             margin-top: 10px;
         }
+
+        /* Hints */
+        .hints-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px 0;
+            align-items: center;
+        }
+
+        .hint-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            max-width: 600px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .shake {
+            animation: shake 0.4s;
+        }
+
+        .comp-row {
+            animation: flipIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes flipIn {
+            from {
+                transform: rotateX(-90deg);
+                opacity: 0;
+            }
+
+            to {
+                transform: rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        .comp-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 2fr 1fr 1fr;
+            /* Added Role column */
+            font-weight: bold;
+            padding: 10px;
+            border-bottom: 2px solid var(--border-color);
+            text-align: center;
+            gap: 5px;
+        }
+
+        .comp-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 2fr 1fr 1fr;
+            /* Added Role column */
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .comp-cell {
+            font-size: 0.85rem;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .comp-cell.correct {
+            background: var(--success);
+            color: black;
+        }
+
+        .comp-cell.incorrect {
+            background: var(--error);
+        }
     </style>
 </head>
 
@@ -108,6 +219,10 @@
                     <img id="char-image" class="char-image" src="" alt="Personagem Secreto">
                 </div>
 
+                <div id="hints-container" class="hints-container">
+                    <!-- Hints injected by JS -->
+                </div>
+
                 <div class="input-wrapper">
                     <input type="text" id="guess-input" placeholder="Digite o nome do personagem..." autocomplete="off">
                     <div id="autocomplete-list" class="autocomplete-items" style="display: none;"></div>
@@ -117,12 +232,16 @@
                 <button id="give-up-btn" onclick="Game.giveUp()">🏳️ Desistir</button>
 
                 <div id="feedback" class="feedback"></div>
-                <div id="game-actions" class="game-actions"></div>
+                <div id="game-actions" class="game-actions">
+                    <button id="share-btn" style="display:none; background: #1DA1F2;" onclick="Game.shareResult()"><i
+                            class="fas fa-share-alt"></i> Partilhar Resultado</button>
+                </div>
 
                 <div class="comparison-container">
                     <div class="comp-header">
                         <div>Personagem</div>
                         <div>Género</div>
+                        <div>Role</div>
                         <div>Anime</div>
                         <div>Ano</div>
                         <div>Idade</div>

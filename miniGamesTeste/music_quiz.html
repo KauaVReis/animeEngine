@@ -10,9 +10,249 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <style>
+        /* --- SCOPED RESET (Prevents affecting external Modals) --- */
+        body,
+        .container,
+        .container * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- DARK NEO-BRUTALISM VARIABLES --- */
+        :root {
+            --bg-color: #0c0c0e;
+            /* Deep Dark */
+            --surface: #18181b;
+            /* Zinc 900 */
+            --main-accent: #a855f7;
+            /* Purple */
+            --secondary-accent: #22c55e;
+            /* Green */
+            --danger: #ef4444;
+            --text-color: #f4f4f5;
+            /* Zinc 100 */
+            --text-muted: #a1a1aa;
+            --border-color: #27272a;
+            /* Zinc 800 */
+            --border-width: 2px;
+            --shadow-offset: 4px;
+            --font-display: 'Archivo Black', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+
+            /* Compatibility with Shared Modal (calendar_system.js) */
+            --text: var(--text-color);
+            --primary: var(--main-accent);
+            --shadow-neo: var(--shadow-offset) var(--shadow-offset) 0px #000000;
+
+            /* Box Shadows for Dark Mode */
+            --shadow-color: #000000;
+        }
+
+        /* Override Global Styles for this page specifics */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            /* Prevent horizontal scroll on mobile */
+        }
+
+        /* --- UTILS --- */
+        .neo-box {
+            background: var(--surface);
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--shadow-color);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            border-radius: 8px;
+            /* Slightly softer corners for "Modern" feel */
+        }
+
+        .neo-btn {
+            background: var(--main-accent);
+            color: white;
+            border: var(--border-width) solid var(--border-color);
+            padding: 0.8rem 1.5rem;
+            font-weight: 700;
+            font-family: var(--font-body);
+            /* Body font allows better reading on small btns */
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--shadow-color);
+            transition: transform 0.1s, box-shadow 0.1s, filter 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+        }
+
+        .neo-btn:hover {
+            filter: brightness(1.1);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px var(--shadow-color);
+        }
+
+        .neo-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px var(--shadow-color);
+        }
+
+        .neo-btn.secondary {
+            background: var(--surface);
+            color: var(--text-color);
+            border-color: var(--text-muted);
+        }
+
+        .neo-btn.danger {
+            background: var(--danger);
+        }
+
+        .neo-input {
+            width: 100%;
+            padding: 1rem;
+            border: var(--border-width) solid var(--border-color);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            outline: none;
+            background: var(--bg-color);
+            color: var(--text-color);
+            box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.5);
+            border-radius: 6px;
+        }
+
+        .neo-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* --- VIDEO CONTAINER --- */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            overflow: hidden;
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--shadow-color);
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Ensure we see the whole opening, often 16:9 already */
+            transition: filter 0.5s ease;
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+            padding: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        /* --- GAME INFO --- */
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .lives-container span {
+            color: var(--danger);
+            font-size: 1.1rem;
+        }
+
+        #round-display {
+            color: var(--text-color);
+        }
+
+        /* --- PROGRESS BAR --- */
+        .progress-container {
+            height: 12px;
+            border: var(--border-width) solid var(--border-color);
+            background: var(--bg-color);
+            position: relative;
+            margin-top: 1rem;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--main-accent);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* --- FEEDBACK --- */
+        #feedback {
+            min-height: 1.5rem;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .success {
+            color: var(--secondary-accent);
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        /* --- LOADING SPINNER --- */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid var(--main-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- AUTOCOMPLETE --- */
         .autocomplete-items {
             position: absolute;
-            border: 2px solid var(--border-color);
+            border: var(--border-width) solid var(--border-color);
             border-top: none;
             z-index: 99;
             top: 100%;
@@ -21,30 +261,35 @@
             background: var(--surface);
             max-height: 200px;
             overflow-y: auto;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+            border-radius: 0 0 6px 6px;
         }
 
         .autocomplete-active {
-            background-color: var(--primary) !important;
+            background-color: var(--main-accent) !important;
             color: #ffffff;
         }
 
         .autocomplete-item {
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             text-align: left;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            color: var(--text-muted);
+            transition: background 0.2s;
         }
 
         .autocomplete-item:hover {
-            background-color: var(--bg);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
         }
 
         .ac-thumb {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             object-fit: cover;
             border-radius: 4px;
         }
@@ -52,16 +297,51 @@
         .input-wrapper {
             position: relative;
             width: 100%;
-            max-width: 500px;
             margin: 0 auto;
         }
 
-        #give-up-btn {
-            background-color: var(--error);
-            border-color: var(--error);
-            display: none;
-            /* Hidden by default */
-            margin-top: 10px;
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+                /* Hide sidebar on mobile for focus */
+            }
+
+            .header {
+                padding: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px;
+                margin-top: 60px;
+                /* Header height */
+            }
+
+            .container {
+                padding: 0;
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+
+            .game-stats {
+                flex-direction: row;
+                font-size: 0.8rem;
+            }
+
+            .neo-btn {
+                padding: 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            #open-calendar-btn span {
+                display: none;
+                /* Icon only on mobile */
+            }
         }
     </style>
 </head>
@@ -105,65 +385,60 @@
 
     <!-- MAIN CONTENT -->
     <main class="main-content">
-        <div class="container">
+        <div class="container" style="max-width: 700px;">
             <h1>🎵 Music Quiz</h1>
 
             <div class="mode-selector" style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
-                <button id="mode-op" onclick="Game.switchMode('OP')"
-                    style="background:var(--primary); opacity:1;">Aberturas (OP)</button>
-                <button id="mode-ed" onclick="Game.switchMode('ED')"
-                    style="background:var(--surface); opacity:0.6;">Encerramentos (ED)</button>
+                <button id="mode-op" class="neo-btn" onclick="Game.switchMode('OP')">Aberturas (OP)</button>
+                <button id="mode-ed" class="neo-btn secondary" onclick="Game.switchMode('ED')"
+                    style="opacity:0.7;">Encerramentos (ED)</button>
             </div>
 
-            <div class="game-area">
-                <div class="attempts-left">Tentativa <span id="attempt-count">1</span>/5</div>
+            <div class="neo-box">
+                <div class="game-stats">
+                    <div>Tentativa: <span id="round-display">1/5</span></div>
+                    <div class="lives-container">Vidas: <span id="lives-display">❤️❤️❤️❤️❤️</span></div>
+                </div>
 
-                <div class="visualizer-container">
-                    <!-- Vinyl Animation -->
-                    <div id="vinyl" class="vinyl-record">
-                        <div class="vinyl-label"><i class="fas fa-music"></i></div>
+                <div class="video-wrapper">
+                    <video id="game-video" playsinline crossorigin="anonymous"></video>
+
+                    <!-- Loading Overlay -->
+                    <div id="loading-overlay" class="overlay">
+                        <div class="spinner"></div>
+                        <p id="loading-text">A carregar vídeo...</p>
                     </div>
 
-                    <!-- Fake Equalizer (Hidden unless playing) -->
-                    <div id="equalizer" class="equalizer" style="display:none;">
-                        <div class="bar"></div>
-                        <div class="bar"></div>
-                        <div class="bar"></div>
-                        <div class="bar"></div>
-                        <div class="bar"></div>
+                    <!-- Start/Retry Overlay -->
+                    <div id="start-overlay" class="overlay hidden">
+                        <h2 id="overlay-title">Próxima Tentativa</h2>
+                        <p id="overlay-desc" style="margin: 1rem 0;">Blur: 40px | Tempo: 5s</p>
+                        <button id="play-btn" class="neo-btn">▶️ Ouvir Excerto</button>
                     </div>
 
-                    <!-- Video Hidden Overlay -->
-                    <video id="quiz-player"
-                        style="position:absolute; width:100%; height:100%; opacity:0; pointer-events:none;"
-                        playsinline></video>
-
-                    <!-- Cover Reveal -->
-                    <img id="quiz-cover" src=""
-                        style="display:none; position:absolute; width: 100%; height: 100%; object-fit: cover; z-index: 10;">
-
-                    <div class="visualizer-text" id="status-text"
-                        style="position: absolute; bottom: 10px; z-index: 20; background: rgba(0,0,0,0.7); padding: 2px 8px; font-size: 0.8rem;">
-                        Carregando...</div>
-                    <div id="loading-spinner"
-                        style="display:none; color: var(--primary); position:absolute; z-index:30; font-size:2rem;">⌛
+                    <!-- Game Over / Win Overlay -->
+                    <div id="result-overlay" class="overlay hidden">
+                        <h2 id="result-title"></h2>
+                        <div id="result-anime" style="margin: 1rem 0; font-size: 1.2rem; color: #facc15;"></div>
+                        <div id="game-actions"></div>
                     </div>
                 </div>
 
-                <div class="controls" style="margin-bottom: 20px;">
-                    <button id="play-btn" disabled>▶️ Tocar Excerto</button>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-fill"></div>
                 </div>
 
-                <div class="input-wrapper">
-                    <input type="text" id="guess-input" placeholder="Digite o nome do Anime..." autocomplete="off">
-                    <div id="autocomplete-list" class="autocomplete-items" style="display: none;"></div>
-                </div>
+                <div id="feedback"></div>
+            </div>
 
-                <button id="submit-btn" onclick="Game.checkGuess()">Adivinhar</button>
-                <button id="give-up-btn" onclick="Game.giveUp()">🏳️ Desistir</button>
-
-                <div id="feedback" class="feedback"></div>
-                <div id="game-actions" class="game-actions"></div>
+            <div class="neo-box input-group">
+                <input type="text" id="guess-input" class="neo-input" placeholder="Que anime é este?"
+                    autocomplete="off">
+                <div id="autocomplete-list" class="autocomplete-items" style="display: none;"></div>
+                <button id="submit-btn" class="neo-btn" style="width: 100%; margin-top: 1rem;"
+                    onclick="Game.checkGuess()">Confirmar Resposta</button>
+                <button id="give-up-btn" class="neo-btn danger" style="width: 100%; margin-top: 5px; display:none;"
+                    onclick="Game.giveUp()">🏳️ Desistir</button>
             </div>
         </div>
     </main>
