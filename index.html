@@ -249,6 +249,22 @@
             transform: translate(-1px, -1px);
         }
 
+        /* coming soon and toggle support */
+        .coming-soon-theme .badge {
+            background: #888;
+            color: #fff;
+        }
+        .coming-soon-theme .btn {
+            background: var(--color-bg);
+            color: var(--color-black);
+            border-color: var(--border-color);
+            cursor: not-allowed;
+        }
+        .coming-soon-theme .btn:hover {
+            transform: none;
+            box-shadow: 2px 2px 0 var(--border-color);
+        }
+
         @media (max-width: 768px) {
             .logo {
                 font-size: 2.5rem;
@@ -273,8 +289,8 @@
             <p class="subtitle">Selecione a versão para acessar</p>
         </header>
 
-        <div class="versions-grid">
-            <!-- V6 CARD (New) -->
+        <div class="versions-grid" id="current-versions">
+            <!-- V6 CARD (New, primary) -->
             <a href="sitev6/index.html" class="version-card v6-theme">
                 <div class="badge">Nova Geração</div>
                 <div class="card-icon">
@@ -282,16 +298,22 @@
                 </div>
                 <h2 class="card-title">Versão 6.0</h2>
                 <p class="card-desc">
-                    Experiência completa com timeline, calendário sazonal, e sincronização automática via AniList.
+                    Experiência completa com timeline, calendário sazonal e sincronização automática via AniList.
                 </p>
                 <ul class="feature-list">
-                    <li><i class="fas fa-check-circle"></i> Design Neo-Brutalist</li>
+                    <li><i class="fas fa-check-circle"></i> Design Neo‑Brutalist</li>
                     <li><i class="fas fa-check-circle"></i> Timeline & Calendário</li>
                     <li><i class="fas fa-check-circle"></i> Tradução Automática</li>
                 </ul>
                 <div class="btn">Acessar v6 (Recomendado)</div>
             </a>
+        </div>
 
+        <div class="actions" style="text-align:center; margin:2rem 0;">
+            <button id="toggle-old" class="btn" style="max-width:300px; margin:auto;">Ver versões anteriores</button>
+        </div>
+
+        <div class="versions-grid" id="old-versions" style="display:none;">
             <!-- V5 CARD (Legacy) -->
             <a href="sitev5/index.html" class="version-card v5-theme">
                 <div class="badge">Legado</div>
@@ -309,26 +331,48 @@
                 </ul>
                 <div class="btn">Acessar v5 (Clássico)</div>
             </a>
-<!---
-            <!-- ARCADE CARD (MiniGames)
-            <a href="miniGamesTeste/index.html" class="version-card arcade-theme">
-                <div class="badge">Beta</div>
+        </div>
+
+        <!-- Coming soon section -->
+        <h2 style="text-align:center; margin-top:4rem;">Em breve</h2>
+        <div class="versions-grid" id="coming-soon">
+            <div class="version-card coming-soon-theme">
+                <div class="badge">Coming Soon</div>
+                <div class="card-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h2 class="card-title">Versão 7.0</h2>
+                <p class="card-desc">
+                    Nova geração com backend PHP, perfis, estatísticas e mais funcionalidades.
+                </p>
+                <div class="btn" style="opacity:0.5; cursor:not-allowed;">Aguardando</div>
+            </div>
+
+            <div class="version-card arcade-theme coming-soon-theme">
+                <div class="badge">Coming Soon</div>
                 <div class="card-icon">
                     <i class="fas fa-gamepad"></i>
                 </div>
                 <h2 class="card-title">Arcade</h2>
                 <p class="card-desc">
-                    Desafie seu conhecimento otaku com minigames diários: Music Quiz, CharacterDle e mais.
+                    Minigames diários: Music Quiz, CharacterDle e outros projetos divertidos.
                 </p>
-                <ul class="feature-list">
-                    <li><i class="fas fa-check-circle"></i> Music Quiz</li>
-                    <li><i class="fas fa-check-circle"></i> CharacterDle (OnePieceDle)</li>
-                    <li><i class="fas fa-check-circle"></i> Pixel Cover Zoom</li>
-                </ul>
-                <div class="btn">Jogar Agora</div>
-            </a>
---->
+                <div class="btn" style="opacity:0.5; cursor:not-allowed;">Aguardando</div>
+            </div>
         </div>
+
+        <script>
+            document.getElementById('toggle-old').addEventListener('click', function() {
+                var oldContainer = document.getElementById('old-versions');
+                if (oldContainer.style.display === 'none') {
+                    oldContainer.style.display = 'grid';
+                    this.textContent = 'Ocultar versões anteriores';
+                } else {
+                    oldContainer.style.display = 'none';
+                    this.textContent = 'Ver versões anteriores';
+                }
+            });
+        </script>
 
         <p style="text-align: center; margin-top: 3rem; color: #888; font-size: 0.9rem;">
             AnimeEngine &copy; 2025 - Todos os direitos reservados.
