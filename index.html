@@ -85,6 +85,29 @@
             gap: 2rem;
             justify-content: center;
         }
+        /* animated container for previous versions */
+        #old-versions {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        #old-versions.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* animations for cards inside previous versions */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        #old-versions.show .version-card {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        /* stagger delays */
+        #old-versions.show .version-card:nth-child(2) { animation-delay: 0.1s; }
+        #old-versions.show .version-card:nth-child(3) { animation-delay: 0.2s; }
+        #old-versions.show .version-card:nth-child(4) { animation-delay: 0.3s; }
+        #old-versions.show .version-card:nth-child(5) { animation-delay: 0.4s; }
 
         .version-card {
             background: var(--color-surface);
@@ -316,20 +339,43 @@
         <div class="versions-grid" id="old-versions" style="display:none;">
             <!-- V5 CARD (Legacy) -->
             <a href="sitev5/index.html" class="version-card v5-theme">
-                <div class="badge">Legado</div>
-                <div class="card-icon">
-                    <i class="fas fa-cube"></i>
-                </div>
+                <div class="badge">V5</div>
+                <div class="card-icon"><i class="fas fa-cube"></i></div>
                 <h2 class="card-title">Versão 5.0</h2>
-                <p class="card-desc">
-                    Versão clássica para dispositivos antigos ou compatibilidade. Baseada em Jikan API.
-                </p>
-                <ul class="feature-list">
-                    <li><i class="fas fa-check-circle"></i> Interface Clássica</li>
-                    <li><i class="fas fa-check-circle"></i> Modo Leve</li>
-                    <li><i class="fas fa-check-circle"></i> Estável</li>
-                </ul>
-                <div class="btn">Acessar v5 (Clássico)</div>
+                <p class="card-desc">Clássica, baseada em Jikan API; leve e estável.</p>
+                <div class="btn">Acessar</div>
+            </a>
+            <!-- V4 CARD -->
+            <a href="sitev4/index.html" class="version-card v5-theme">
+                <div class="badge">V4</div>
+                <div class="card-icon"><i class="fas fa-archive"></i></div>
+                <h2 class="card-title">Versão 4.0</h2>
+                <p class="card-desc">Interface anterior com suporte a temas e achievements.</p>
+                <div class="btn">Acessar</div>
+            </a>
+            <!-- V3 CARD -->
+            <a href="sitev3/index.html" class="version-card v5-theme">
+                <div class="badge">V3</div>
+                <div class="card-icon"><i class="fas fa-layer-group"></i></div>
+                <h2 class="card-title">Versão 3.0</h2>
+                <p class="card-desc">Primeiro layout responsivo com animações básicas.</p>
+                <div class="btn">Acessar</div>
+            </a>
+            <!-- V2 CARD -->
+            <a href="sitev2/index.html" class="version-card v5-theme">
+                <div class="badge">V2</div>
+                <div class="card-icon"><i class="fas fa-history"></i></div>
+                <h2 class="card-title">Versão 2.0</h2>
+                <p class="card-desc">Versão simples, ainda em HTML estático.</p>
+                <div class="btn">Acessar</div>
+            </a>
+            <!-- V1 CARD -->
+            <a href="sitev1/index.html" class="version-card v5-theme">
+                <div class="badge">V1</div>
+                <div class="card-icon"><i class="fas fa-star"></i></div>
+                <h2 class="card-title">Versão 1.0</h2>
+                <p class="card-desc">Protótipo original, apenas lista.</p>
+                <div class="btn">Acessar</div>
             </a>
         </div>
 
@@ -364,12 +410,23 @@
         <script>
             document.getElementById('toggle-old').addEventListener('click', function() {
                 var oldContainer = document.getElementById('old-versions');
-                if (oldContainer.style.display === 'none') {
+                if (!oldContainer.classList.contains('show')) {
+                    // show with fade
                     oldContainer.style.display = 'grid';
+                    // allow layout before fade-in
+                    requestAnimationFrame(function() {
+                        oldContainer.classList.add('show');
+                    });
                     this.textContent = 'Ocultar versões anteriores';
                 } else {
-                    oldContainer.style.display = 'none';
-                    this.textContent = 'Ver versões anteriores';
+                    // fade out then hide
+                    oldContainer.classList.remove('show');
+                    var btn = this;
+                    oldContainer.addEventListener('transitionend', function handler() {
+                        oldContainer.style.display = 'none';
+                        oldContainer.removeEventListener('transitionend', handler);
+                    });
+                    btn.textContent = 'Ver versões anteriores';
                 }
             });
         </script>
