@@ -1,0 +1,170 @@
+# 📋 Relatório Técnico — MangaEngine v1.0
+
+## Visão Geral
+
+O **MangaEngine** é um leitor de mangás híbrido, construído como uma **SPA** (Single Page Application) que combina duas APIs externas para metadados e conteúdo, com um backend PHP local para persistência de dados. A estética segue o tema **"Tech/Engine"** — dark mode com acentos neon laranja (#ff6600).
+
+---
+
+## 🏗️ Arquitetura
+
+```mermaid
+graph LR
+    subgraph Frontend
+        A[index.php<br>HTML/Tailwind CSS] --> B[engine.js<br>Vanilla JS - IIFE]
+    end
+
+    subgraph APIs Externas
+        C[AniList GraphQL API]
+        D[MangaDex REST API v5]
+    end
+
+    subgraph Backend Local
+        E[save_fav.php<br>API REST] --> F[auth_db.php<br>Conexão MySQLi]
+        F --> G[(MySQL<br>manga_engine)]
+    end
+
+    B -->|GraphQL POST| C
+    B -->|REST GET| D
+    B -->|REST GET/POST/DELETE| E
+```
+
+---
+
+## 🔌 APIs Utilizadas
+
+### 1. AniList — GraphQL API
+| Item | Detalhe |
+|------|---------|
+| **URL** | `https://graphql.anilist.co` |
+| **Protocolo** | GraphQL via HTTP POST |
+| **Autenticação** | Nenhuma (pública) |
+| **Uso principal** | Busca de mangás por texto e obtenção de metadados detalhados |
+
+**Dados obtidos**: id, títulos (romaji/english/native), capa (large/medium), banner, score, gêneros, sinopse, status, nº de capítulos/volumes, data de publicação e formato.
+
+**Queries usadas**:
+- [Page(search, type: MANGA)](file:///c:/xampp/htdocs/teste/senai/Teste/test3/engine.js#725-757) — busca com paginação, ordenada por popularidade
+- `Media(id, type: MANGA)` — busca por ID ao abrir um favorito
+
+---
+
+### 2. MangaDex — REST API v5
+| Item | Detalhe |
+|------|---------|
+| **URL base** | `https://api.mangadex.org` |
+| **Protocolo** | REST via HTTP GET |
+| **Autenticação** | Nenhuma (pública) |
+| **Uso principal** | Busca de conteúdo: localizar mangá, listar capítulos e carregar imagens |
+
+**Endpoints utilizados**:
+
+| Endpoint | Finalidade |
+|----------|------------|
+| `GET /manga?title={titulo}` | Buscar mangá no MangaDex pelo título (cross-reference com AniList) |
+| `GET /manga/{id}/feed?translatedLanguage[]=en&translatedLanguage[]=pt-br` | Listar capítulos disponíveis em inglês e português |
+| `GET /at-home/server/{chapterId}` | Obter servidor de imagens + URLs das páginas do capítulo |
+
+**Fluxo de imagens**: O endpoint `/at-home/server` retorna um `baseUrl`, `hash` e lista de filenames. As imagens são montadas como:
+- Qualidade total: `{baseUrl}/data/{hash}/{filename}`
+- Qualidade comprimida (fallback): `{baseUrl}/data-saver/{hash}/{filename}`
+
+**Capítulos externos**: Mangás com DMCA (ex: One Piece) retornam capítulos com `externalUrl` apontando para MangaPlus/Viz. O engine detecta isso e embe via iframe ou oferece link direto.
+
+---
+
+### 3. Backend PHP — API de Favoritos (local)
+| Item | Detalhe |
+|------|---------|
+| **URL** | [save_fav.php](file:///c:/xampp/htdocs/teste/senai/Teste/test3/save_fav.php) (relativa) |
+| **Protocolo** | REST via HTTP GET/POST/DELETE |
+| **Banco de dados** | MySQL (`manga_engine`) via extensão **mysqli** |
+| **Segurança** | Prepared statements com `bind_param` em todas as operações |
+
+**Endpoints**:
+
+| Método | Ação | Body |
+|--------|------|------|
+| `GET` | Listar todos os favoritos (ordenado por data) | — |
+| `POST` | Adicionar/atualizar favorito (UPSERT) | `{anilist_id, mangadex_id?, title, cover_url?}` |
+| `DELETE` | Remover favorito | `{anilist_id}` |
+
+**Tabela `favorites`**: `id`, `anilist_id` (UNIQUE), `mangadex_id`, `title`, `cover_url`, `created_at`
+
+---
+
+## ⚙️ Funcionalidades do Engine
+
+### 🔍 Busca de Mangás
+- Input com **debounce de 400ms** para evitar chamadas excessivas
+- Busca via AniList GraphQL (20 resultados por página, ordenados por popularidade)
+- Atalho: tecla `/` foca o campo de busca
+- Grid responsiva de cards com capa, score, gêneros
+
+### 📖 Detalhes do Mangá
+- Cross-reference automática: AniList ID → título → busca no MangaDex por correspondência
+- Exibe capa, score com barra de progresso, gêneros, sinopse truncada
+- Botão de favoritar com feedback visual (♥)
+
+### 📚 Lista de Capítulos
+- Busca em **dois idiomas** (en + pt-br) simultaneamente
+- Prioriza capítulos com **páginas reais** sobre links externos
+- Deduplicação inteligente: mapa por número de capítulo, priorizando fan scans
+- Paginação automática (até 1000 capítulos, 100 por request)
+- Badges visuais por capítulo:
+  - 🟢 **PT-BR** / cinza **EN** — idioma
+  - 🔵 **Externo** — link para site oficial (MangaPlus/Viz)
+
+### 📱 Leitor de Mangá
+- **Scroll vertical** com lazy loading de imagens
+- Fallback automático: `data` → `data-saver` (imagens comprimidas)
+- Retry de até 3 tentativas com delay progressivo no at-home server
+- Tratamento de rate limit (429) com espera automática
+- Navegação anterior/próximo com tecla Escape para voltar
+
+### 🔗 Leitor Externo (iframe)
+- Capítulos de sites oficiais embutidos via **iframe** em tela cheia
+- Detecção automática de bloqueio (X-Frame-Options) com timeout de 5s
+- Fallback visual com overlay e botão "Abrir no site oficial"
+- Link alternativo "Abrir em nova aba" sempre disponível
+
+### ❤️ Sistema de Favoritos
+- Adicionar/remover com um clique
+- Persistência via MySQL (sobrevive a refresh/sessão)
+- Auto-criação do banco e tabela no primeiro uso
+- Grid de favoritos com click para reabrir mangá e recarregar capítulos
+
+---
+
+## 📁 Estrutura de Arquivos
+
+| Arquivo | Linguagem | Linhas | Responsabilidade |
+|---------|-----------|--------|------------------|
+| [index.php](file:///c:/xampp/htdocs/teste/senai/Teste/test3/index.php) | PHP/HTML/CSS | 473 | Interface, layout, estilos, Tailwind config |
+| [engine.js](file:///c:/xampp/htdocs/teste/senai/Teste/test3/engine.js) | JavaScript | ~1050 | Lógica SPA, chamadas de API, renderização |
+| [save_fav.php](file:///c:/xampp/htdocs/teste/senai/Teste/test3/save_fav.php) | PHP | 195 | API REST de favoritos |
+| [auth_db.php](file:///c:/xampp/htdocs/teste/senai/Teste/test3/auth_db.php) | PHP | 95 | Conexão MySQL, auto-setup do banco/tabela |
+
+---
+
+## 🔒 Segurança Implementada
+
+- **Prepared Statements** (`bind_param`) em todas as queries SQL
+- **Headers de segurança**: `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`
+- **CORS configurado** para a API de favoritos
+- **Validação server-side**: tipos, tamanhos, campos obrigatórios
+- **Sanitização**: casting de tipos, `trim()`, limite de caracteres
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Camada | Tecnologia |
+|--------|-----------|
+| Frontend | HTML5 + Vanilla JavaScript (IIFE pattern) |
+| Estilização | Tailwind CSS (CDN) + CSS customizado |
+| Fontes | Google Fonts (Rajdhani + JetBrains Mono) |
+| Backend | PHP 8.x com extensão mysqli |
+| Banco de Dados | MySQL (InnoDB, utf8mb4) |
+| Servidor Local | XAMPP (Apache + MySQL) |
+| APIs Externas | AniList GraphQL + MangaDex REST v5 |
