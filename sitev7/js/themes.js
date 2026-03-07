@@ -39,27 +39,32 @@ var Themes = window.Themes || {
         benevaMode: {
             name: 'Beneva Mode',
             icon: '🤓',
-            description: 'Estilo MangaEngine (Laranja & Escuro)'
+            description: 'Estilo MangaEngine (Laranja & Escuro)',
+            secret: true
         },
         parafaMode: {
             name: 'Parafa Mode',
             icon: '🥴',
-            description: 'Tons de Rosa Neon'
+            description: 'Tons de Rosa Neon',
+            secret: true
         },
         migueliMode: {
             name: 'Migueli Mode',
             icon: '🧠',
-            description: 'Tons de Magenta Profundo'
+            description: 'Tons de Magenta Profundo',
+            secret: true
         },
         kauaMode: {
             name: 'Kauã Mode',
             icon: '🤖',
-            description: 'O Modo Supremo - Arco-íris Dinâmico'
+            description: 'O Modo Supremo - Arco-íris Dinâmico',
+            secret: true
         },
         ruanMode: {
             name: 'Ruan Mode',
             icon: '👨‍💻',
-            description: 'Royal Blue & Sky Gradient'
+            description: 'Royal Blue & Sky Gradient',
+            secret: true
         }
     },
 
@@ -71,8 +76,38 @@ var Themes = window.Themes || {
     init() {
         const saved = localStorage.getItem('animeengine_theme');
         if (saved && this.themes[saved]) {
-            this.apply(saved);
+            // Se for secreto e não estiver desbloqueado, volta pro default
+            if (this.themes[saved].secret && !this.isUnlocked(saved)) {
+                this.apply('default');
+            } else {
+                this.apply(saved);
+            }
         }
+    },
+
+    /**
+     * Verificar se um tema está desbloqueado
+     */
+    isUnlocked(themeId) {
+        if (!this.themes[themeId].secret) return true;
+
+        const unlocked = JSON.parse(localStorage.getItem('animeengine_unlocked_themes') || '[]');
+        return unlocked.includes(themeId);
+    },
+
+    /**
+     * Desbloquear tema secreto
+     */
+    unlock(themeId) {
+        if (!this.themes[themeId] || !this.themes[themeId].secret) return false;
+
+        const unlocked = JSON.parse(localStorage.getItem('animeengine_unlocked_themes') || '[]');
+        if (!unlocked.includes(themeId)) {
+            unlocked.push(themeId);
+            localStorage.setItem('animeengine_unlocked_themes', JSON.stringify(unlocked));
+            return true;
+        }
+        return false;
     },
 
     /**
@@ -80,6 +115,11 @@ var Themes = window.Themes || {
      */
     apply(themeName) {
         if (!this.themes[themeName]) return;
+
+        // Se for secreto e estiver bloqueado, não aplica
+        if (this.themes[themeName].secret && !this.isUnlocked(themeName)) {
+            return;
+        }
 
         document.documentElement.setAttribute('data-theme', themeName);
         this.currentTheme = themeName;
@@ -101,14 +141,16 @@ var Themes = window.Themes || {
     },
 
     /**
-     * Listar todos os temas
+     * Listar todos os temas (filtros os secretos bloqueados)
      */
     getAll() {
-        return Object.entries(this.themes).map(([key, theme]) => ({
-            id: key,
-            ...theme,
-            active: key === this.currentTheme
-        }));
+        return Object.entries(this.themes)
+            .filter(([id, theme]) => !theme.secret || this.isUnlocked(id))
+            .map(([key, theme]) => ({
+                id: key,
+                ...theme,
+                active: key === this.currentTheme
+            }));
     }
 };
 
