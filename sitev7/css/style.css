@@ -64,7 +64,7 @@
     --color-surface: #0a0a12;
     /* Slightly darker surface */
     --color-black: #000000;
-    /* Text on neon buttons should be black for contrast */
+    /* Neon themes need black for deep shadows/noir effects */
     --color-white: #ffffff;
     --color-on-primary: #000000;
     /* Bright pink needs black text */
@@ -162,6 +162,425 @@
     --shadow-neo: 0px 0px 10px #00ff41;
     /* Glow effect instead of block shadow */
     --shadow-neo-hover: 0px 0px 15px #00ff41;
+}
+
+/* Beneva Mode (MangaEngine Style) */
+:root[data-theme="benevaMode"] {
+    --color-bg: #0a0a0f;
+    --color-surface: #111118;
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-on-primary: #ffffff;
+
+    --color-primary: #ff6600;
+    --color-secondary: #ff8533;
+    --color-blue: #3b82f6;
+    --color-green: #22c55e;
+    --color-purple: #a855f7;
+
+    --color-text: #e0e0e8;
+    --color-text-muted: #6b6b80;
+    --color-text-light: #4b4b60;
+
+    --border-color: #1e1e2a;
+    --shadow-neo: 4px 4px 0 #000000;
+    --shadow-neo-hover: 6px 6px 0 #ff6600;
+}
+
+/* Parafa Mode (🥴 Pink Neon Style) */
+:root[data-theme="parafaMode"] {
+    --color-bg: #0d0008;
+    --color-surface: #1a0011;
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-on-primary: #ffffff;
+
+    --color-primary: #ff3399;
+    --color-secondary: #ff66b3;
+    --color-blue: #3b82f6;
+    --color-green: #22c55e;
+    --color-purple: #d926ff;
+
+    --color-text: #ffe6f2;
+    --color-text-muted: #806b77;
+    --color-text-light: #604b56;
+
+    --border-color: #330022;
+    --shadow-neo: 4px 4px 0 #000000;
+    --shadow-neo-hover: 6px 6px 0 #ff3399;
+}
+
+/* Migueli Mode (🧠 Magenta Deep Style) */
+:root[data-theme="migueliMode"] {
+    --color-bg: #08000d;
+    --color-surface: #11001a;
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-on-primary: #ffffff;
+
+    --color-primary: #d926ff;
+    --color-secondary: #e673ff;
+    --color-blue: #3b82f6;
+    --color-green: #22c55e;
+    --color-purple: #ff33c4;
+
+    --color-text: #f2e6ff;
+    --color-text-muted: #776b80;
+    --color-text-light: #564b60;
+
+    --border-color: #220033;
+    --shadow-neo: 4px 4px 0 #000000;
+    --shadow-neo-hover: 6px 6px 0 #d926ff;
+}
+
+/* KauãMode (🤖 Rainbow Supremo Style) */
+:root[data-theme="kauaMode"] {
+    --color-bg: #050505;
+    --color-surface: #111111;
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-on-primary: #ffffff;
+
+    --color-primary: #ff00cc;
+    --color-secondary: #3333ff;
+    --color-blue: #00ccff;
+    --color-green: #33ff33;
+    --color-purple: #cc00ff;
+
+    --color-text: #ffffff;
+    --color-text-muted: #888888;
+    --color-text-light: #555555;
+
+    --border-color: #222222;
+    --shadow-neo: 0 0 10px rgba(255, 0, 204, 0.3);
+    --shadow-neo-hover: 0 0 20px rgba(255, 0, 204, 0.5);
+
+    /* Rainbow Animation Tokens - High Velocity & Contrast */
+    --rainbow-gradient: linear-gradient(90deg,
+            #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff, #ff0080, #ff0000);
+    --rainbow-size: 400% 100%;
+}
+
+/* RuanMode (👨‍💻 Royal Blue Style) */
+:root[data-theme="ruanMode"] {
+    --color-bg: #000a1a;
+    --color-surface: #001433;
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-on-primary: #ffffff;
+
+    --color-primary: #0066ff;
+    --color-secondary: #00d9ff;
+    --color-blue: #3b82f6;
+    --color-green: #22c55e;
+    --color-purple: #a855f7;
+
+    --color-text: #e6f2ff;
+    --color-text-muted: #668cb3;
+    --color-text-light: #4d7399;
+
+    --border-color: #002b80;
+    --shadow-neo: 4px 4px 0 #000000;
+    --shadow-neo-hover: 6px 6px 0 #0066ff;
+}
+
+@keyframes rainbow-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes rainbow-border-glow {
+    0% {
+        border-color: #ff0000;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+    }
+
+    14% {
+        border-color: #ff8000;
+        box-shadow: 0 0 10px rgba(255, 128, 0, 0.4);
+    }
+
+    28% {
+        border-color: #ffff00;
+        box-shadow: 0 0 10px rgba(255, 255, 0, 0.4);
+    }
+
+    42% {
+        border-color: #00ff00;
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+    }
+
+    56% {
+        border-color: #00ffff;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+    }
+
+    70% {
+        border-color: #0000ff;
+        box-shadow: 0 0 10px rgba(0, 0, 255, 0.4);
+    }
+
+    84% {
+        border-color: #8000ff;
+        box-shadow: 0 0 10px rgba(128, 0, 255, 0.4);
+    }
+
+    100% {
+        border-color: #ff0000;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+    }
+}
+
+/* Beneva mode specific overrides */
+:root[data-theme="benevaMode"] .search-input,
+:root[data-theme="benevaMode"] select,
+:root[data-theme="benevaMode"] input,
+:root[data-theme="benevaMode"] textarea {
+    background: #111118;
+    color: #e0e0e8;
+}
+
+:root[data-theme="benevaMode"] .btn-primary {
+    color: #ffffff;
+}
+
+:root[data-theme="benevaMode"] .anime-card-info,
+:root[data-theme="benevaMode"] .anime-card-title {
+    color: #e0e0e8;
+}
+
+:root[data-theme="benevaMode"] .modal-content {
+    background: #111118;
+}
+
+:root[data-theme="benevaMode"] .genre-tag,
+:root[data-theme="benevaMode"] .status-badge {
+    background: #16161f;
+    color: #e0e0e8;
+}
+
+:root[data-theme="benevaMode"] .quick-filter {
+    color: #e0e0e8;
+    border-color: #1e1e2a;
+}
+
+:root[data-theme="benevaMode"] .quick-filter.active {
+    background: #ff6600;
+    color: #ffffff;
+    border-color: #ff6600;
+}
+
+:root[data-theme="benevaMode"] .sidebar,
+:root[data-theme="benevaMode"] .header,
+:root[data-theme="benevaMode"] .bottom-nav {
+    background: #0a0a0f;
+    border-color: #1e1e2a;
+}
+
+:root[data-theme="benevaMode"] .nav-item,
+:root[data-theme="benevaMode"] .icon-btn {
+    color: #e0e0e8;
+}
+
+:root[data-theme="benevaMode"] .nav-item.active {
+    background: rgba(255, 102, 0, 0.15);
+    color: #ff6600;
+    border-right: 3px solid #ff6600;
+}
+
+/* Cyberpunk specific overrides */
+:root[data-theme="cyberpunk"] .nav-item,
+:root[data-theme="cyberpunk"] .icon-btn {
+    color: #ffffff;
+}
+
+:root[data-theme="cyberpunk"] .nav-item.active {
+    background: rgba(255, 42, 109, 0.15);
+    color: #ff2a6d;
+    border-right: 3px solid #ff2a6d;
+}
+
+:root[data-theme="cyberpunk"] .sidebar,
+:root[data-theme="cyberpunk"] .header,
+:root[data-theme="cyberpunk"] .bottom-nav {
+    background: #050508;
+    border-color: #05d9e8;
+}
+
+:root[data-theme="cyberpunk"] .search-input,
+:root[data-theme="cyberpunk"] select,
+:root[data-theme="cyberpunk"] input,
+:root[data-theme="cyberpunk"] textarea {
+    background: #0a0a12;
+    color: #ffffff;
+    border-color: #05d9e8;
+}
+
+/* Parafa Mode specific overrides */
+:root[data-theme="parafaMode"] .search-input,
+:root[data-theme="parafaMode"] select,
+:root[data-theme="parafaMode"] input,
+:root[data-theme="parafaMode"] textarea {
+    background: #1a0011;
+    color: #ffe6f2;
+}
+
+:root[data-theme="parafaMode"] .nav-item,
+:root[data-theme="parafaMode"] .icon-btn {
+    color: #ffe6f2;
+}
+
+:root[data-theme="parafaMode"] .nav-item.active {
+    background: rgba(255, 51, 153, 0.15);
+    color: #ff3399;
+    border-right: 3px solid #ff3399;
+}
+
+:root[data-theme="parafaMode"] .sidebar,
+:root[data-theme="parafaMode"] .header,
+:root[data-theme="parafaMode"] .bottom-nav {
+    background: #0d0008;
+    border-color: #330022;
+}
+
+/* Migueli Mode specific overrides */
+:root[data-theme="migueliMode"] .search-input,
+:root[data-theme="migueliMode"] select,
+:root[data-theme="migueliMode"] input,
+:root[data-theme="migueliMode"] textarea {
+    background: #11001a;
+    color: #f2e6ff;
+}
+
+:root[data-theme="migueliMode"] .nav-item,
+:root[data-theme="migueliMode"] .icon-btn {
+    color: #f2e6ff;
+}
+
+:root[data-theme="migueliMode"] .nav-item.active {
+    background: rgba(217, 38, 255, 0.15);
+    color: #d926ff;
+    border-right: 3px solid #d926ff;
+}
+
+:root[data-theme="migueliMode"] .sidebar,
+:root[data-theme="migueliMode"] .header,
+:root[data-theme="migueliMode"] .bottom-nav {
+    background: #08000d;
+    border-color: #220033;
+}
+
+/* KauãMode specific overrides */
+:root[data-theme="kauaMode"] .nav-item,
+:root[data-theme="kauaMode"] .icon-btn {
+    color: #ffffff;
+}
+
+:root[data-theme="kauaMode"] .nav-item.active {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    position: relative;
+    border: none;
+}
+
+:root[data-theme="kauaMode"] .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    left: 1px;
+    right: 1px;
+    height: 4px;
+    background: var(--rainbow-gradient);
+    background-size: var(--rainbow-size);
+    animation: rainbow-flow 2s linear infinite;
+    border-radius: 4px;
+}
+
+:root[data-theme="kauaMode"] .sidebar,
+:root[data-theme="kauaMode"] .header,
+:root[data-theme="kauaMode"] .bottom-nav {
+    background: #050505;
+    border-color: #1a1a1a;
+}
+
+:root[data-theme="kauaMode"] .logo-text,
+:root[data-theme="kauaMode"] .page-title,
+:root[data-theme="kauaMode"] .modal-title {
+    background: var(--rainbow-gradient);
+    background-size: var(--rainbow-size);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow-flow 2.5s linear infinite;
+    display: inline-block;
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.1));
+}
+
+:root[data-theme="kauaMode"] .btn-primary {
+    background: var(--rainbow-gradient);
+    background-size: var(--rainbow-size);
+    border: none;
+    color: #ffffff !important;
+    animation: rainbow-flow 2s linear infinite;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+    transition: transform 0.2s;
+}
+
+:root[data-theme="kauaMode"] .btn-primary:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+}
+
+:root[data-theme="kauaMode"] .search-container {
+    border: 2px solid;
+    border-image: var(--rainbow-gradient) 1;
+    background: #111111;
+    animation: rainbow-flow 2s linear infinite;
+}
+
+:root[data-theme="kauaMode"] .anime-card:hover {
+    border: 2px solid;
+    animation: rainbow-border-glow 3s infinite alternate;
+    transform: translateY(-5px);
+}
+
+/* RuanMode specific overrides */
+:root[data-theme="ruanMode"] .search-input,
+:root[data-theme="ruanMode"] select,
+:root[data-theme="ruanMode"] input,
+:root[data-theme="ruanMode"] textarea {
+    background: #001433;
+    color: #e6f2ff;
+    border-color: #0066ff;
+}
+
+:root[data-theme="ruanMode"] .nav-item,
+:root[data-theme="ruanMode"] .icon-btn {
+    color: #e6f2ff;
+}
+
+:root[data-theme="ruanMode"] .nav-item.active {
+    background: rgba(0, 102, 255, 0.15);
+    color: #00d9ff;
+    border-right: 3px solid #00d9ff;
+}
+
+:root[data-theme="ruanMode"] .sidebar,
+:root[data-theme="ruanMode"] .header,
+:root[data-theme="ruanMode"] .bottom-nav {
+    background: #000a1a;
+    border-color: #002b80;
+}
+
+:root[data-theme="ruanMode"] .btn-primary {
+    background: linear-gradient(135deg, #0066ff, #00d9ff);
+    border: none;
+    color: #ffffff !important;
 }
 
 
@@ -880,7 +1299,7 @@ h6 {
 }
 
 .bottom-nav-item:hover {
-    color: var(--color-black);
+    color: var(--color-primary);
 }
 
 /* Bottom Nav More Button */
@@ -1046,7 +1465,7 @@ h6 {
 
 .btn-secondary {
     background: var(--color-surface);
-    color: var(--color-black);
+    color: var(--color-text);
     box-shadow: var(--shadow-neo);
 }
 

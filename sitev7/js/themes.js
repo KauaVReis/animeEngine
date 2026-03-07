@@ -35,6 +35,31 @@ var Themes = window.Themes || {
             name: 'Matrix',
             icon: '💚',
             description: 'Estilo hacker verde'
+        },
+        benevaMode: {
+            name: 'Beneva Mode',
+            icon: '🤓',
+            description: 'Estilo MangaEngine (Laranja & Escuro)'
+        },
+        parafaMode: {
+            name: 'Parafa Mode',
+            icon: '🥴',
+            description: 'Tons de Rosa Neon'
+        },
+        migueliMode: {
+            name: 'Migueli Mode',
+            icon: '🧠',
+            description: 'Tons de Magenta Profundo'
+        },
+        kauaMode: {
+            name: 'Kauã Mode',
+            icon: '🤖',
+            description: 'O Modo Supremo - Arco-íris Dinâmico'
+        },
+        ruanMode: {
+            name: 'Ruan Mode',
+            icon: '👨‍💻',
+            description: 'Royal Blue & Sky Gradient'
         }
     },
 
@@ -55,16 +80,16 @@ var Themes = window.Themes || {
      */
     apply(themeName) {
         if (!this.themes[themeName]) return;
-        
+
         document.documentElement.setAttribute('data-theme', themeName);
         this.currentTheme = themeName;
         localStorage.setItem('animeengine_theme', themeName);
-        
+
         // Update particles if available
         if (window.Particles && Particles.enabled) {
             Particles.setTheme(themeName);
         }
-        
+
         console.log(`🎨 Theme applied: ${themeName}`);
     },
 
