@@ -48,6 +48,19 @@ if ($username_param) {
     $viewing_own = true;
 }
 
+// Buscar o título ativo do usuário
+$titulo_ativo_info = null;
+if (!empty($usuario['titulo_ativo'])) {
+    $conn = conectar();
+    $titulo_id = intval($usuario['titulo_ativo']);
+    $sql = "SELECT nome, icone, cor FROM titulos WHERE id = $titulo_id";
+    $result = mysqli_query($conn, $sql);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $titulo_ativo_info = mysqli_fetch_assoc($result);
+    }
+    mysqli_close($conn);
+}
+
 $titulo_pagina = $usuario['username'] . ' - ANIME.ENGINE v7';
 require_once 'includes/header.php';
 require_once 'includes/nav.php';
@@ -90,21 +103,14 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
                             </span>
                         </div>
 
-                        <?php
-                        // Título Ativo
-                        if (isset($usuario['titulo_ativo']) && $usuario['titulo_ativo']) {
-                            $conn = conectar();
-                            $sql = "SELECT nome, icone, cor FROM titulos WHERE id = " . intval($usuario['titulo_ativo']);
-                            $result = mysqli_query($conn, $sql);
-                            $titulo = mysqli_fetch_assoc($result);
-                            mysqli_close($conn);
-                            if ($titulo): ?>
-                                <div class="profile-title" style="color: <?= $titulo['cor'] ?>; margin-top: 5px;">
-                                    <?= $titulo['icone'] ?>         <?= $titulo['nome'] ?>
-                                </div>
-                            <?php endif;
-                        }
-                        ?>
+                        <?php if ($titulo_ativo_info): ?>
+                            <div class="profile-hero-title-badge"
+                                style="border: 2px solid <?= $titulo_ativo_info['cor'] ?>; background: rgba(0,0,0,0.5); display: inline-flex; align-items: center; padding: 4px 12px; margin-top: 10px; border-radius: 20px; box-shadow: 2px 2px 0px <?= $titulo_ativo_info['cor'] ?>;">
+                                <span style="margin-right: 8px;"><?= $titulo_ativo_info['icone'] ?></span>
+                                <span
+                                    style="font-weight: bold; font-size: 0.9rem; color: <?= $titulo_ativo_info['cor'] ?>;"><?= htmlspecialchars($titulo_ativo_info['nome']) ?></span>
+                            </div>
+                        <?php endif; ?>
 
                         <?php if (!empty($usuario['bio'])): ?>
                             <p class="profile-hero-bio"><?= nl2br(htmlspecialchars($usuario['bio'])) ?></p>
@@ -155,6 +161,19 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
                         </div>
                     <?php endif; ?>
 
+                    <!-- Waifu/Husbando -->
+                    <?php
+                    $waifu = json_decode($usuario['waifu_personagem'] ?? '{}', true) ?: [];
+                    if (!empty($waifu['nome']) && !empty($waifu['imagem'])):
+                        ?>
+                        <div class="profile-hero-waifu">
+                            <span class="waifu-label"><i class="fas fa-heart"></i>
+                                <?= htmlspecialchars($waifu['nome']) ?></span>
+                            <img src="<?= htmlspecialchars($waifu['imagem']) ?>"
+                                alt="<?= htmlspecialchars($waifu['nome']) ?>" class="waifu-img">
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Actions -->
                     <div class="profile-hero-actions">
                         <?php if ($viewing_own): ?>
@@ -172,6 +191,37 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
             </div>
         </div>
 
+        <?php if (!$viewing_own && estaLogado()): ?>
+            <!-- AFINIDADE -->
+            <div class="profile-section affinity-section" id="affinity-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-handshake"></i> Afinidade de Gostos</h2>
+                </div>
+                <div class="affinity-container">
+                    <div class="affinity-bar-bg">
+                        <div class="affinity-bar-fill" id="affinity-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="affinity-text">
+                        <span id="affinity-percent" class="affinity-percent">0%</span>
+                        <span id="affinity-desc" class="affinity-desc">Calculando afinidade...</span>
+                    </div>
+                    <div class="shared-animes-grid" id="shared-animes">
+                        <!-- Javascript Will Populate Snippets -->
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- VITRINE DE FAVORITOS (VIP) -->
+        <div class="profile-section vip-favorites-section" id="vip-favorites-section" style="display: none;">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-star" style="color: #ffd700;"></i> Top Favoritos</h2>
+            </div>
+            <div class="vip-favorites-grid" id="vip-favorites-grid">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
         <!-- STATS -->
         <div class="profile-stats" id="profile-stats">
             <div class="carousel-loading">
@@ -179,9 +229,21 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
             </div>
         </div>
 
+        <!-- GRÁFICO DE GÊNEROS -->
+        <div class="profile-section">
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-chart-pie"></i> Gêneros Favoritos</h2>
+            </div>
+            <div style="max-width: 400px; margin: 0 auto; position: relative;">
+                <canvas id="genres-radar-chart"></canvas>
+            </div>
+        </div>
+
         <!-- ATIVIDADE RECENTE -->
         <div class="profile-section">
-            <h2><i class="fas fa-history"></i> Atividade Recente</h2>
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-history"></i> Atividade Recente</h2>
+            </div>
             <div class="activity-feed" id="activity-feed">
                 <div class="carousel-loading">
                     <div class="loader"></div>
@@ -191,7 +253,9 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
 
         <!-- ANIMES COMPLETOS -->
         <div class="profile-section">
-            <h2><i class="fas fa-check-circle"></i> Animes Completos</h2>
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-check-circle"></i> Animes Completos</h2>
+            </div>
             <div class="completed-animes-grid" id="completed-animes">
                 <div class="carousel-loading">
                     <div class="loader"></div>
@@ -201,7 +265,9 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
 
         <!-- CONQUISTAS -->
         <div class="achievements-section">
-            <h2><i class="fas fa-trophy"></i> Conquistas</h2>
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-trophy"></i> Conquistas</h2>
+            </div>
             <p class="achievements-summary" id="achievements-summary">Carregando...</p>
             <div class="achievements-grid" id="achievements-grid">
                 <div class="carousel-loading">
@@ -212,7 +278,9 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
 
         <!-- COMENTÁRIOS / MURAL -->
         <div class="profile-section comments-section">
-            <h2><i class="fas fa-comments"></i> Mural</h2>
+            <div class="section-header">
+                <h2 class="section-title"><i class="fas fa-comments"></i> Mural</h2>
+            </div>
 
             <?php if (estaLogado()): ?>
                 <form class="comment-form" id="comment-form">
@@ -234,261 +302,12 @@ $badges_exibidos = json_decode($usuario['badges_exibidos'] ?? '[]', true) ?: [];
     </div>
 </main>
 
-
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const profileUserId = <?= $usuario['id'] ?>;
     const viewingOwn = <?= $viewing_own ? 'true' : 'false' ?>;
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        // Carregar stats
-        try {
-            const response = await fetch('api/users/stats.php');
-            const stats = await response.json();
-
-            // Carregar streak
-            const streakRes = await fetch('api/users/streak.php');
-            const streakData = await streakRes.json();
-
-            document.getElementById('profile-stats').innerHTML = `
-            <div class="profile-stat-card">
-                <div class="profile-stat-value">${stats.totalAnimes}</div>
-                <div class="profile-stat-label">Animes</div>
-            </div>
-            <div class="profile-stat-card">
-                <div class="profile-stat-value">${stats.completed}</div>
-                <div class="profile-stat-label">Completos</div>
-            </div>
-            <div class="profile-stat-card streak-card">
-                <div class="profile-stat-value">🔥 ${streakData.streak_atual || 0}</div>
-                <div class="profile-stat-label">Streak Dias</div>
-                <div class="streak-max">Recorde: ${streakData.streak_max || 0}</div>
-            </div>
-            <div class="profile-stat-card">
-                <div class="profile-stat-value">${stats.achievements}</div>
-                <div class="profile-stat-label">Conquistas</div>
-            </div>
-        `;
-        } catch (e) { console.error(e); }
-
-        // Carregar atividade recente
-        try {
-            const actRes = await fetch(`api/users/atividade.php?user_id=${profileUserId}`);
-            const activities = await actRes.json();
-
-            const actContainer = document.getElementById('activity-feed');
-            if (activities.length === 0) {
-                actContainer.innerHTML = '<p class="empty-message">Nenhuma atividade ainda</p>';
-            } else {
-                actContainer.innerHTML = activities.slice(0, 10).map(a => `
-                <div class="activity-item">
-                    ${a.anime_imagem ? `<img src="${a.anime_imagem}" class="activity-thumb">` : '<span class="activity-icon">📝</span>'}
-                    <div class="activity-content">
-                        <div class="activity-text">${a.texto}</div>
-                        <div class="activity-time">${a.tempo}</div>
-                    </div>
-                </div>
-            `).join('');
-            }
-        } catch (e) { console.error(e); }
-
-        // Carregar animes completos
-        try {
-            const response = await fetch('api/lists/get.php');
-            const data = await response.json();
-            const completed = data.lists?.completed || [];
-
-            const container = document.getElementById('completed-animes');
-
-            if (completed.length === 0) {
-                container.innerHTML = '<p>Nenhum anime completo ainda</p>';
-            } else {
-                container.innerHTML = completed.slice(0, 12).map(anime => `
-                <div class="completed-anime-card" onclick="window.location='detalhes.php?id=${anime.anime_id}'">
-                    <img src="${anime.imagem}" alt="${anime.titulo}">
-                    ${anime.nota ? `<div class="anime-rating">⭐ ${anime.nota}</div>` : ''}
-                </div>
-            `).join('');
-            }
-        } catch (e) {
-            document.getElementById('completed-animes').innerHTML = '<p>Erro ao carregar</p>';
-        }
-
-        // Carregar achievements
-        loadAchievements();
-    });
-
-    async function loadAchievements() {
-        try {
-            const response = await fetch('api/achievements/get.php');
-            const data = await response.json();
-            const unlockedIds = Object.keys(data.unlocked || {});
-
-            const allBadges = [
-                { id: "first_step", name: "Primeiro Passo", description: "Adicione seu primeiro anime", icon: "🚀", xp: 10 },
-                { id: "explorer", name: "Explorador", description: "Adicione 3 animes", icon: "🧭", xp: 15 },
-                { id: "collector", name: "Colecionador", description: "Tenha 5 animes na lista", icon: "📚", xp: 25 },
-                { id: "started", name: "Começando", description: "Assista 10 episódios", icon: "▶️", xp: 15 },
-                { id: "dedicated_viewer", name: "Espectador", description: "Assista 50 episódios", icon: "🎬", xp: 50 },
-                { id: "centurion", name: "Centurião", description: "Assista 100 eps", icon: "💯", xp: 100 },
-                { id: "finisher", name: "Finalizador", description: "Complete 1 anime", icon: "🎯", xp: 20 },
-                { id: "first_love", name: "Primeiro Amor", description: "1 favorito", icon: "💕", xp: 10 },
-                { id: "night_owl", name: "Coruja", description: "Use à noite", icon: "🦉", xp: 15 },
-                { id: "theme_changer", name: "Estilista", description: "Mude o tema", icon: "🎨", xp: 10 }
-            ];
-
-            document.getElementById('achievements-summary').textContent =
-                `${unlockedIds.length} de ${allBadges.length} conquistas`;
-
-            document.getElementById('achievements-grid').innerHTML = allBadges.map(badge => {
-                const isUnlocked = unlockedIds.includes(badge.id);
-                return `
-                <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
-                    <div class="achievement-icon">${badge.icon}</div>
-                    <div class="achievement-info">
-                        <div class="achievement-name">${badge.name}</div>
-                        <div class="achievement-desc">${badge.description}</div>
-                        <div class="achievement-xp">+${badge.xp} XP</div>
-                    </div>
-                    <div class="achievement-status">${isUnlocked ? '✅' : '🔒'}</div>
-                </div>
-            `;
-            }).join('');
-        } catch (e) {
-            document.getElementById('achievements-grid').innerHTML = '<p>Erro</p>';
-        }
-    }
-
-    // === SOCIAL FEATURES ===
-    let isFollowing = false;
-
-    // Carregar seguidores e status
-    async function loadSocialData() {
-        try {
-            // Contar seguidores
-            const countRes = await fetch(`api/users/comentarios.php?perfil_id=${profileUserId}`);
-
-            // TODO: endpoint para contar seguidores
-            // Por enquanto, apenas carregar comentários
-
-        } catch (e) { console.error(e); }
-
-        // Carregar comentários
-        await loadComments();
-    }
-
-    // Check if following
-    async function checkFollowStatus() {
-        // Load and check follow status from API if needed
-    }
-
-    // Toggle follow
-    async function toggleFollow() {
-        const btn = document.getElementById('follow-btn');
-        const action = isFollowing ? 'unfollow' : 'follow';
-
-        try {
-            const response = await fetch('api/users/seguir.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: profileUserId, action })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                isFollowing = !isFollowing;
-                document.getElementById('followers-num').textContent = result.seguidores;
-
-                if (isFollowing) {
-                    btn.classList.add('following');
-                    btn.innerHTML = '<i class="fas fa-user-check"></i> Seguindo';
-                } else {
-                    btn.classList.remove('following');
-                    btn.innerHTML = '<i class="fas fa-user-plus"></i> Seguir';
-                }
-            }
-        } catch (e) {
-            console.error('Erro:', e);
-        }
-    }
-
-    // Load comments
-    async function loadComments() {
-        try {
-            const response = await fetch(`api/users/comentarios.php?perfil_id=${profileUserId}`);
-            const comments = await response.json();
-
-            const container = document.getElementById('comments-list');
-
-            if (comments.length === 0) {
-                container.innerHTML = '<p class="empty-message">Nenhum comentário ainda. Seja o primeiro!</p>';
-            } else {
-                container.innerHTML = comments.map(c => `
-                <div class="comment-item">
-                    <div class="comment-avatar">💬</div>
-                    <div class="comment-content">
-                        <div class="comment-header">
-                            <span class="comment-author" onclick="window.location='perfil.php?user=${c.autor_username}'">${c.autor_username}</span>
-                            <span class="comment-time">${formatTime(c.criado_em)}</span>
-                        </div>
-                        <div class="comment-text">${escapeHtml(c.conteudo)}</div>
-                    </div>
-                </div>
-            `).join('');
-            }
-        } catch (e) {
-            document.getElementById('comments-list').innerHTML = '<p>Erro ao carregar comentários</p>';
-        }
-    }
-
-    // Submit comment
-    const commentForm = document.getElementById('comment-form');
-    if (commentForm) {
-        commentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const input = document.getElementById('comment-input');
-            const conteudo = input.value.trim();
-
-            if (!conteudo) return;
-
-            try {
-                const response = await fetch('api/users/comentarios.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ perfil_id: profileUserId, conteudo })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    input.value = '';
-                    await loadComments();
-                } else {
-                    alert(result.message || 'Erro ao adicionar comentário');
-                }
-            } catch (e) {
-                console.error('Erro:', e);
-            }
-        });
-    }
-
-    // Helpers
-    function formatTime(datetime) {
-        const d = new Date(datetime);
-        return d.toLocaleDateString('pt-BR');
-    }
-
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    // Init social
-    loadComments();
 </script>
+<script src="js/pages/perfil.js"></script>
 
 <?php
 require_once 'includes/footer.php';

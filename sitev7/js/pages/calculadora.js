@@ -27,15 +27,15 @@ const CalculadoraPage = {
 
     // Fillers conhecidos (do v4)
     fillerEpisodes: {
-        'Naruto': [[26,26], [97,106], [136,220]],
-        'Naruto Shippuden': [[57,71], [91,112], [144,151], [170,171], [176,196], [223,242], [257,260], [271,271], [279,281], [284,295], [303,320], [347,361], [376,377], [388,390], [394,413], [416,417], [422,423], [427,457], [460,462], [464,469], [480,483]],
-        'One Piece': [[54,61], [98,99], [102,102], [131,143], [196,206], [213,216], [220,226], [279,283], [291,292], [303,303], [317,319], [326,336], [382,384], [406,407], [426,429], [457,458], [492,496], [506,506], [542,542], [575,578], [590,590], [626,628], [747,750], [775,778], [780,782], [807,807], [881,891], [895,896], [907,907]],
-        'Bleach': [[33,33], [50,50], [64,109], [128,137], [168,189], [204,205], [213,214], [227,266], [287,287], [298,299], [303,305], [311,342], [355,355]]
+        'Naruto': [[26, 26], [97, 106], [136, 220]],
+        'Naruto Shippuden': [[57, 71], [91, 112], [144, 151], [170, 171], [176, 196], [223, 242], [257, 260], [271, 271], [279, 281], [284, 295], [303, 320], [347, 361], [376, 377], [388, 390], [394, 413], [416, 417], [422, 423], [427, 457], [460, 462], [464, 469], [480, 483]],
+        'One Piece': [[54, 61], [98, 99], [102, 102], [131, 143], [196, 206], [213, 216], [220, 226], [279, 283], [291, 292], [303, 303], [317, 319], [326, 336], [382, 384], [406, 407], [426, 429], [457, 458], [492, 496], [506, 506], [542, 542], [575, 578], [590, 590], [626, 628], [747, 750], [775, 778], [780, 782], [807, 807], [881, 891], [895, 896], [907, 907]],
+        'Bleach': [[33, 33], [50, 50], [64, 109], [128, 137], [168, 189], [204, 205], [213, 214], [227, 266], [287, 287], [298, 299], [303, 305], [311, 342], [355, 355]]
     },
 
     init() {
         console.log('🧮 Loading Calculadora Page...');
-        
+
         // Carregar elementos DOM
         this.elements.globalEpInput = document.getElementById('global-ep-input');
         this.elements.progressBar = document.getElementById('progress-bar');
@@ -43,7 +43,7 @@ const CalculadoraPage = {
         this.elements.progressPercent = document.getElementById('progress-percent');
         this.elements.btnMinus = document.getElementById('btn-minus');
         this.elements.btnPlus = document.getElementById('btn-plus');
-        
+
         this.loadSettings();
         this.loadStack();
         this.setupSearch();
@@ -52,7 +52,7 @@ const CalculadoraPage = {
         this.setupEpisodeControls();
         this.updateIdleState();
         this.calculate();
-        
+
         console.log('✅ Calculadora Page loaded!');
     },
 
@@ -74,7 +74,7 @@ const CalculadoraPage = {
     setupSlider() {
         const slider = document.getElementById('pace-slider');
         const display = document.getElementById('pace-display');
-        
+
         slider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
             display.textContent = value;
@@ -95,17 +95,17 @@ const CalculadoraPage = {
             const value = parseInt(e.target.value) || 0;
             this.setGlobalEpisode(value);
         });
-        
+
         this.elements.globalEpInput.addEventListener('input', (e) => {
             const value = parseInt(e.target.value) || 0;
             this.setGlobalEpisode(value);
         });
-        
+
         // Botões +/-
         this.elements.btnMinus.addEventListener('click', () => {
             this.setGlobalEpisode(Math.max(0, this.globalEp - 1));
         });
-        
+
         this.elements.btnPlus.addEventListener('click', () => {
             this.setGlobalEpisode(this.globalEp + 1);
         });
@@ -158,14 +158,30 @@ const CalculadoraPage = {
     setupSearch() {
         const input = document.getElementById('calc-search');
         input.addEventListener('input', (e) => {
-            clearTimeout(this.debounceTimer);
             const query = e.target.value.trim();
-            
+
+            // Lógica de Temas Secretos
+            const secretThemes = ['benevaMode', 'parafaMode', 'migueliMode', 'kauaMode', 'ruanMode', 'johnMode', 'bonfinMode', 'arcadeMode', 'zenMode', 'goldMode', 'xpMode', 'sakuraMode', 'cyberHacker', 'vaporwaveMode', 'vestaMode', 'hollowMode', 'blueprintMode'];
+            const matchedTheme = secretThemes.find(t => t.toLowerCase() === query.toLowerCase());
+
+            if (matchedTheme) {
+                if (Themes.unlock(matchedTheme)) {
+                    Common.showNotification(`🔓 Tema secreto desbloqueado: ${Themes.themes[matchedTheme].name}!`, 'success');
+                    input.value = '';
+                    this.hideResults();
+                    // Adicionar XP por descobrir segredo
+                    Storage.addXP(50);
+                    Common.updateLevelBadge();
+                    return;
+                }
+            }
+
+            clearTimeout(this.debounceTimer);
             if (query.length < 2) {
                 this.hideResults();
                 return;
             }
-            
+
             this.debounceTimer = setTimeout(() => this.search(query), 300);
         });
     },
@@ -174,7 +190,7 @@ const CalculadoraPage = {
         const container = document.getElementById('calc-results');
         container.innerHTML = '<div class="loader"></div>';
         container.style.display = 'block';
-        
+
         try {
             const results = await API.searchAnime(query, 1, 5);
             this.renderSearchResults(results);
@@ -185,12 +201,12 @@ const CalculadoraPage = {
 
     renderSearchResults(animes) {
         const container = document.getElementById('calc-results');
-        
+
         if (!animes || animes.length === 0) {
             container.innerHTML = '<p class="empty-message">Nenhum resultado</p>';
             return;
         }
-        
+
         container.innerHTML = animes.map(anime => {
             // const formatted = API.formatAnime(anime);
             const formatted = anime;
@@ -219,23 +235,23 @@ const CalculadoraPage = {
             Common.showNotification('Anime já está na stack', 'error');
             return;
         }
-        
+
         try {
             const data = await API.getAnimeById(animeId);
             // const anime = API.formatAnime(data);
             const anime = data;
-            
+
             this.stack.push({
                 ...anime
             });
-            
+
             this.renderStack();
             this.saveStack();
             this.updateIdleState();
             this.calculate();
             this.hideResults();
             document.getElementById('calc-search').value = '';
-            
+
             Common.showNotification(`"${anime.title}" adicionado!`);
         } catch (error) {
             Common.showNotification('Erro ao adicionar anime', 'error');
@@ -249,7 +265,7 @@ const CalculadoraPage = {
             cumulative += this.stack[i].episodes || 0;
         }
         const removedAnimeEps = this.stack[index].episodes || 0;
-        
+
         // Se globalEp estava além deste anime, descontar os eps dele
         if (this.globalEp > cumulative + removedAnimeEps) {
             this.globalEp -= removedAnimeEps;
@@ -257,9 +273,9 @@ const CalculadoraPage = {
             // Se estava no meio do anime removido, voltar pro início dele
             this.globalEp = cumulative;
         }
-        
+
         this.stack.splice(index, 1);
-        
+
         this.renderStack();
         this.saveStack();
         this.updateIdleState();
@@ -270,29 +286,29 @@ const CalculadoraPage = {
         const container = document.getElementById('stack-list');
         const countEl = document.getElementById('stack-count');
         const totalEl = document.getElementById('stack-total-eps');
-        
+
         countEl.textContent = this.stack.length;
-        
+
         const totalEps = this.getTotalStackEps();
         totalEl.textContent = totalEps;
-        
+
         if (this.stack.length === 0) {
             container.innerHTML = '<p class="empty-message">Adicione animes para calcular</p>';
             return;
         }
-        
+
         // Calcular qual anime está ativo e progresso de cada um
         let cumulative = 0;
         container.innerHTML = this.stack.map((anime, index) => {
             const animeEps = anime.episodes || 0;
             const startEp = cumulative;
             const endEp = cumulative + animeEps;
-            
+
             // Calcular progresso deste anime baseado no globalEp
             let animeProgress = 0;
             let isActive = false;
             let isCompleted = false;
-            
+
             if (this.globalEp >= endEp) {
                 // Anime completo
                 animeProgress = animeEps;
@@ -302,11 +318,11 @@ const CalculadoraPage = {
                 animeProgress = this.globalEp - startEp;
                 isActive = true;
             }
-            
+
             cumulative = endEp;
-            
+
             const statusClass = isCompleted ? 'completed' : (isActive ? 'active' : '');
-            
+
             // Buscar dados de filler usando AnimeData
             let fillerInfo = '';
             if (typeof AnimeData !== 'undefined') {
@@ -315,7 +331,7 @@ const CalculadoraPage = {
                     fillerInfo = `<span class="filler-badge">${data.fillerCount} fillers (${data.fillerPercent}%)</span>`;
                 }
             }
-            
+
             return `
                 <div class="stack-item ${statusClass}">
                     <img src="${anime.image}" alt="${anime.title}">
@@ -364,18 +380,18 @@ const CalculadoraPage = {
 
     renderHero() {
         if (this.stack.length === 0) return;
-        
+
         const current = this.getCurrentAnime();
         if (!current) return;
-        
+
         const totalStackEps = this.getTotalStackEps();
-        
+
         document.getElementById('calc-hero-img').src = current.anime.image;
         document.getElementById('calc-hero-title').textContent = current.anime.title;
         document.getElementById('calc-hero-progress').textContent = `${this.globalEp} / ${totalStackEps}`;
         this.elements.globalEpInput.value = this.globalEp;
         this.elements.globalEpInput.max = totalStackEps;
-        
+
         this.updateProgressBar();
     },
 
@@ -384,12 +400,12 @@ const CalculadoraPage = {
     // ========================================
     setGlobalEpisode(value) {
         if (this.stack.length === 0) return;
-        
+
         const totalStackEps = this.getTotalStackEps();
         const newValue = Math.max(0, Math.min(totalStackEps, value));
-        
+
         this.globalEp = newValue;
-        
+
         // Atualizar Hero (imagem, título e progresso)
         this.renderHero();
         this.updateProgressBar();
@@ -400,15 +416,15 @@ const CalculadoraPage = {
 
     updateProgressBar() {
         const totalStackEps = this.getTotalStackEps();
-        
+
         if (totalStackEps === 0) {
             if (this.elements.progressBar) this.elements.progressBar.style.width = '0%';
             if (this.elements.progressPercent) this.elements.progressPercent.textContent = '0%';
             return;
         }
-        
+
         const percent = Math.round((this.globalEp / totalStackEps) * 100);
-        
+
         if (this.elements.progressBar) {
             this.elements.progressBar.style.width = `${percent}%`;
         }
@@ -426,14 +442,14 @@ const CalculadoraPage = {
 
         const updateProgressFromPosition = (clientX) => {
             if (this.stack.length === 0) return;
-            
+
             const rect = container.getBoundingClientRect();
             const x = clientX - rect.left;
             const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-            
+
             const totalStackEps = this.getTotalStackEps();
             if (totalStackEps === 0) return;
-            
+
             const newEp = Math.round((percent / 100) * totalStackEps);
             this.setGlobalEpisode(newEp);
         };
@@ -487,33 +503,33 @@ const CalculadoraPage = {
         const totalStackEps = this.getTotalStackEps();
         let remainingEps = totalStackEps - this.globalEp;
         let savedEps = 0;
-        
+
         // Calcular fillers restantes se configurado
         if (this.settings.skipFillers) {
             let cumulative = 0;
             this.stack.forEach(anime => {
                 const animeEps = anime.episodes || 0;
                 const startEp = cumulative;
-                
+
                 // Normalizar título para busca (remover pontos, traços, espaços extras e lowercase)
                 // Ex: "Naruto: Shippuuden" -> "narutoshippuuden"
                 const cleanTitle = anime.title.toLowerCase().replace(/[^a-z0-9]/g, '');
-                
+
                 let fillers = null;
-                
+
                 // Tentar encontrar correspondência nas chaves
                 const keys = Object.keys(this.fillerEpisodes);
                 for (const key of keys) {
                     const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
                     // Check parcial para Shippuden (shippuden vs shippuuden)
-                    if (cleanTitle === cleanKey || 
+                    if (cleanTitle === cleanKey ||
                         (cleanTitle.includes('shippu') && cleanKey.includes('shippu') && cleanTitle.includes('naruto')) ||
                         cleanTitle === cleanKey.replace('shippuden', 'shippuuden')) {
                         fillers = this.fillerEpisodes[key];
                         break;
                     }
                 }
-                
+
                 if (fillers) {
                     fillers.forEach(range => {
                         for (let i = range[0]; i <= range[1]; i++) {
@@ -529,22 +545,22 @@ const CalculadoraPage = {
                 cumulative += animeEps;
             });
         }
-        
+
         remainingEps = Math.max(0, remainingEps);
-        
+
         // Duração por episódio (20 min no speedrun, 24 normal)
         const epDuration = this.settings.speedrun ? 20 : 24;
         const totalMinutes = remainingEps * epDuration;
         const totalHours = Math.round(totalMinutes / 60);
-        
+
         const daysNeeded = Math.ceil(remainingEps / this.settings.epsPerDay);
         const finishDate = new Date();
         finishDate.setDate(finishDate.getDate() + daysNeeded);
-        
+
         // Update UI - Results
         document.getElementById('result-remaining').textContent = remainingEps;
         document.getElementById('result-hours').textContent = totalHours;
-        
+
         // Saved indicator
         const savedEl = document.getElementById('calc-saved');
         if (savedEps > 0 || this.settings.speedrun) {
@@ -556,7 +572,7 @@ const CalculadoraPage = {
         } else {
             savedEl.classList.remove('show');
         }
-        
+
         // Calendar
         if (daysNeeded > 0) {
             const options = { day: 'numeric', month: 'short' };

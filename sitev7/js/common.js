@@ -16,8 +16,84 @@ const Common = {
         this.createMobileRandomButton(); // Mobile Header
         this.createSidebarRandomButton(); // Desktop Sidebar
         this.initNotifications();
+        this.setupEasterEggs();
         this.checkAchievements();
         console.log('🚀 AnimeEngine v6 loaded!');
+    },
+
+    /**
+     * Easter Eggs & Caçador de Temas Secretos
+     */
+    setupEasterEggs() {
+        // 1. A Hora Espectral (Blood Moon)
+        const hour = new Date().getHours();
+        if (hour === 3 && typeof Themes !== 'undefined') {
+            if (!Themes.isUnlocked('bloodMoon')) {
+                Themes.unlock('bloodMoon');
+                this.showToast('🩸 A Lua de Sangue Ascendeu... Tema Blood Moon desbloqueado!');
+                Themes.apply('bloodMoon');
+            }
+        }
+
+        // 2. Konami Code -> Arcade Mode
+        let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiPosition = 0;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === konamiCode[konamiPosition]) {
+                konamiPosition++;
+                if (konamiPosition === konamiCode.length) {
+                    if (typeof Themes !== 'undefined' && !Themes.isUnlocked('arcadeMode')) {
+                        Themes.unlock('arcadeMode');
+                        this.showToast('🕹️ Konami Code Inserido! Modo Arcade Desbloqueado!');
+                        Themes.apply('arcadeMode');
+                    }
+                    konamiPosition = 0;
+                }
+            } else {
+                konamiPosition = 0;
+            }
+        });
+
+        // 3. Espancador de Logo -> Glitch Mode
+        const logos = document.querySelectorAll('.logo, .navbar-brand');
+        let logoClicks = 0;
+        let logoTimer;
+        logos.forEach(logo => {
+            logo.addEventListener('click', (e) => {
+                logoClicks++;
+                clearTimeout(logoTimer);
+                logoTimer = setTimeout(() => logoClicks = 0, 1000);
+                if (logoClicks >= 10) {
+                    e.preventDefault();
+                    if (typeof Themes !== 'undefined' && !Themes.isUnlocked('glitchMode')) {
+                        Themes.unlock('glitchMode');
+                        this.showToast('👾 O sistema foi corrompido... Tema Glitch Desbloqueado!');
+                        Themes.apply('glitchMode');
+                    }
+                    logoClicks = 0;
+                }
+            });
+        });
+
+        // 4. Modo Desenvolvedor -> Developer Mode
+        const footers = document.querySelectorAll('.footer-copyright, footer p, footer');
+        let footerClicks = 0;
+        let footerTimer;
+        footers.forEach(footer => {
+            footer.addEventListener('click', (e) => {
+                footerClicks++;
+                clearTimeout(footerTimer);
+                footerTimer = setTimeout(() => footerClicks = 0, 1500);
+                if (footerClicks >= 5) {
+                    if (typeof Themes !== 'undefined' && !Themes.isUnlocked('developerMode')) {
+                        Themes.unlock('developerMode');
+                        this.showToast('👨‍💻 Console aberto. Tema Developer ativado.');
+                        Themes.apply('developerMode');
+                    }
+                    footerClicks = 0;
+                }
+            });
+        });
     },
 
     /**
@@ -281,7 +357,7 @@ const Common = {
      * Marcar nav item ativo
      */
     markActiveNav() {
-        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const currentPage = window.location.pathname.split('/').pop() || 'index.php';
 
         // Sidebar
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -758,74 +834,178 @@ const Common = {
     /**
      * Abrir modal de settings
      */
-    openSettings() {
-        const themes = Themes ? Themes.getAll() : [];
-        const sfw = Storage.getUser().settings?.sfw ?? true;
-
-        const themesHTML = themes.map(t => `
-            <div class="theme-card ${t.active ? 'active' : ''}" onclick="Common.setTheme('${t.id}')">
-                <div class="theme-card-icon">${t.icon}</div>
-                <div class="theme-card-name">${t.name}</div>
-                <div class="theme-card-desc">${t.description}</div>
-            </div>
-        `).join('');
-
+    /**
+     * Abrir modal de configurações (Tabbed Version)
+     */
+    openSettings(activeTab = 'appearance') {
         const content = `
-            <div class="settings-section">
-                <h4 class="settings-section-title">🌐 Idioma da Tradução</h4>
-                <div class="settings-option">
-                    <div class="settings-option-info">
-                        <span class="settings-option-name">Idioma Alvo</span>
-                        <span class="settings-option-desc">Tradução automática de sinopses (pode conter erros).</span>
-                    </div>
-                    <select class="settings-select" onchange="Common.setLanguage(this.value)">
-                        <option value="pt-br" ${Storage.getSettings().language === 'pt-br' ? 'selected' : ''}>🇧🇷 Português (BR)</option>
-                        <option value="en" ${Storage.getSettings().language === 'en' ? 'selected' : ''}>🇺🇸 English</option>
-                        <option value="es" ${Storage.getSettings().language === 'es' ? 'selected' : ''}>🇪🇸 Español</option>
-                        <option value="fr" ${Storage.getSettings().language === 'fr' ? 'selected' : ''}>🇫🇷 Français</option>
-                        <option value="ja" ${Storage.getSettings().language === 'ja' ? 'selected' : ''}>🇯🇵 日本語</option>
-                    </select>
-                </div>
-                <p class="settings-note">
-                    <i class="fas fa-exclamation-triangle"></i> Nota: As traduções são geradas automaticamente por IA e podem apresentar imprecisões.
-                </p>
-            </div>
-
-            <div class="settings-section">
-                <h4 class="settings-section-title">🛡️ Conteúdo</h4>
-                <div class="settings-option">
-                    <div class="settings-option-info">
-                        <span class="settings-option-name">Modo SFW (Família)</span>
-                        <span class="settings-option-desc">Ocultar conteúdo adulto/ecchi</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" ${sfw ? 'checked' : ''} onchange="Common.toggleSFW(this.checked)">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <h4 class="settings-section-title">✨ Efeitos Visuais</h4>
-                <div class="settings-option">
-                    <div class="settings-option-info">
-                        <span class="settings-option-name">Partículas de Fundo</span>
-                        <span class="settings-option-desc">Efeitos animados baseados no tema</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" ${typeof Particles !== 'undefined' && Particles.enabled ? 'checked' : ''} onchange="Common.toggleParticles(this.checked)">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <h4 class="settings-section-title">🎨 Tema</h4>
-                <div class="theme-grid">${themesHTML}</div>
+            <div class="settings-layout">
+                <aside class="settings-sidebar">
+                    <button class="settings-tab ${activeTab === 'appearance' ? 'active' : ''}" data-tab-id="appearance" onclick="Common.switchSettingsTab('appearance')">
+                        <i class="fas fa-palette"></i> Aparência
+                    </button>
+                    <button class="settings-tab ${activeTab === 'profile' ? 'active' : ''}" data-tab-id="profile" onclick="Common.switchSettingsTab('profile')">
+                        <i class="fas fa-user"></i> Perfil
+                    </button>
+                    <button class="settings-tab ${activeTab === 'general' ? 'active' : ''}" data-tab-id="general" onclick="Common.switchSettingsTab('general')">
+                        <i class="fas fa-cog"></i> Geral
+                    </button>
+                    <button class="settings-tab ${activeTab === 'content' ? 'active' : ''}" data-tab-id="content" onclick="Common.switchSettingsTab('content')">
+                        <i class="fas fa-shield-alt"></i> Conteúdo
+                    </button>
+                </aside>
+                <main class="settings-content" id="settings-content-area">
+                    ${this.renderSettingsTab(activeTab)}
+                </main>
             </div>
         `;
 
-        this.openModal(content, { title: '⚙️ Configurações' });
+        this.openModal(content, { title: '⚙️ Configurações', className: 'settings-modal' });
+    },
+
+    /**
+     * Trocar apenas o conteúdo da aba sem fechar a modal
+     */
+    switchSettingsTab(tabId) {
+        // Atualizar conteúdo
+        const contentArea = document.getElementById('settings-content-area');
+        if (contentArea) {
+            contentArea.innerHTML = this.renderSettingsTab(tabId);
+        }
+
+        // Atualizar botões ativos
+        document.querySelectorAll('.settings-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab-id') === tabId);
+        });
+    },
+
+    /**
+     * Renderiza o conteúdo de uma aba específica
+     */
+    renderSettingsTab(tabId) {
+        const settings = Storage.getSettings();
+        const user = Storage.getUser();
+
+        switch (tabId) {
+            case 'appearance':
+                const themes = typeof Themes !== 'undefined' ? Themes.themes : {};
+                const unlockedThemes = typeof Themes !== 'undefined' ? Themes.getUnlockedThemes() : [];
+
+                let themesHTML = '';
+                Object.entries(themes).forEach(([key, theme]) => {
+                    const isSecret = theme.secret === true;
+                    const isUnlocked = unlockedThemes.includes(key);
+                    const currentTheme = typeof Themes !== 'undefined' ? Themes.getCurrent() : (settings.theme || 'default');
+                    const isActive = currentTheme === key;
+
+                    if (isSecret && !isUnlocked) {
+                        themesHTML += `
+                            <div class="theme-card locked" title="Tema Secreto">
+                                <div class="theme-card-icon">🔒</div>
+                                <div class="theme-card-name">Bloqueado</div>
+                                <div class="theme-card-hint">Dica: Calculadora</div>
+                            </div>
+                        `;
+                    } else {
+                        themesHTML += `
+                            <div class="theme-card ${isActive ? 'active' : ''}" 
+                                 onclick="Common.setTheme('${key}')"
+                                 onmouseenter="Common.previewTheme('${key}')"
+                                 onmouseleave="Common.resetTheme()">
+                                <div class="theme-card-icon">${theme.icon || '🎨'}</div>
+                                <div class="theme-card-name">${theme.name}</div>
+                                <div class="theme-card-desc">${theme.description || ''}</div>
+                                <div class="theme-card-accent" style="background: var(--color-primary)"></div>
+                            </div>
+                        `;
+                    }
+                });
+
+                return `
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">🎨 Temas e Visual</h4>
+                        <div class="theme-grid">${themesHTML}</div>
+                    </div>
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">✨ Efeitos</h4>
+                        <div class="settings-option">
+                            <div class="settings-option-info">
+                                <span class="settings-option-name">Partículas de Fundo</span>
+                                <span class="settings-option-desc">Animações baseadas no tema</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${typeof Particles !== 'undefined' && Particles.enabled ? 'checked' : ''} onchange="Common.toggleParticles(this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+
+            case 'profile':
+                return `
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">📊 Seu Progresso</h4>
+                        <div class="profile-stats-mini">
+                            <div class="level-badge big">
+                                ${user.level || 1}
+                            </div>
+                            <div class="xp-info">
+                                <div class="xp-label">XP Total: ${user.xp || 0}</div>
+                                <div class="xp-bar-container">
+                                    <div class="xp-bar-fill" style="width: ${(user.xp % 100)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            case 'general':
+                return `
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">🌐 Idioma</h4>
+                        <select class="settings-select" onchange="Common.setLanguage(this.value)">
+                            <option value="pt-br" ${settings.language === 'pt-br' ? 'selected' : ''}>🇧🇷 Português (BR)</option>
+                            <option value="en" ${settings.language === 'en' ? 'selected' : ''}>🇺🇸 English</option>
+                            <option value="es" ${settings.language === 'es' ? 'selected' : ''}>🇪🇸 Español</option>
+                        </select>
+                    </div>
+                `;
+
+            case 'content':
+                return `
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">🛡️ Filtros</h4>
+                        <div class="settings-option">
+                            <div class="settings-option-info">
+                                <span class="settings-option-name">Modo SFW (Família)</span>
+                                <span class="settings-option-desc">Ocultar animes ecchi/adultos</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" ${settings.sfw !== false ? 'checked' : ''} onchange="Common.toggleSFW(this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+        }
+    },
+
+    /**
+     * Pré-visualização temporária do tema
+     */
+    previewTheme(theme) {
+        if (window.innerWidth <= 768) return; // Desativa hover effect em mobile
+        document.documentElement.setAttribute('data-theme', theme);
+    },
+
+    /**
+     * Reseta para o tema original
+     */
+    resetTheme() {
+        if (window.innerWidth <= 768) return; // Desativa hover effect em mobile
+        const settings = Storage.getSettings();
+        const savedTheme = localStorage.getItem('animeengine_theme') || settings.theme || 'default';
+        document.documentElement.setAttribute('data-theme', savedTheme);
     },
 
     /**
@@ -854,6 +1034,10 @@ const Common = {
 
         if (!enabled) {
             Achievements.unlock('safado');
+            if (typeof Themes !== 'undefined' && !Themes.isUnlocked('yandereMode')) {
+                Themes.unlock('yandereMode');
+                setTimeout(() => this.showToast('🔪 Yandere Mode desbloqueado... doce, mas letal.'), 1000);
+            }
         }
 
         this.showToast(enabled ? 'Modo SFW ativado 😇' : 'Modo SFW desativado 😈');
@@ -873,7 +1057,15 @@ const Common = {
     setTheme(themeId) {
         if (Themes) {
             Themes.apply(themeId);
-            this.openSettings(); // Reabrir para atualizar UI
+
+            // Remover classe active de todos os cards
+            document.querySelectorAll('.theme-card').forEach(card => card.classList.remove('active'));
+            // Adicionar clase active apenas no card clicado (se estiver aberto renderizando os temas)
+            const activeCard = document.querySelector(`.theme-card[onclick="Common.setTheme('${themeId}')"]`);
+            if (activeCard) {
+                activeCard.classList.add('active');
+            }
+
             this.checkAchievements(); // Checar achievement de tema
         }
     },

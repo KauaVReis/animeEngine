@@ -114,6 +114,24 @@ $badges_exibidos = json_decode($perfil['badges_exibidos'] ?? '[]', true) ?: [];
                 </div>
             </div>
 
+            <!-- WAIFU / HUSBANDO SHOWCASE -->
+            <div class="form-section">
+                <h3><i class="fas fa-heart"></i> Waifu/Husbando (Showcase)</h3>
+                <?php $waifu = json_decode($perfil['waifu_personagem'] ?? '{}', true) ?: []; ?>
+                <div class="social-inputs">
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-user-tag"></i></span>
+                        <input type="text" id="waifu-nome" placeholder="Nome do Personagem (Ex: Rem, Gojo Satoru)"
+                            value="<?= htmlspecialchars($waifu['nome'] ?? '') ?>" maxlength="100">
+                    </div>
+                    <div class="input-group">
+                        <span class="input-icon"><i class="fas fa-image"></i></span>
+                        <input type="url" id="waifu-imagem" placeholder="URL da Imagem (Ex: https://...)"
+                            value="<?= htmlspecialchars($waifu['imagem'] ?? '') ?>">
+                    </div>
+                </div>
+            </div>
+
             <!-- MOLDURA -->
             <div class="form-section">
                 <h3><i class="fas fa-circle-notch"></i> Moldura do Avatar</h3>
@@ -658,6 +676,10 @@ $badges_exibidos = json_decode($perfil['badges_exibidos'] ?? '[]', true) ?: [];
                     twitter: document.getElementById('social-twitter').value,
                     instagram: document.getElementById('social-instagram').value,
                     youtube: document.getElementById('social-youtube').value
+                },
+                waifu_personagem: {
+                    nome: document.getElementById('waifu-nome').value.trim(),
+                    imagem: document.getElementById('waifu-imagem').value.trim()
                 }
             };
 

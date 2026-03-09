@@ -42,8 +42,16 @@ const Storage = {
 
         if (newLevel > user.level) {
             user.level = newLevel;
-            // Common.showNotification ? We are in storage layer.
-            // Dispatch event?
+
+            // OLED Game Reward
+            if (newLevel >= 30) {
+                if (typeof Themes !== 'undefined' && !Themes.isUnlocked('oledMode')) {
+                    Themes.unlock('oledMode');
+                    if (typeof Common !== 'undefined') {
+                        setTimeout(() => Common.showToast('🔋 Level 30 Alcançado! OLED Pitch Black Desbloqueado!'), 1500);
+                    }
+                }
+            }
         }
 
         this.set(this.KEYS.USER, user);
@@ -222,8 +230,8 @@ const Storage = {
     updateSettings(data) {
         const current = this.getSettings();
         this.set(this.KEYS.SETTINGS, { ...current, ...data });
-        // Trigger theme update if changed
-        if (data.theme && window.Themes) {
+        // Trigger theme update if changed from the current state (prevent infinite loop)
+        if (data.theme && data.theme !== current.theme && window.Themes) {
             window.Themes.apply(data.theme);
         }
     },

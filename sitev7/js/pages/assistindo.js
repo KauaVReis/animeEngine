@@ -1,22 +1,35 @@
 /**
  * AnimeEngine v7 - Assistindo Page
- * Mostra animes em progresso (watching)
+ * Funciona integrado com a API MySQL do Usuário
  */
 
 const AssistindoPage = {
     animes: [],
 
-    init() {
+    async init() {
         console.log('📺 Loading Assistindo Page...');
-        this.loadWatching();
+        await this.loadWatching();
         console.log('✅ Assistindo Page loaded!');
     },
 
-    loadWatching() {
-        // Use Storage instead of API
-        const list = Storage.getList('watching');
-        this.animes = list || [];
-        this.render();
+    async loadWatching() {
+        try {
+            const container = document.getElementById('watching-grid');
+            if (container) container.innerHTML = '<div class="carousel-loading"><div class="loader"></div></div>';
+
+            const response = await fetch('api/lists/get.php');
+            const data = await response.json();
+
+            if (data.success && data.lists && data.lists.watching) {
+                this.animes = data.lists.watching;
+            } else {
+                this.animes = [];
+            }
+            this.render();
+        } catch (e) {
+            console.error('Erro ao carregar lista de assistindo:', e);
+            document.getElementById('watching-grid').innerHTML = '<p class="error">Erro de conexão com o servidor.</p>';
+        }
     },
 
     render() {
@@ -31,43 +44,42 @@ const AssistindoPage = {
         if (emptyState) emptyState.style.display = 'none';
 
         container.innerHTML = this.animes.map(anime => {
-            // Map Storage keys to UI
-            const total = anime.totalEpisodes || anime.total_episodes || 0; // handle legacy keys
-            const current = anime.progress || 0;
+            const total = anime.episodios_total || anime.total_episodes || 0;
+            const current = anime.progresso || anime.progress || 0;
             const percent = total ? Math.round((current / total) * 100) : 0;
 
             return `
-                <div class="watching-card" onclick="window.location='detalhes.php?id=${anime.id}'">
+                <div class="watching-card" id="anime-card-${anime.anime_id}" onclick="window.location='detalhes.php?id=${anime.anime_id}'">
                     <div class="watching-image">
-                        <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                        <img src="${anime.imagem || anime.image}" alt="${anime.titulo}" loading="lazy">
                     </div>
                     <div class="watching-info">
-                        <h3 class="watching-title">${anime.title}</h3>
+                        <h3 class="watching-title">${anime.titulo}</h3>
                         
                         <div class="watching-progress">
-                            <span>Episódio ${current} ${total ? `/ ${total}` : ''}</span>
-                            <span>${percent}%</span>
+                            <span id="progress-text-${anime.anime_id}">Episódio ${current} ${total ? `/ ${total}` : ''}</span>
+                            <span id="percent-text-${anime.anime_id}">${percent}%</span>
                         </div>
                         
                         <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${percent}%"></div>
+                            <div class="progress-fill" id="progress-fill-${anime.anime_id}" style="width: ${percent}%"></div>
                         </div>
                         
                         <div class="episode-controls">
                             <!-- Minus Button -->
-                            <button class="btn-mini" onclick="event.stopPropagation(); AssistindoPage.updateProgress(${anime.id}, -1)">
+                            <button class="btn-mini" onclick="event.stopPropagation(); AssistindoPage.updateProgress(${anime.anime_id}, -1, ${total})">
                                 <i class="fas fa-minus"></i>
                             </button>
                             
                             <!-- Display / Edit -->
-                            <div class="episode-display" onclick="event.stopPropagation(); AssistindoPage.openEditModal(${anime.id})">
-                                <span class="current-ep">${current}</span>
+                            <div class="episode-display" onclick="event.stopPropagation(); AssistindoPage.openEditModal(${anime.anime_id}, '${anime.titulo.replace(/'/g, "\\'")}', ${current}, ${total})">
+                                <span class="current-ep" id="display-curr-${anime.anime_id}">${current}</span>
                                 <span class="total-ep">/ ${total || '?'}</span>
                                 <i class="fas fa-edit edit-icon"></i>
                             </div>
                             
                             <!-- Plus Button -->
-                            <button class="btn-mini" onclick="event.stopPropagation(); AssistindoPage.updateProgress(${anime.id}, 1)">
+                            <button class="btn-mini" onclick="event.stopPropagation(); AssistindoPage.updateProgress(${anime.anime_id}, 1, ${total})">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -85,88 +97,107 @@ const AssistindoPage = {
         if (emptyState) emptyState.style.display = 'block';
     },
 
-    updateProgress(animeId, change) {
-        const anime = this.animes.find(a => a.id == animeId);
+    async updateProgress(animeId, change, total) {
+        const anime = this.animes.find(a => a.anime_id == animeId);
         if (!anime) return;
 
-        let newProgress = (anime.progress || 0) + change;
+        let newProgress = parseInt(anime.progresso || anime.progress || 0) + change;
         if (newProgress < 0) newProgress = 0;
-
-        const total = anime.totalEpisodes || anime.total_episodes;
         if (total && newProgress > total) newProgress = total;
 
-        this.saveProgress(anime, newProgress);
+        // Se voltar para o mesmo número, ignora.
+        if (newProgress == (anime.progresso || 0)) return;
 
-        // Notify
-        if (change > 0) {
-            Common.showNotification(`+1 Episódio! (${newProgress}/${total || '?'})`);
-            Storage.addXP(5);
-        }
+        await this.saveProgress(animeId, newProgress, total, anime);
     },
 
-    openEditModal(animeId) {
-        const anime = this.animes.find(a => a.id == animeId);
-        if (!anime) return;
-
+    openEditModal(animeId, title, current, total) {
         const html = `
             <div class="edit-ep-modal">
                 <p>Em qual episódio você está?</p>
                 <div class="input-group">
-                    <input type="number" id="ep-input" value="${anime.progress || 0}" min="0" max="${anime.totalEpisodes || 9999}">
-                    <button class="btn btn-primary" onclick="AssistindoPage.confirmEdit(${animeId})">Salvar</button>
+                    <input type="number" id="ep-input-edit" value="${current}" min="0" max="${total || 9999}">
+                    <button class="btn btn-primary" onclick="AssistindoPage.confirmEdit(${animeId}, ${total})">Salvar</button>
                 </div>
                 <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                    <a href="detalhes.php?id=${anime.id}" class="btn btn-block btn-outline">
+                    <a href="detalhes.php?id=${animeId}" class="btn btn-block btn-outline">
                         <i class="fas fa-info-circle"></i> Ver Detalhes do Anime
                     </a>
                 </div>
             </div>
         `;
 
-        Common.openModal(html, { title: `📺 ${anime.title}` });
-        // Focus input
-        setTimeout(() => document.getElementById('ep-input')?.focus(), 100);
+        Common.openModal(html, { title: `📺 Editar Progresso` });
+        setTimeout(() => document.getElementById('ep-input-edit')?.focus(), 100);
     },
 
-    confirmEdit(animeId) {
-        const input = document.getElementById('ep-input');
+    async confirmEdit(animeId, total) {
+        const input = document.getElementById('ep-input-edit');
         if (!input) return;
 
         const val = parseInt(input.value);
         if (isNaN(val) || val < 0) {
-            Common.showNotification('Número inválido', 'error');
+            alert('Número inválido');
             return;
         }
 
-        const anime = this.animes.find(a => a.id == animeId);
+        const anime = this.animes.find(a => a.anime_id == animeId);
         if (anime) {
-            this.saveProgress(anime, val);
-            Common.showNotification(`Progresso atualizado: Ep. ${val}`);
+            await this.saveProgress(animeId, val, total, anime);
             Common.closeModal();
         }
     },
 
-    saveProgress(anime, newProgress) {
-        const total = anime.totalEpisodes || anime.total_episodes;
-        anime.progress = newProgress;
+    async saveProgress(animeId, newProgress, total, animeRef) {
+        // --- Optimistic UI Update ---
+        animeRef.progresso = newProgress;
+        const percent = total ? Math.round((newProgress / total) * 100) : 0;
 
-        // Check if completed
+        const pt = document.getElementById(`progress-text-${animeId}`);
+        const pp = document.getElementById(`percent-text-${animeId}`);
+        const pf = document.getElementById(`progress-fill-${animeId}`);
+        const dc = document.getElementById(`display-curr-${animeId}`);
+
+        if (pt) pt.innerText = `Episódio ${newProgress} ${total ? `/ ${total}` : ''}`;
+        if (pp) pp.innerText = `${percent}%`;
+        if (pf) pf.style.width = `${percent}%`;
+        if (dc) dc.innerText = newProgress;
+
+        // Se Completou
         if (total && newProgress >= total) {
-            // Move to Completed
-            Storage.addToList('completed', anime);
+            document.getElementById(`anime-card-${animeId}`)?.remove();
+            this.animes = this.animes.filter(a => a.anime_id != animeId);
 
-            // UI Feedback
-            Common.showNotification(`🎉 Parabéns! Você completou ${anime.title}!`);
-            Common.addXP(50); // Big XP bonus
+            if (window.createParticles) createParticles(20, 'star', ['#ffd700', '#00ff41']);
+            alert(`🎉 Parabéns! Você completou ${animeRef.titulo}!`);
 
-            // Remove from current view
-            this.animes = this.animes.filter(a => a.id != anime.id);
+            if (this.animes.length === 0) {
+                this.showEmpty();
+            }
+
+            // Backend: Move para "completed"
+            try {
+                await fetch('api/lists/move.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ anime_id: animeId, tipo_lista: 'completed' })
+                });
+            } catch (e) {
+                console.error("Erro ao mover para completos:", e);
+            }
         } else {
-            // Keep in Watching
-            Storage.addToList('watching', anime);
+            // Backend: Apenas atualiza o progresso no "watching"
+            try {
+                await fetch('api/lists/update.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ anime_id: animeId, progresso: newProgress })
+                });
+            } catch (e) {
+                console.error("Erro ao salvar progresso:", e);
+                // Falha silenciosa, na próxima load resolve (não atrapalha a UX)
+            }
         }
-
-        this.render();
     }
 };
 

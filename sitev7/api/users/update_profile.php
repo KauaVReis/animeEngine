@@ -61,6 +61,16 @@ if (isset($data['perfil_publico'])) {
     $updates[] = "perfil_publico = $publico";
 }
 
+// Waifu/Husbando
+if (isset($data['waifu_personagem']) && is_array($data['waifu_personagem'])) {
+    $waifu = [
+        'nome' => substr(strip_tags($data['waifu_personagem']['nome'] ?? ''), 0, 100),
+        'imagem' => filter_var($data['waifu_personagem']['imagem'] ?? '', FILTER_VALIDATE_URL) ? $data['waifu_personagem']['imagem'] : ''
+    ];
+    $waifu_json = escape($conn, json_encode($waifu));
+    $updates[] = "waifu_personagem = '$waifu_json'";
+}
+
 // Redes Sociais
 if (isset($data['redes_sociais']) && is_array($data['redes_sociais'])) {
     $allowed_socials = ['discord', 'twitter', 'instagram', 'youtube', 'twitch'];

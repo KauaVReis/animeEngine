@@ -38,6 +38,9 @@ function navActive($pagina, $atual)
     <a href="estatisticas.php" class="nav-item <?= navActive('estatisticas', $pagina_atual) ?>">
         <i class="fas fa-chart-bar"></i><span>Estatísticas</span>
     </a>
+    <a href="titulos.php" class="nav-item <?= navActive('titulos', $pagina_atual) ?>">
+        <i class="fas fa-crown"></i><span>Títulos</span>
+    </a>
     <a href="#" class="nav-item" onclick="goToRandomAnime(); return false;">
         <i class="fas fa-dice"></i><span>Aleatório</span>
     </a>
@@ -69,6 +72,7 @@ function navActive($pagina, $atual)
             <a href="calculadora.php"><i class="fas fa-calculator"></i> Calculadora</a>
             <a href="calculadora.php"><i class="fas fa-calculator"></i> Calculadora</a>
             <a href="estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
+            <a href="titulos.php"><i class="fas fa-crown"></i> Títulos</a>
             <a href="#" onclick="goToRandomAnime(); return false;"><i class="fas fa-dice"></i> Aleatório</a>
             <hr style="margin: 5px 0; border: 0; border-top: 1px solid var(--border-color);">
             <?php if (isset($usuario) && $usuario): ?>

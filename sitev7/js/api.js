@@ -323,6 +323,35 @@ const API = {
     },
 
     /**
+     * Get Staff Media (Anime/Manga the staff worked on) with Pagination
+     */
+    async getStaffMedia(id, sort = "POPULARITY_DESC", page = 1) {
+        const query = `
+        query ($id: Int, $sort: [MediaSort], $page: Int) {
+            Staff (id: $id) {
+                staffMedia (page: $page, perPage: 12, sort: $sort) {
+                    pageInfo {
+                        hasNextPage
+                    }
+                    edges {
+                        staffRole
+                        node {
+                            id
+                            title { romaji }
+                            coverImage { medium }
+                            format
+                        }
+                    }
+                }
+            }
+        }`;
+
+        const data = await this.query(query, { id: parseInt(id), sort: [sort], page });
+        return data.Staff.staffMedia;
+    },
+
+
+    /**
      * Get Characters for an Anime (Pagination)
      */
     async getCharacters(id, page = 1, perPage = 50) {

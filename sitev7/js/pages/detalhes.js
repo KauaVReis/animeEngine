@@ -5,6 +5,8 @@
 const DetalhesPage = {
     anime: null,
     animeId: null,
+    staff: null,
+    fillers: null,
 
     async init() {
         console.log('📖 Loading Details Page...');
@@ -202,6 +204,27 @@ const DetalhesPage = {
                         <div class="carousel-loading"><div class="loader"></div></div>
                     </div>
                 </div>
+
+                <!-- STAFF (Equipe Técnica) -->
+                <div class="details-section" id="staff-section">
+                    <h2 class="section-title"><i class="fas fa-hammer"></i> Equipe Técnica</h2>
+                    <div class="staff-track" id="staff-track">
+                        <div class="skeleton" style="height: 180px; width: 100%; border-radius: 8px;"></div>
+                    </div>
+                </div>
+
+                <!-- EPISODES & FILLERS -->
+                <div class="details-section" id="episodes-section">
+                    <h2 class="section-title"><i class="fas fa-play-circle"></i> Guia de Episódios</h2>
+                    <div class="episodes-status-legend" style="margin-bottom: 10px; font-size: 0.8rem; display: flex; gap: 15px;">
+                        <span><i class="fas fa-square" style="color: #33cc66"></i> Canon</span>
+                        <span><i class="fas fa-square" style="color: #ff3366"></i> Filler</span>
+                        <span><i class="fas fa-square" style="color: #ffd700"></i> Misto</span>
+                    </div>
+                    <div class="episodes-grid" id="episodes-grid">
+                        <div class="carousel-loading"><div class="loader"></div></div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -209,6 +232,339 @@ const DetalhesPage = {
         this.loadCharacters();
         this.loadRelations();
         this.loadRecommendations();
+        this.fetchStaff(this.animeId);
+        this.fetchFillers(anime.title);
+    },
+
+    /**
+     * Consumir API do AniList para Staff (Equipe Técnica)
+     */
+    /**
+     * Consumir API do AniList para Staff (Equipe Técnica)
+     */
+    async fetchStaff(id) {
+        // Evitar chamadas redundantes se já tivermos os dados
+        if (this.staff) {
+            this.renderStaff();
+            return;
+        }
+
+        const query = `
+        query ($id: Int) {
+            Media (id: $id) {
+                staff {
+                    edges {
+                        role
+                        node {
+                            id
+                            name { full }
+                            image { medium }
+                            description
+                        }
+                    }
+                }
+            }
+        }`;
+
+        try {
+            const data = await API.query(query, { id: parseInt(id) });
+            const allStaff = data.Media.staff.edges;
+
+            // Filtrar e Ordenar (Priorizar Criador Original e Direção)
+            const mainRolesSort = [
+                'Original Creator', 'Story & Art', 'Director',
+                'Series Composition', 'Music', 'Character Design', 'Producer'
+            ];
+
+            this.staff = allStaff
+                .filter(edge => mainRolesSort.some(role => edge.role.includes(role)))
+                .sort((a, b) => {
+                    const getPriority = (role) => {
+                        if (role.toLowerCase().includes('creator') || role.toLowerCase().includes('story')) return 1;
+                        if (role.toLowerCase().includes('director')) return 2;
+                        return 3;
+                    };
+                    return getPriority(a.role) - getPriority(b.role);
+                });
+
+            // Se o filtro for muito restritivo, mostra os 10 primeiros originais
+            if (this.staff.length < 3) {
+                this.staff = allStaff.slice(0, 10);
+            }
+
+            this.renderStaff();
+        } catch (error) {
+            console.error('Erro ao buscar staff:', error);
+            const section = document.getElementById('staff-section');
+            if (section) section.style.display = 'none';
+        }
+    },
+
+    renderStaff() {
+        const track = document.getElementById('staff-track');
+        const section = document.getElementById('staff-section');
+
+        if (!track || !this.staff || this.staff.length === 0) {
+            if (section) section.style.display = 'none';
+            return;
+        }
+
+        const roleTranslations = {
+            'Original Creator': 'Criador Original',
+            'Story & Art': 'História e Arte',
+            'Director': 'Direção',
+            'Series Composition': 'Composição',
+            'Music': 'Música',
+            'Character Design': 'Design de Personagens',
+            'Producer': 'Produção',
+            'Executive Producer': 'Produção Executiva'
+        };
+
+        const translateRole = (role) => {
+            for (const [en, pt] of Object.entries(roleTranslations)) {
+                if (role.toLowerCase().includes(en.toLowerCase())) return pt;
+            }
+            return role;
+        };
+
+        track.innerHTML = this.staff.map((edge, index) => `
+            <div class="staff-card" onclick="DetalhesPage.openStaffModal(${index})">
+                <img src="${edge.node.image?.medium || 'https://via.placeholder.com/100x150'}" class="staff-image" alt="${edge.node.name.full}">
+                <div class="staff-info-container">
+                    <div class="staff-name">${edge.node.name.full}</div>
+                    <div class="staff-role">${translateRole(edge.role)}</div>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    /**
+     * Limpar descrições (remover markdown/HTML do AniList)
+     */
+    cleanDescription(text) {
+        if (!text) return 'Sem descrição disponível.';
+        return text
+            .replace(/__|_/g, '') // bold/italic
+            .replace(/~{2}/g, '') // lines
+            .replace(/!\[.*?\]\(.*?\)/g, '') // images
+            .replace(/\[.*?\]\(.*?\)/g, '$1') // links
+            .replace(/<br\s*\/?>/gi, '\n') // line breaks
+            .replace(/<[^>]+>/g, '') // any other html
+            .replace(/\n{3,}/g, '\n\n') // excess lines
+            .trim();
+    },
+
+    /**
+     * Abrir modal com detalhes da Staff
+     */
+    async openStaffModal(index) {
+        const staffMember = this.staff[index];
+        if (!staffMember) return;
+
+        const node = staffMember.node;
+        let description = this.cleanDescription(node.description);
+
+        const modalContent = `
+            <div class="character-modal">
+                <div class="char-modal-header">
+                    <div class="char-modal-image">
+                        <img src="${node.image.medium}" alt="${node.name.full}">
+                    </div>
+                    <div class="char-modal-info">
+                        <h2 class="char-modal-name">${node.name.full}</h2>
+                        <p class="char-modal-kanji">${staffMember.role}</p>
+                    </div>
+                </div>
+                
+                <div class="char-modal-section">
+                    <h3 class="char-section-title"><i class="fas fa-book-open"></i> Biografia</h3>
+                    <div class="staff-modal-bio">${description}</div>
+                </div>
+                
+                <div class="char-modal-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 class="char-section-title" style="margin-bottom: 0;"><i class="fas fa-film"></i> Obras Participadas</h3>
+                        <select id="staff-media-sort" class="form-control" style="width: auto; padding: 5px; font-size: 0.8rem;" onchange="DetalhesPage.loadStaffMedia(${node.id}, this.value, false)">
+                            <option value="START_DATE_DESC">Mais Recentes</option>
+                            <option value="POPULARITY_DESC" selected>Popularidade</option>
+                            <option value="SCORE_DESC">Maior Nota</option>
+                            <option value="FAVOURITES_DESC">Favoritos</option>
+                            <option value="START_DATE">Mais Antigas</option>
+                        </select>
+                    </div>
+                    <div class="char-anime-grid" id="staff-media-grid">
+                        <div class="loader" style="margin: 20px auto;"></div>
+                    </div>
+                    <div id="staff-media-load-more-container" style="text-align: center; margin-top: 15px; display: none;">
+                        <button class="btn btn-secondary" onclick="DetalhesPage.loadStaffMedia(${node.id}, document.getElementById('staff-media-sort').value, true)" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-plus"></i> Ver Mais
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="char-modal-section" style="text-align: center; margin-top: 20px;">
+                    <a href="https://anilist.co/staff/${node.id}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Ver Perfil Completo
+                    </a>
+                </div>
+            </div>
+        `;
+
+        // Traduzir se o serviço estiver disponível
+        if (window.Translation && node.description) {
+            const translated = await window.Translation.translate(description, `staff_${node.id}`);
+            const bioDiv = document.querySelector('.staff-modal-bio');
+            if (bioDiv) bioDiv.innerHTML = translated;
+        }
+
+        Common.openModal(modalContent, { title: 'Equipe Técnica', className: 'modal-wide' });
+
+        // Reset state for deduplication
+        this.currentStaffMap = new Map();
+        this.currentStaffPage = 1;
+
+        // Initial load of staff media
+        this.loadStaffMedia(node.id, 'POPULARITY_DESC', false);
+    },
+
+    /**
+     * Carregar Obras da Staff com Ordenação, Deduplicação e Paginação
+     */
+    async loadStaffMedia(staffId, sort, loadMore = false) {
+        const grid = document.getElementById('staff-media-grid');
+        const loadMoreContainer = document.getElementById('staff-media-load-more-container');
+        if (!grid) return;
+
+        if (!loadMore) {
+            this.currentStaffMap = new Map();
+            this.currentStaffPage = 1;
+            grid.innerHTML = '<div class="loader" style="margin: 20px auto;"></div>';
+        } else {
+            this.currentStaffPage++;
+            const btn = loadMoreContainer.querySelector('button');
+            if (btn) btn.innerHTML = '<div class="loader-small"></div> Carregando...';
+        }
+
+        try {
+            const result = await API.getStaffMedia(staffId, sort, this.currentStaffPage);
+            const mediaEdges = result.edges || [];
+            const pageInfo = result.pageInfo || { hasNextPage: false };
+
+            if (!loadMore && (!mediaEdges || mediaEdges.length === 0)) {
+                grid.innerHTML = '<p style="text-align: center; color: var(--color-text-muted); width: 100%;">Nenhuma obra encontrada.</p>';
+                if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+                return;
+            }
+
+            if (!loadMore) {
+                grid.innerHTML = ''; // Clear loader
+            }
+
+            // Deduplication logic
+            mediaEdges.forEach(edge => {
+                const nodeId = edge.node.id;
+                if (this.currentStaffMap.has(nodeId)) {
+                    // Combine roles
+                    const existing = this.currentStaffMap.get(nodeId);
+                    if (!existing.staffRole.includes(edge.staffRole || 'Staff')) {
+                        existing.staffRole += ', ' + (edge.staffRole || 'Staff');
+                    }
+                } else {
+                    this.currentStaffMap.set(nodeId, {
+                        node: edge.node,
+                        staffRole: edge.staffRole || 'Staff'
+                    });
+                }
+            });
+
+            grid.innerHTML = Array.from(this.currentStaffMap.values()).map(item => {
+                const node = item.node;
+                const role = item.staffRole;
+                return `
+                <a href="detalhes.php?id=${node.id}" class="char-anime-link" title="${node.title.romaji}">
+                    <img src="${node.coverImage.medium}" alt="${node.title.romaji}">
+                    <span style="display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${node.title.romaji}</span>
+                    <small style="display:block; font-size: 0.65rem; color: var(--color-primary); width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${role}">${role}</small>
+                </a>
+                `;
+            }).join('');
+
+            if (loadMoreContainer) {
+                loadMoreContainer.style.display = pageInfo.hasNextPage ? 'block' : 'none';
+                const btn = loadMoreContainer.querySelector('button');
+                if (btn) btn.innerHTML = '<i class="fas fa-plus"></i> Ver Mais';
+            }
+
+        } catch (error) {
+            console.error('Erro ao carregar obras da staff:', error);
+            if (!loadMore) {
+                grid.innerHTML = '<p style="text-align: center; color: var(--color-primary); width: 100%;">Erro ao carregar obras.</p>';
+            }
+        }
+    },
+
+    /**
+     * Consumir API PHP para Fillers
+     */
+    /**
+     * Consumir API PHP para Fillers
+     */
+    async fetchFillers(title) {
+        // Evitar chamadas redundantes
+        if (this.fillers) {
+            this.renderEpisodes(this.fillers);
+            return;
+        }
+
+        try {
+            console.info('Buscando fillers para:', title);
+            const response = await fetch(`api/fillers.php?anime=${encodeURIComponent(title)}&t=${Date.now()}`);
+            const data = await response.json();
+
+            if (data.error) {
+                console.warn('Filler API error:', data.error, 'Slug:', data.attempted_slug || data.slug);
+                this.renderEpisodes(null);
+                return;
+            }
+
+            console.info('Fillers carregados com sucesso. Slug:', data.slug);
+            this.fillers = data.episodes;
+            this.renderEpisodes(this.fillers);
+        } catch (error) {
+            console.error('Erro ao buscar fillers:', error);
+            this.renderEpisodes(null);
+        }
+    },
+
+    renderEpisodes(fillerData) {
+        const grid = document.getElementById('episodes-grid');
+        const episodesCount = this.anime.episodes || this.anime.total_episodes || 0;
+
+        if (episodesCount === 0) {
+            grid.innerHTML = '<p class="info-text">Informação de episódios indisponível.</p>';
+            return;
+        }
+
+        let html = '';
+        for (let i = 1; i <= episodesCount; i++) {
+            let statusClass = '';
+
+            if (fillerData) {
+                const epInfo = fillerData.find(e => parseInt(e.number) === i);
+                if (epInfo) {
+                    if (epInfo.type === 'filler') statusClass = 'filler';
+                    else if (epInfo.type === 'canon') statusClass = 'canon';
+                    else if (epInfo.type === 'mixed') statusClass = 'mixed';
+                }
+            }
+
+            html += `
+                <div class="episode-item ${statusClass}" title="Episódio ${i} ${statusClass ? '(' + statusClass + ')' : ''}">
+                    ${i}
+                </div>
+            `;
+        }
+        grid.innerHTML = html;
     },
 
     // Armazenar dados de personagens para paginação
@@ -618,7 +974,7 @@ const DetalhesPage = {
             <div class="error-container">
                 <i class="fas fa-exclamation-triangle"></i>
                 <p>${message}</p>
-                <a href="index.html" class="btn btn-primary">Voltar</a>
+                <a href="index.php" class="btn btn-primary">Voltar</a>
             </div>
         `;
     },
@@ -648,13 +1004,11 @@ const DetalhesPage = {
                 return;
             }
 
-            // Translate description if available
-            let description = char.description || 'Sem descrição.';
+            // Clean and Translate description if available
+            let description = this.cleanDescription(char.description);
 
             // Check translation service availability
-            if (window.Translation) {
-                // If description is super long, the translator might skip it (returns original)
-                // which is fine.
+            if (window.Translation && char.description) {
                 description = await window.Translation.translate(description, `char_${char.id}`);
             }
 

@@ -19,58 +19,64 @@ require_once 'includes/nav.php';
 
 <main class="main-content">
     <div class="page-header">
-        <h1 class="page-title"><i class="fas fa-list"></i> Minha Lista</h1>
+        <h1 class="page-title"><i class="fas fa-list"></i> Biblioteca (Kanban)</h1>
+
+        <div class="list-filters">
+            <input type="text" class="list-search" id="list-search" placeholder="Buscar na lista...">
+        </div>
     </div>
 
-    <!-- TABS -->
-    <div class="list-tabs">
-        <button class="list-tab active" data-list="all">
-            📚 Todos <span class="tab-count" id="count-all">0</span>
-        </button>
-        <button class="list-tab" data-list="watching">
-            📺 Assistindo <span class="tab-count" id="count-watching">0</span>
-        </button>
-        <button class="list-tab" data-list="planToWatch">
-            📋 Quero Ver <span class="tab-count" id="count-planToWatch">0</span>
-        </button>
-        <button class="list-tab" data-list="completed">
-            ✅ Completos <span class="tab-count" id="count-completed">0</span>
-        </button>
-        <button class="list-tab" data-list="paused">
-            ⏸️ Pausados <span class="tab-count" id="count-paused">0</span>
-        </button>
-        <button class="list-tab" data-list="dropped">
-            ❌ Abandonados <span class="tab-count" id="count-dropped">0</span>
-        </button>
-    </div>
+    <!-- KANBAN BOARD -->
+    <div class="kanban-board">
 
-    <!-- SEARCH/FILTER -->
-    <div class="list-filters">
-        <input type="text" class="list-search" id="list-search" placeholder="Buscar na lista...">
-        <select class="list-sort" id="list-sort">
-            <option value="recent">Mais Recentes</option>
-            <option value="title">Título A-Z</option>
-            <option value="score">Maior Nota</option>
-            <option value="progress">Progresso</option>
-        </select>
-    </div>
+        <!-- Coluna: Planejo Assistir -->
+        <div class="kanban-column" id="col-planToWatch" data-status="planToWatch">
+            <div class="kanban-header">
+                <h2>📋 Planejo Assistir</h2>
+                <span class="kanban-count" id="count-planToWatch">0</span>
+            </div>
+            <div class="kanban-cards-container" id="list-planToWatch">
+                <div class="carousel-loading">
+                    <div class="loader"></div>
+                </div>
+            </div>
+        </div>
 
-    <!-- ANIME GRID -->
-    <div class="anime-grid" id="list-grid">
-        <div class="carousel-loading"><div class="loader"></div></div>
-    </div>
+        <!-- Coluna: Assistindo -->
+        <div class="kanban-column" id="col-watching" data-status="watching">
+            <div class="kanban-header">
+                <h2>📺 Assistindo</h2>
+                <span class="kanban-count" id="count-watching">0</span>
+            </div>
+            <div class="kanban-cards-container" id="list-watching">
+            </div>
+        </div>
 
-    <!-- EMPTY STATE -->
-    <div class="empty-state" id="empty-state" style="display: none;">
-        <div class="empty-icon">📭</div>
-        <h3>Lista Vazia</h3>
-        <p>Adicione animes para vê-los aqui!</p>
-        <a href="explorar.php" class="btn btn-primary">
-            <i class="fas fa-search"></i> Explorar Animes
-        </a>
+        <!-- Coluna: Completos -->
+        <div class="kanban-column" id="col-completed" data-status="completed">
+            <div class="kanban-header">
+                <h2>✅ Completos</h2>
+                <span class="kanban-count" id="count-completed">0</span>
+            </div>
+            <div class="kanban-cards-container" id="list-completed">
+            </div>
+        </div>
+
+        <!-- Coluna: Abandonados -->
+        <div class="kanban-column" id="col-dropped" data-status="dropped">
+            <div class="kanban-header">
+                <h2>❌ Abandonados</h2>
+                <span class="kanban-count" id="count-dropped">0</span>
+            </div>
+            <div class="kanban-cards-container" id="list-dropped">
+            </div>
+        </div>
+
     </div>
 </main>
 
+<!-- Bibliotecas e Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <?php
 $scripts_pagina = ['js/pages/lista.js'];
 require_once 'includes/footer.php';
