@@ -85,29 +85,52 @@
             gap: 2rem;
             justify-content: center;
         }
+
         /* animated container for previous versions */
         #old-versions {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s ease;
         }
+
         #old-versions.show {
             opacity: 1;
             pointer-events: auto;
         }
+
         /* animations for cards inside previous versions */
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         #old-versions.show .version-card {
             animation: fadeInUp 0.5s ease forwards;
         }
+
         /* stagger delays */
-        #old-versions.show .version-card:nth-child(2) { animation-delay: 0.1s; }
-        #old-versions.show .version-card:nth-child(3) { animation-delay: 0.2s; }
-        #old-versions.show .version-card:nth-child(4) { animation-delay: 0.3s; }
-        #old-versions.show .version-card:nth-child(5) { animation-delay: 0.4s; }
+        #old-versions.show .version-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        #old-versions.show .version-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        #old-versions.show .version-card:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        #old-versions.show .version-card:nth-child(5) {
+            animation-delay: 0.4s;
+        }
 
         .version-card {
             background: var(--color-surface);
@@ -277,18 +300,91 @@
             background: #888;
             color: #fff;
         }
+
         .coming-soon-theme .btn {
             background: var(--color-bg);
             color: var(--color-black);
             border-color: var(--border-color);
             cursor: not-allowed;
         }
+
         .coming-soon-theme .btn:hover {
             transform: none;
             box-shadow: 2px 2px 0 var(--border-color);
         }
 
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s;
+            text-align: center;
+            color: #fff;
+        }
+
+        #splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .splash-content h1 {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 15px;
+            margin: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s ease forwards 0.5s;
+        }
+
+        .splash-content p {
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-top: 10px;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards 1.5s;
+            color: #888;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
         @media (max-width: 768px) {
+            .splash-content h1 {
+                font-size: 1.8rem;
+                letter-spacing: 8px;
+            }
+
+            .splash-content p {
+                font-size: 0.9rem;
+            }
+
             .logo {
                 font-size: 2.5rem;
             }
@@ -305,6 +401,246 @@
 </head>
 
 <body>
+
+    <!-- Splash Screen Premium -->
+    <div id="splash-screen">
+        <canvas id="splash-particles"></canvas>
+        <div class="scanline"></div>
+        <div class="splash-content">
+            <h1 class="glitch" data-text="BRUH PRODUCTIONS">BRUH PRODUCTIONS</h1>
+            <p>site desenvolvido por Kauã Vitor Reis</p>
+        </div>
+    </div>
+
+    <style>
+        /* CSS Premium do Splash */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        #splash-particles {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05), transparent);
+            z-index: 3;
+            animation: scan 3s linear infinite;
+            pointer-events: none;
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 5;
+            animation: kenBurns 6s ease-out forwards;
+        }
+
+        .glitch {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            text-transform: uppercase;
+            letter-spacing: 12px;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 0.5s;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+        }
+
+        .glitch:hover::before,
+        .glitch.animating::before {
+            animation: glitch-anim 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            color: #ff00ff;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .glitch:hover::after,
+        .glitch.animating::after {
+            animation: glitch-anim 0.3s cubic-bezier(.25, .46, .45, .94) reverse both infinite;
+            color: #00ffff;
+            z-index: -2;
+            opacity: 0.5;
+        }
+
+        .splash-content p {
+            font-size: 1rem;
+            letter-spacing: 4px;
+            margin-top: 15px;
+            opacity: 0;
+            text-transform: uppercase;
+            animation: fadeIn 1.5s ease forwards 1.8s;
+            color: #555;
+        }
+
+        @keyframes kenBurns {
+            from {
+                transform: scale(1);
+            }
+
+            to {
+                transform: scale(1.15);
+            }
+        }
+
+        @keyframes scan {
+            from {
+                transform: translateY(-100%);
+            }
+
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                transform: translate(0);
+            }
+
+            20% {
+                transform: translate(-3px, 3px);
+            }
+
+            40% {
+                transform: translate(-3px, -3px);
+            }
+
+            60% {
+                transform: translate(3px, 3px);
+            }
+
+            80% {
+                transform: translate(3px, -3px);
+            }
+
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .glitch {
+                font-size: 1.8rem;
+                letter-spacing: 6px;
+            }
+
+            .splash-content p {
+                font-size: 0.7rem;
+                letter-spacing: 2px;
+            }
+        }
+    </style>
+
+    <script>
+        // Splash Particles Logic
+        const canvas = document.getElementById('splash-particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random();
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < 100; i++) particles.push(new Particle());
+        }
+
+        function animateSplash() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateSplash);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        initParticles();
+        animateSplash();
+
+        // Reveal Logic
+        window.addEventListener('load', () => {
+            const glitch = document.querySelector('.glitch');
+            setTimeout(() => glitch.classList.add('animating'), 1000);
+
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.classList.add('hidden');
+                setTimeout(() => splash.remove(), 1200);
+            }, 4500);
+        });
+    </script>
 
     <div class="container">
         <header class="header">
@@ -408,13 +744,13 @@
         </div>
 
         <script>
-            document.getElementById('toggle-old').addEventListener('click', function() {
+            document.getElementById('toggle-old').addEventListener('click', function () {
                 var oldContainer = document.getElementById('old-versions');
                 if (!oldContainer.classList.contains('show')) {
                     // show with fade
                     oldContainer.style.display = 'grid';
                     // allow layout before fade-in
-                    requestAnimationFrame(function() {
+                    requestAnimationFrame(function () {
                         oldContainer.classList.add('show');
                     });
                     this.textContent = 'Ocultar versões anteriores';
