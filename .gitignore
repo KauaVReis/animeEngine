@@ -1,0 +1,42 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependências
+node_modules/
+vendor/
+
+# Arquivos de Sistema Operacional
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Configurações de IDE e Editores
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Configurações sensíveis (se aplicável futuramente)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Banco de dados e Cache
+*.sqlite
+*.db
+.phpunit.result.cache
+
+# Outros
+naoSubir/
+miniGamesTeste/
