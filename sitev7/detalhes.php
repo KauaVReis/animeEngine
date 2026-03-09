@@ -12,11 +12,13 @@ require_once 'includes/nav.php';
 
 <main class="main-content">
     <div id="anime-details">
-        <div class="carousel-loading"><div class="loader"></div></div>
+        <div class="carousel-loading">
+            <div class="loader"></div>
+        </div>
     </div>
 </main>
 
 <?php
-$scripts_pagina = ['js/pages/detalhes.js'];
+$scripts_pagina = ['js/pages/detalhes.js?v=' . time()];
 require_once 'includes/footer.php';
 ?>

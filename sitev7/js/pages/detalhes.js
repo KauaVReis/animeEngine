@@ -56,249 +56,277 @@ const DetalhesPage = {
                 <div class="details-hero-overlay"></div>
             </div>
             
-            <!-- MAIN INFO -->
-            <div class="details-content">
-                <div class="details-header">
-                    <div class="details-cover">
-                        <img src="${anime.image}" alt="${anime.title}">
+            <!-- MAIN INFO GRID -->
+            <div class="details-grid-layout">
+                
+                <!-- MOBILE HEADER (Hides on desktop) -->
+                <div class="details-header-mobile">
+                    <h1 class="details-title">${anime.title}</h1>
+                    ${anime.titleEnglish ? `<p class="details-alt-title">${anime.titleEnglish}</p>` : ''}
+                </div>
+
+                <!-- MAIN COLUMN -->
+                <div class="details-main-col">
+                    
+                    <!-- SYNOPSIS -->
+                    <div class="details-section">
+                        <h2 class="section-title"><i class="fas fa-book-open"></i> Sinopse</h2>
+                        <p class="details-synopsis">${anime.synopsis || 'Sinopse não disponível.'}</p>
                     </div>
-                    <div class="details-info">
-                        <h1 class="details-title">${anime.title}</h1>
-                        ${anime.titleEnglish ? `<p class="details-alt-title">${anime.titleEnglish}</p>` : ''}
-                        
-                        <div class="details-score">
-                            <i class="fas fa-star"></i>
-                            <span class="score-value">${anime.score || '-'}</span>
-                            <span class="score-label">/ 10</span>
+                    
+                    <!-- TRAILER -->
+                    ${anime.trailer ? `
+                        <div class="details-section">
+                            <h2 class="section-title"><i class="fas fa-film"></i> Trailer <span style="font-size: 0.7rem; color: var(--color-text-muted);">(clique para modo foco)</span></h2>
+                            <div class="details-trailer" onclick="DetalhesPage.toggleFocusMode()">
+                                <iframe 
+                                    src="${anime.trailer.replace('watch?v=', 'embed/')}" 
+                                    frameborder="0" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                            <button class="trailer-focus-close" onclick="DetalhesPage.toggleFocusMode()">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                        
-                        <div class="details-meta">
-                            <span><i class="fas fa-tv"></i> ${anime.episodes || anime.total_episodes || '?'} episódios</span>
-                            <span><i class="fas fa-clock"></i> ${anime.duration || '24 min'}</span>
-                            <span><i class="fas fa-signal"></i> ${anime.status}</span>
-                            <span><i class="fas fa-calendar"></i> ${anime.year || '-'}</span>
+                    ` : ''}
+                    
+                    <!-- TIMELINE DE FRANQUIAS -->
+                    <div class="details-section" id="timeline-container" style="display: none;"></div>
+                    
+                    <!-- CHARACTERS -->
+                    <div class="details-section" id="characters-section">
+                        <h2 class="section-title"><i class="fas fa-users"></i> Personagens & Dubladores</h2>
+                        <div class="characters-grid" id="characters-grid">
+                            <div class="carousel-loading"><div class="loader"></div></div>
                         </div>
+                    </div>
+                    
+                    <!-- RELATIONS (Manga, Sequels, etc) -->
+                    <div class="details-section" id="relations-section">
+                        <h2 class="section-title"><i class="fas fa-book"></i> Obras Relacionadas</h2>
+                        <div class="relations-grid" id="relations-grid">
+                            <div class="carousel-loading"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                    
+                    <!-- RECOMMENDATIONS -->
+                    <div class="details-section" id="recommendations-section">
+                        <h2 class="section-title"><i class="fas fa-thumbs-up"></i> Recomendações</h2>
+                        <div class="carousel" id="recommendations-carousel">
+                            <div class="carousel-loading"><div class="loader"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- STAFF (Equipe Técnica) -->
+                    <div class="details-section" id="staff-section">
+                        <h2 class="section-title"><i class="fas fa-hammer"></i> Equipe Técnica</h2>
+                        <div class="staff-track" id="staff-track">
+                            <div class="skeleton" style="height: 180px; width: 100%; border-radius: 8px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- EPISODES & FILLERS -->
+                    <div class="details-section" id="episodes-section">
+                        <div class="section-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                            <h2 class="section-title" style="margin: 0;"><i class="fas fa-play-circle"></i> Guia de Episódios</h2>
+                            <div class="episodes-view-toggle">
+                                <button id="btn-grid-view" class="btn-icon active" onclick="DetalhesPage.toggleViewMode('grid')" title="Vista em Grade"><i class="fas fa-th"></i></button>
+                                <button id="btn-list-view" class="btn-icon" onclick="DetalhesPage.toggleViewMode('list')" title="Vista em Lista"><i class="fas fa-list"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Stats & Filters Bar -->
+                        <div class="episodes-toolbox" style="background: var(--color-surface); border: var(--border-width) solid var(--border-color); padding: var(--space-sm); border-radius: 8px; margin-bottom: var(--space-md); box-shadow: var(--shadow-neo);">
+                            <div class="stats-row" style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-sm); flex-wrap: wrap;">
+                                <div class="filler-meter-container" style="flex-grow: 1; min-width: 200px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span>Conteúdo Canon / Filler</span>
+                                        <span id="filler-percent">Calculando...</span>
+                                    </div>
+                                    <div class="filler-meter-bar" style="height: 8px; background: #eee; border-radius: 4px; overflow: hidden; display: flex;">
+                                        <div id="bar-canon" style="height: 100%; background: #33cc66; width: 0%; transition: width 0.5s;"></div>
+                                        <div id="bar-mixed" style="height: 100%; background: #ffd700; width: 0%; transition: width 0.5s;"></div>
+                                        <div id="bar-filler" style="height: 100%; background: #ff3366; width: 0%; transition: width 0.5s;"></div>
+                                    </div>
+                                </div>
+                                <div class="stats-badges" style="display: flex; gap: var(--space-sm);">
+                                    <div class="stat-badge" style="background: rgba(51, 204, 102, 0.1); border: 1px solid #33cc66; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
+                                        Canon: <strong id="count-canon">-</strong>
+                                    </div>
+                                    <div class="stat-badge" style="background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
+                                        Filler: <strong id="count-filler">-</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
+                                <div class="episodes-filters" style="display: flex; gap: var(--space-xs);">
+                                    <button class="filter-btn active" onclick="DetalhesPage.applyFilter('all')">Todos</button>
+                                    <button class="filter-btn" onclick="DetalhesPage.applyFilter('canon')">Canon</button>
+                                    <button class="filter-btn" onclick="DetalhesPage.applyFilter('filler')">Filler</button>
+                                    <button class="filter-btn" onclick="DetalhesPage.applyFilter('mixed')">Misto</button>
+                                </div>
+                                <div class="progress-info" style="font-size: 0.75rem; color: var(--color-text-muted);">
+                                    <i class="fas fa-check-circle"></i> <span id="watched-count">0</span> assistidos
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="episodes-grid" id="episodes-grid">
+                            <div class="carousel-loading"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </div> <!-- /MAIN COLUMN -->
+
+                <!-- SIDEBAR COLUMN -->
+                <div class="details-sidebar">
+                    <div class="sidebar-sticky">
                         
-                        <div class="details-genres">
-                            ${anime.genres.map(g => `<span class="genre-tag">${g}</span>`).join('')}
+                        <div class="details-cover">
+                            <img src="${anime.image}" alt="${anime.title}">
+                        </div>
+
+                        <div class="sidebar-header">
+                            <h1 class="details-title">${anime.title}</h1>
+                            ${anime.titleEnglish ? `<p class="details-alt-title">${anime.titleEnglish}</p>` : ''}
+                        </div>
+
+                        <!-- CARDS E INFOS DA SIDEBAR -->
+                        <div class="sidebar-stats">
+                            <div class="main-score">
+                                <i class="fas fa-star"></i>
+                                <div>
+                                    <span class="stats-value">${anime.score || '-'}</span>
+                                    <span class="stats-label">Sua Avaliação: ${userAnime?.rating ? userAnime.rating + ' / 10' : '-'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-mini-grid">
+                                <div class="mini-stat" title="Episódios">
+                                    <i class="fas fa-tv" style="color:var(--color-primary)"></i> ${anime.episodes || anime.total_episodes || '?'}
+                                </div>
+                                <div class="mini-stat" title="Duração">
+                                    <i class="fas fa-clock" style="color:var(--color-primary)"></i> ${anime.duration || '24m'}
+                                </div>
+                                <div class="mini-stat" title="Status" style="grid-column: 1 / 3;">
+                                    <i class="fas fa-signal" style="color:var(--color-primary)"></i> ${anime.status}
+                                </div>
+                                <div class="mini-stat" title="Ano de Lançamento" style="grid-column: 1 / 3;">
+                                    <i class="fas fa-calendar" style="color:var(--color-primary)"></i> ${anime.year || '-'}
+                                </div>
+                            </div>
                         </div>
 
                         <!-- AIRING STATUS -->
                         ${anime.nextAiringEpisode ? `
-                            <div class="airing-status" id="airing-status">
-                                <div class="pulse-dot"></div>
-                                <span>Ep ${anime.nextAiringEpisode.episode} em: </span>
-                                <span class="countdown-timer" id="countdown-timer">Carregando...</span>
+                            <div class="airing-status-card" id="airing-status">
+                                <div class="airing-header">
+                                    <div class="pulse-dot"></div> Ep ${anime.nextAiringEpisode.episode} lança em:
+                                </div>
+                                <div class="countdown-timer" id="countdown-timer">Carregando...</div>
                             </div>
                         ` : ''}
-                        
-                        <!-- STATUS BADGE -->
-                        ${listType ? `
-                            <div class="details-current-status">
-                                <span class="status-badge status-${listType}">
-                                    ${this.getStatusLabel(listType)}
-                                </span>
+
+                        <!-- GÊNEROS -->
+                        <div class="details-genres" style="display:flex; flex-wrap:wrap; gap:5px; margin-top: 5px;">
+                            ${anime.genres.map(g => `<span class="genre-tag" style="font-size: 0.7rem; padding: 2px 8px;">${g}</span>`).join('')}
+                        </div>
+
+                        <!-- INFO EXTRA LIST -->
+                        <div class="sidebar-info-list" style="margin-top: 10px;">
+                            <div class="info-item">
+                                <span class="info-label">Formato</span>
+                                <span class="info-value">${anime.format || 'TV'}</span>
                             </div>
-                        ` : ''}
-                        
-                        <!-- RATING STARS -->
-                        <div class="details-rating">
-                            <span class="rating-label">Sua Avaliação:</span>
-                            <div class="rating-stars" id="rating-stars">
-                                ${this.renderStars(userAnime?.rating || 0)}
+                            <div class="info-item">
+                                <span class="info-label">Estúdio</span>
+                                <span class="info-value" style="text-align: right;">${anime.studios.join(', ') || '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Rank Global</span>
+                                <span class="info-value">#${anime.rank || '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Popularidade</span>
+                                <span class="info-value">#${anime.popularity || '-'}</span>
                             </div>
                         </div>
                         
-                        <div class="details-actions">
-                            <div class="dropdown">
-                                <button class="btn btn-primary dropdown-toggle" onclick="DetalhesPage.toggleDropdown()">
-                                    <i class="fas fa-list"></i> ${listType ? 'Mover para' : 'Adicionar'}
-                                </button>
-                                <div class="dropdown-menu" id="list-dropdown">
-                                    <button class="${listType === 'watching' ? 'active' : ''}" onclick="DetalhesPage.addToList('watching')">📺 Assistindo</button>
-                                    <button class="${listType === 'planToWatch' ? 'active' : ''}" onclick="DetalhesPage.addToList('planToWatch')">📋 Quero Ver</button>
-                                    <button class="${listType === 'completed' ? 'active' : ''}" onclick="DetalhesPage.addToList('completed')">✅ Completo</button>
-                                    <button class="${listType === 'paused' ? 'active' : ''}" onclick="DetalhesPage.addToList('paused')">⏸️ Pausado</button>
-                                    <button class="${listType === 'dropped' ? 'active' : ''}" onclick="DetalhesPage.addToList('dropped')">❌ Abandonado</button>
-                                    ${listType ? '<div class="dropdown-divider"></div><button class="dropdown-remove" onclick="DetalhesPage.removeFromList()">🗑️ Remover da Lista</button>' : ''}
+                        <!-- BOTÕES DE AÇÃO INTERATIVA -->
+                        <div class="sidebar-actions">
+                            
+                            <!-- STATUS BADGE / AVALIAÇÃO -->
+                            <div class="details-actions" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                                
+                                ${listType ? `
+                                    <div class="details-current-status" style="width:100%; text-align:center;">
+                                        <span class="status-badge status-${listType}" style="width:100%; display:block;">
+                                            Estou assistindo: ${this.getStatusLabel(listType)}
+                                        </span>
+                                    </div>
+                                ` : ''}
+                                
+                                <!-- MENU DE LISTA -->
+                                <div class="dropdown" style="width:100%;">
+                                    <button class="btn btn-primary dropdown-toggle w-100" onclick="DetalhesPage.toggleDropdown()">
+                                        <i class="fas fa-list"></i> ${listType ? 'Mover na Lista' : 'Adicionar à Lista'}
+                                    </button>
+                                    <div class="dropdown-menu" id="list-dropdown" style="width:100%; z-index: 50;">
+                                        <button class="${listType === 'watching' ? 'active' : ''}" onclick="DetalhesPage.addToList('watching')">📺 Assistindo</button>
+                                        <button class="${listType === 'planToWatch' ? 'active' : ''}" onclick="DetalhesPage.addToList('planToWatch')">📋 Quero Ver</button>
+                                        <button class="${listType === 'completed' ? 'active' : ''}" onclick="DetalhesPage.addToList('completed')">✅ Completo</button>
+                                        <button class="${listType === 'paused' ? 'active' : ''}" onclick="DetalhesPage.addToList('paused')">⏸️ Pausado</button>
+                                        <button class="${listType === 'dropped' ? 'active' : ''}" onclick="DetalhesPage.addToList('dropped')">❌ Abandonado</button>
+                                        ${listType ? '<div class="dropdown-divider"></div><button class="dropdown-remove" onclick="DetalhesPage.removeFromList()">🗑️ Remover da Lista</button>' : ''}
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <button class="btn ${isFav ? 'btn-danger' : 'btn-secondary'}" onclick="DetalhesPage.toggleFavorite()">
-                                <i class="fas fa-heart"></i> ${isFav ? 'Desfavoritar' : 'Favoritar'}
-                            </button>
-                            
-                            ${(() => {
+                                
+                                <!-- BOTÃO REASSISTIR/CONTINUAR -->
+                                ${(() => {
                 const nextEp = this.getResumeEpisode();
                 const isCompleted = listType === 'completed';
 
                 if (isCompleted) {
                     return `
-                                        <button class="btn btn-secondary" onclick="DetalhesPage.confirmRewatch()">
-                                            <i class="fas fa-redo"></i> Reassistir
-                                        </button>
-                                    `;
+                                            <button class="btn btn-secondary w-100" onclick="DetalhesPage.confirmRewatch()">
+                                                <i class="fas fa-redo"></i> Reassistir
+                                            </button>
+                                        `;
                 } else if (nextEp > 1) {
                     return `
-                                        <button class="btn resume-btn" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
-                                            <i class="fas fa-play"></i> Continuar: Ep ${nextEp}
-                                        </button>
-                                    `;
+                                            <button class="btn resume-btn w-100" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
+                                                <i class="fas fa-play"></i> Continuar Ep ${nextEp}
+                                            </button>
+                                        `;
                 } else {
                     return `
-                                        <button class="btn btn-secondary" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
-                                            <i class="fas fa-play"></i> Começar Ep 1
-                                        </button>
-                                    `;
+                                            <button class="btn btn-secondary w-100" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
+                                                <i class="fas fa-play"></i> Começar Ep 1
+                                            </button>
+                                        `;
                 }
             })()}
-                            
-                            <button class="btn btn-secondary" onclick="DetalhesPage.openStreaming()" title="Onde Assistir">
-                                <i class="fas fa-external-link-alt"></i> Links
-                            </button>
-                            
-                            ${anime.trailer ? `
-                                <button class="btn btn-secondary" onclick="DetalhesPage.playOpening()" title="Ouvir Opening">
-                                    <i class="fas fa-music"></i> Opening
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- SYNOPSIS -->
-                <div class="details-section">
-                    <h2 class="section-title"><i class="fas fa-book-open"></i> Sinopse</h2>
-                    <p class="details-synopsis">${anime.synopsis || 'Sinopse não disponível.'}</p>
-                </div>
-                
-                <!-- TRAILER -->
-                ${anime.trailer ? `
-                    <div class="details-section">
-                        <h2 class="section-title"><i class="fas fa-film"></i> Trailer <span style="font-size: 0.7rem; color: var(--color-text-muted);">(clique para modo foco)</span></h2>
-                        <div class="details-trailer" onclick="DetalhesPage.toggleFocusMode()">
-                            <iframe 
-                                src="${anime.trailer.replace('watch?v=', 'embed/')}" 
-                                frameborder="0" 
-                                allowfullscreen>
-                            </iframe>
-                        </div>
-                        <button class="trailer-focus-close" onclick="DetalhesPage.toggleFocusMode()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                ` : ''}
-                
-                <!-- TIMELINE DE FRANQUIAS -->
-                <div class="details-section" id="timeline-container" style="display: none;"></div>
-                
-                <!-- INFO GRID -->
-                <div class="details-section">
-                    <h2 class="section-title"><i class="fas fa-info-circle"></i> Informações</h2>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Tipo</span>
-                            <span class="info-value">${anime.format || 'TV'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Estúdio</span>
-                            <span class="info-value">${anime.studios.join(', ') || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rank</span>
-                            <span class="info-value">#${anime.rank || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Popularidade</span>
-                            <span class="info-value">#${anime.popularity || '-'}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- CHARACTERS -->
-                <div class="details-section" id="characters-section">
-                    <h2 class="section-title"><i class="fas fa-users"></i> Personagens & Dubladores</h2>
-                    <div class="characters-grid" id="characters-grid">
-                        <div class="carousel-loading"><div class="loader"></div></div>
-                    </div>
-                </div>
-                
-                <!-- RELATIONS (Manga, Sequels, etc) -->
-                <div class="details-section" id="relations-section">
-                    <h2 class="section-title"><i class="fas fa-book"></i> Obras Relacionadas</h2>
-                    <div class="relations-grid" id="relations-grid">
-                        <div class="carousel-loading"><div class="loader"></div></div>
-                    </div>
-                </div>
-                
-                <!-- RECOMMENDATIONS -->
-                <div class="details-section" id="recommendations-section">
-                    <h2 class="section-title"><i class="fas fa-thumbs-up"></i> Recomendações</h2>
-                    <div class="carousel" id="recommendations-carousel">
-                        <div class="carousel-loading"><div class="loader"></div></div>
-                    </div>
-                </div>
-
-                <!-- STAFF (Equipe Técnica) -->
-                <div class="details-section" id="staff-section">
-                    <h2 class="section-title"><i class="fas fa-hammer"></i> Equipe Técnica</h2>
-                    <div class="staff-track" id="staff-track">
-                        <div class="skeleton" style="height: 180px; width: 100%; border-radius: 8px;"></div>
-                    </div>
-                </div>
-
-                <!-- EPISODES & FILLERS -->
-                <div class="details-section" id="episodes-section">
-                    <div class="section-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
-                        <h2 class="section-title" style="margin: 0;"><i class="fas fa-play-circle"></i> Guia de Episódios</h2>
-                        <div class="episodes-view-toggle">
-                            <button id="btn-grid-view" class="btn-icon active" onclick="DetalhesPage.toggleViewMode('grid')" title="Vista em Grade"><i class="fas fa-th"></i></button>
-                            <button id="btn-list-view" class="btn-icon" onclick="DetalhesPage.toggleViewMode('list')" title="Vista em Lista"><i class="fas fa-list"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- Stats & Filters Bar -->
-                    <div class="episodes-toolbox" style="background: var(--color-surface); border: var(--border-width) solid var(--border-color); padding: var(--space-sm); border-radius: 8px; margin-bottom: var(--space-md); box-shadow: var(--shadow-neo);">
-                        <div class="stats-row" style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-sm); flex-wrap: wrap;">
-                            <div class="filler-meter-container" style="flex-grow: 1; min-width: 200px;">
-                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
-                                    <span>Conteúdo Canon / Filler</span>
-                                    <span id="filler-percent">Calculando...</span>
-                                </div>
-                                <div class="filler-meter-bar" style="height: 8px; background: #eee; border-radius: 4px; overflow: hidden; display: flex;">
-                                    <div id="bar-canon" style="height: 100%; background: #33cc66; width: 0%; transition: width 0.5s;"></div>
-                                    <div id="bar-mixed" style="height: 100%; background: #ffd700; width: 0%; transition: width 0.5s;"></div>
-                                    <div id="bar-filler" style="height: 100%; background: #ff3366; width: 0%; transition: width 0.5s;"></div>
-                                </div>
-                            </div>
-                            <div class="stats-badges" style="display: flex; gap: var(--space-sm);">
-                                <div class="stat-badge" style="background: rgba(51, 204, 102, 0.1); border: 1px solid #33cc66; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
-                                    Canon: <strong id="count-canon">-</strong>
-                                </div>
-                                <div class="stat-badge" style="background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
-                                    Filler: <strong id="count-filler">-</strong>
+                                
+                                <!-- AÇÕES SECUNDÁRIAS -->
+                                <div class="secondary-actions-grid">
+                                    <button class="btn ${isFav ? 'btn-danger' : 'btn-secondary'}" style="padding: 10px 5px;" onclick="DetalhesPage.toggleFavorite()" title="${isFav ? 'Desfavoritar' : 'Favoritar'}">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="btn btn-secondary" style="padding: 10px 5px;" onclick="DetalhesPage.openStreaming()" title="Onde Assistir">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </button>
+                                    ${anime.trailer ? `
+                                        <button class="btn btn-secondary" style="padding: 10px 5px;" onclick="DetalhesPage.playOpening()" title="Ouvir Opening">
+                                            <i class="fas fa-music"></i>
+                                        </button>
+                                    ` : '<button class="btn btn-secondary" style="padding: 10px 5px; opacity:0.5; cursor:not-allowed;" title="Sem música"><i class="fas fa-music"></i></button>'}
                                 </div>
                             </div>
                         </div>
-
-                        <div class="filter-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
-                            <div class="episodes-filters" style="display: flex; gap: var(--space-xs);">
-                                <button class="filter-btn active" onclick="DetalhesPage.applyFilter('all')">Todos</button>
-                                <button class="filter-btn" onclick="DetalhesPage.applyFilter('canon')">Canon</button>
-                                <button class="filter-btn" onclick="DetalhesPage.applyFilter('filler')">Filler</button>
-                                <button class="filter-btn" onclick="DetalhesPage.applyFilter('mixed')">Misto</button>
-                            </div>
-                            <div class="progress-info" style="font-size: 0.75rem; color: var(--color-text-muted);">
-                                <i class="fas fa-check-circle"></i> <span id="watched-count">0</span> assistidos
-                            </div>
-                        </div>
                     </div>
-
-                    <div class="episodes-grid" id="episodes-grid">
-                        <div class="carousel-loading"><div class="loader"></div></div>
-                    </div>
-                </div>
-            </div>
+                </div> <!-- /SIDEBAR -->
+            </div> <!-- /DETAILS GRID LAYOUT -->
         `;
 
         // Carregar dados adicionais
