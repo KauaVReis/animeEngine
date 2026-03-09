@@ -672,6 +672,39 @@ const Common = {
     },
 
     /**
+     * Modal de confirmação customizado
+     */
+    confirm(options = {}) {
+        const {
+            title = 'Confirmação',
+            message = 'Você tem certeza?',
+            confirmText = 'Confirmar',
+            cancelText = 'Cancelar',
+            onConfirm = () => { }
+        } = options;
+
+        const content = `
+            <div class="confirm-modal">
+                <p style="margin-bottom: var(--space-lg); font-size: 1rem; line-height: 1.6;">${message}</p>
+                <div style="display: flex; gap: var(--space-md); justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="Common.closeModal()">${cancelText}</button>
+                    <button class="btn btn-primary" id="btn-modal-confirm">${confirmText}</button>
+                </div>
+            </div>
+        `;
+
+        this.openModal(content, { title });
+
+        const confirmBtn = document.getElementById('btn-modal-confirm');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => {
+                onConfirm();
+                this.closeModal();
+            };
+        }
+    },
+
+    /**
      * Abrir modal de conquistas/achievements
      */
     openAchievementsModal() {

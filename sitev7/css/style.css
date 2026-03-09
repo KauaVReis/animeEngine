@@ -1959,6 +1959,7 @@ h6 {
     justify-content: center;
     border: var(--border-width) solid var(--border-color);
     background: var(--color-surface);
+    color: var(--color-text);
     transition: all var(--transition-fast);
 }
 
@@ -2207,6 +2208,7 @@ h6 {
     font-weight: 700;
     text-transform: uppercase;
     font-size: 0.875rem;
+    color: var(--color-text);
     border: var(--border-width) solid var(--border-color);
     transition: all var(--transition-fast);
 }
@@ -2243,6 +2245,7 @@ h6 {
     height: 44px;
     padding: 0;
     background: var(--color-surface);
+    color: var(--color-text);
     box-shadow: var(--shadow-neo);
 }
 
@@ -10540,6 +10543,7 @@ body.trailer-focus-mode .trailer-focus-close {
 .episodes-view-toggle .btn-icon {
     background: var(--color-surface);
     border: 2px solid var(--border-color);
+    color: var(--color-text);
     padding: 6px 12px;
     cursor: pointer;
     transition: var(--transition-fast);
@@ -10571,6 +10575,7 @@ body.trailer-focus-mode .trailer-focus-close {
 .filter-btn {
     background: var(--color-surface);
     border: 2px solid var(--border-color);
+    color: var(--color-text);
     padding: 4px 12px;
     font-size: 0.75rem;
     font-weight: bold;
@@ -10579,8 +10584,9 @@ body.trailer-focus-mode .trailer-focus-close {
 }
 
 .filter-btn.active {
-    background: var(--border-color);
-    color: var(--color-surface);
+    background: var(--color-primary);
+    color: white !important;
+    border-color: var(--color-primary);
 }
 
 .episode-item {
@@ -10667,6 +10673,73 @@ body.trailer-focus-mode .trailer-focus-close {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Airing Countdown & Pulse Effect */
+.airing-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--color-primary);
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--color-primary);
+    font-weight: bold;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(255, 51, 102, 0.4);
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(255, 51, 102, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 51, 102, 0);
+    }
+}
+
+.countdown-timer {
+    font-family: var(--font-mono, monospace);
+    color: white;
+    letter-spacing: 0.5px;
+}
+
+.resume-btn {
+    background: var(--color-green) !important;
+    border-color: var(--border-color) !important;
+    color: white !important;
+}
+
+.resume-btn i {
+    animation: bounceRight 1s infinite alternate;
+}
+
+@keyframes bounceRight {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(3px);
+    }
 }
 
 /* Skeletons */
@@ -10791,72 +10864,88 @@ body.trailer-focus-mode .trailer-focus-close {
     color: var(--color-primary);
 }
 
- / *   E p i s o d e   G u i d e   L e g e n d   &   G r i d   * /   . e p i s o d e s - s t a t u s - l e g e n d    {
-               d i s p l a y :    f l e x ;
-               f l e x - w r a p :    w r a p ;
-               g a p :    v a r ( - - s p a c e - m d ) ;
-               m a r g i n - b o t t o m :    v a r ( - - s p a c e - m d ) ;
-               p a d d i n g :    v a r ( - - s p a c e - s m ) ;
-               b a c k g r o u n d :    r g b a ( 0 ,    0 ,    0 ,    0 . 0 3 ) ;
-               b o r d e r - r a d i u s :    8 p x ;
-               b o r d e r - l e f t :    4 p x   s o l i d   v a r ( - - c o l o r - p r i m a r y ) ;
-       
+/* Episode Guide Legend & Grid */
+.episodes-status-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+    padding: var(--space-sm);
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    border-left: 4px solid var(--color-primary);
 }
 
-     . l e g e n d - i t e m    {
-               d i s p l a y :    f l e x ;
-               a l i g n - i t e m s :    c e n t e r ;
-               g a p :    6 p x ;
-               f o n t - s i z e :    0 . 8 5 r e m ;
-               f o n t - w e i g h t :    b o l d ;
-               c o l o r :    v a r ( - - c o l o r - t e x t ) ;
-       
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--color-text);
 }
 
-     . l e g e n d - c o l o r    {
-               w i d t h :    1 2 p x ;
-               h e i g h t :    1 2 p x ;
-               b o r d e r - r a d i u s :    2 p x ;
-               b o r d e r :    1 p x   s o l i d   v a r ( - - b o r d e r - c o l o r ) ;
-       
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    border: 1px solid var(--border-color);
 }
 
-     . l e g e n d - c o l o r . c a n o n    {
-       b a c k g r o u n d - c o l o r :    v a r ( - - c o l o r - g r e e n ) ;
-       
+.legend-color.canon {
+    background-color: var(--color-green);
 }
 
-   . l e g e n d - c o l o r . f i l l e r    {
-       b a c k g r o u n d - c o l o r :    v a r ( - - c o l o r - p r i m a r y ) ;
-       
+.legend-color.filler {
+    background-color: var(--color-primary);
 }
 
-   . l e g e n d - c o l o r . m i x e d    {
-       b a c k g r o u n d - c o l o r :    v a r ( - - c o l o r - s e c o n d a r y ) ;
-       
+.legend-color.mixed {
+    background-color: var(--color-secondary);
 }
 
-     . e p i s o d e s - g r i d    {
-               d i s p l a y :    g r i d ;
-               g r i d - t e m p l a t e - c o l u m n s :    r e p e a t ( a u t o - f i l l ,    m i n m a x ( 4 5 p x ,    1 f r ) ) ;
-               g a p :    8 p x ;
-               m a r g i n - t o p :    v a r ( - - s p a c e - m d ) ;
-       
+.episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+    gap: 8px;
+    margin-top: var(--space-md);
 }
 
-     . e p i s o d e - i t e m    {
-               a s p e c t - r a t i o :    1 / 1 ;
-               d i s p l a y :    f l e x ;
-               a l i g n - i t e m s :    c e n t e r ;
-               j u s t i f y - c o n t e n t :    c e n t e r ;
-               b a c k g r o u n d :    v a r ( - - c o l o r - s u r f a c e ) ;
-               b o r d e r :    2 p x   s o l i d   v a r ( - - b o r d e r - c o l o r ) ;
-               b o x - s h a d o w :    2 p x   2 p x   0   v a r ( - - b o r d e r - c o l o r ) ;
-               f o n t - w e i g h t :    b o l d ;
-               f o n t - s i z e :    0 . 7 5 r e m ;
-               t r a n s i t i o n :    v a r ( - - t r a n s i t i o n - f a s t ) ;
-               b o r d e r - r a d i u s :    4 p x ;
-       
+.episode-item {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border: 2px solid var(--border-color);
+    box-shadow: 2px 2px 0 var(--border-color);
+    font-weight: bold;
+    font-size: 0.75rem;
+    transition: var(--transition-fast);
+    border-radius: 4px;
 }
 
-       
+/* Modal de Confirmação customizado */
+.confirm-modal {
+    padding: var(--space-md) 0;
+}
+
+.confirm-modal p {
+    color: var(--color-text);
+    margin-bottom: var(--space-xl) !important;
+}
+
+.confirm-modal .btn {
+    min-width: 120px;
+}
+
+@media (max-width: 480px) {
+    .confirm-modal div[style*="display: flex"] {
+        flex-direction: column-reverse !important;
+        gap: var(--space-sm) !important;
+    }
+
+    .confirm-modal .btn {
+        width: 100%;
+    }
+}

@@ -82,6 +82,15 @@ const DetalhesPage = {
                         <div class="details-genres">
                             ${anime.genres.map(g => `<span class="genre-tag">${g}</span>`).join('')}
                         </div>
+
+                        <!-- AIRING STATUS -->
+                        ${anime.nextAiringEpisode ? `
+                            <div class="airing-status" id="airing-status">
+                                <div class="pulse-dot"></div>
+                                <span>Ep ${anime.nextAiringEpisode.episode} em: </span>
+                                <span class="countdown-timer" id="countdown-timer">Carregando...</span>
+                            </div>
+                        ` : ''}
                         
                         <!-- STATUS BADGE -->
                         ${listType ? `
@@ -119,8 +128,33 @@ const DetalhesPage = {
                                 <i class="fas fa-heart"></i> ${isFav ? 'Desfavoritar' : 'Favoritar'}
                             </button>
                             
-                            <button class="btn btn-secondary" onclick="DetalhesPage.openStreaming()">
-                                <i class="fas fa-play"></i> Assistir
+                            ${(() => {
+                const nextEp = this.getResumeEpisode();
+                const isCompleted = listType === 'completed';
+
+                if (isCompleted) {
+                    return `
+                                        <button class="btn btn-secondary" onclick="DetalhesPage.confirmRewatch()">
+                                            <i class="fas fa-redo"></i> Reassistir
+                                        </button>
+                                    `;
+                } else if (nextEp > 1) {
+                    return `
+                                        <button class="btn resume-btn" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
+                                            <i class="fas fa-play"></i> Continuar: Ep ${nextEp}
+                                        </button>
+                                    `;
+                } else {
+                    return `
+                                        <button class="btn btn-secondary" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
+                                            <i class="fas fa-play"></i> Começar Ep 1
+                                        </button>
+                                    `;
+                }
+            })()}
+                            
+                            <button class="btn btn-secondary" onclick="DetalhesPage.openStreaming()" title="Onde Assistir">
+                                <i class="fas fa-external-link-alt"></i> Links
                             </button>
                             
                             ${anime.trailer ? `
@@ -271,17 +305,82 @@ const DetalhesPage = {
         this.loadCharacters();
         this.loadRelations();
         this.loadRecommendations();
-        this.fetchStaff(this.animeId);
+        this.loadStaff();
         this.fetchFillers(anime.title);
+
+        // Iniciar contador se houver airing info
+        if (this.anime && this.anime.nextAiringEpisode) {
+            this.startAiringCountdown();
+        }
+    },
+
+    getResumeEpisode() {
+        const watched = Storage.getWatchedEpisodes(this.animeId);
+        if (watched.length === 0) return 1;
+
+        const max = Math.max(...watched);
+        const total = this.anime.episodes || this.anime.total_episodes || 0;
+
+        return max < total ? max + 1 : max;
+    },
+
+    confirmRewatch() {
+        Common.confirm({
+            title: '🍿 Reassistir Anime?',
+            message: 'Você tem certeza que deseja reassistir? Isso resetará seu progresso de episódios vistos para este anime.',
+            confirmText: 'Sim, Resetar 🍿',
+            cancelText: 'Cancelar',
+            onConfirm: () => {
+                Storage.unmarkAllEpisodes(this.animeId);
+                Storage.addToList('watching', this.anime);
+
+                Common.showNotification('Progresso resetado! Boa maratona 🍿');
+                this.render();
+
+                // Scroll para os episódios para começar
+                setTimeout(() => {
+                    document.getElementById('episodes-section')?.scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+            }
+        });
+    },
+
+    startAiringCountdown() {
+        const airingAt = this.anime.nextAiringEpisode.airingAt * 1000; // to ms
+        const timerElement = document.getElementById('countdown-timer');
+
+        if (!timerElement) return;
+
+        const update = () => {
+            const now = Date.now();
+            const diff = airingAt - now;
+
+            if (diff <= 0) {
+                timerElement.textContent = "Lançado!";
+                return clearInterval(this.countdownInterval);
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            let timeStr = "";
+            if (days > 0) timeStr += `${days}d `;
+            timeStr += `${hours.toString().padStart(2, '0')}h ${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
+
+            timerElement.textContent = timeStr;
+        };
+
+        update();
+        this.countdownInterval = setInterval(update, 1000);
     },
 
     /**
      * Consumir API do AniList para Staff (Equipe Técnica)
      */
-    /**
-     * Consumir API do AniList para Staff (Equipe Técnica)
-     */
-    async fetchStaff(id) {
+    async loadStaff() {
+        const id = this.animeId;
         // Evitar chamadas redundantes se já tivermos os dados
         if (this.staff) {
             this.renderStaff();
@@ -703,13 +802,15 @@ const DetalhesPage = {
         try {
             await API.delay();
 
-            // Initial data from getAnimeById (Page 1)
             const characters = this.anime.characters;
             const data = characters ? characters.edges : [];
             const grid = document.getElementById('characters-grid');
+            const section = document.getElementById('characters-section');
+
+            if (!grid || !section) return;
 
             if (!data || data.length === 0) {
-                document.getElementById('characters-section').style.display = 'none';
+                section.style.display = 'none';
                 return;
             }
 
@@ -863,12 +964,14 @@ const DetalhesPage = {
     async loadRelations() {
         try {
             await API.delay();
-            // Use relations from this.anime
             const data = this.anime.relations;
             const grid = document.getElementById('relations-grid');
+            const section = document.getElementById('relations-section');
+
+            if (!grid || !section) return;
 
             if (!data || !data.edges || data.edges.length === 0) {
-                document.getElementById('relations-section').style.display = 'none';
+                section.style.display = 'none';
                 return;
             }
 
@@ -903,12 +1006,14 @@ const DetalhesPage = {
     async loadRecommendations() {
         try {
             await API.delay();
-            // Use recommendations from this.anime
             const data = this.anime.recommendations;
             const carousel = document.getElementById('recommendations-carousel');
+            const section = document.getElementById('recommendations-section');
+
+            if (!carousel || !section) return;
 
             if (!data || !data.nodes || data.nodes.length === 0) {
-                document.getElementById('recommendations-section').style.display = 'none';
+                section.style.display = 'none';
                 return;
             }
 
@@ -965,6 +1070,12 @@ const DetalhesPage = {
 
             // Add to new list (Pass raw anime object, Storage handles formatting)
             Storage.addToList(listName, this.anime);
+
+            // LOGIC: If 'completed', mark all episodes as watched
+            if (listName === 'completed') {
+                Storage.markAllEpisodesAsWatched(this.anime);
+                // The render() call below will update the episode grid
+            }
 
             // UI Feedback
             Common.showNotification(`"${this.anime.title}" adicionado à lista!`);
