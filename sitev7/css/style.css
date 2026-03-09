@@ -11029,7 +11029,9 @@ body.trailer-focus-mode .trailer-focus-close {
     .confirm-modal .btn {
         width: 100%;
     }
-}/* ========================================
+}
+
+/* ========================================
    DETALHES V7 - LAYOUT PREMIUM (COLUNAS)
 ======================================== */
 .details-grid-layout {
@@ -11181,7 +11183,9 @@ body.trailer-focus-mode .trailer-focus-close {
     gap: var(--space-sm);
 }
 
-.w-100 { width: 100%; }
+.w-100 {
+    width: 100%;
+}
 
 .details-header-mobile {
     display: none;
@@ -11190,20 +11194,29 @@ body.trailer-focus-mode .trailer-focus-close {
 
 @media (max-width: 1024px) {
     .details-grid-layout {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-xl);
     }
 
     .details-sidebar {
         position: static;
+        order: -1;
+        width: 100%;
+        margin-top: 0;
+        margin-bottom: var(--space-md);
+    }
+
+    .details-main-col {
         order: 2;
-        margin-top: var(--space-xl);
+        width: 100%;
     }
 
     .details-header-mobile {
-        display: block;
+        display: none;
     }
 
     .sidebar-header {
-        display: none;
+        display: block;
     }
 }
