@@ -192,67 +192,6 @@ const DetalhesPage = {
                             ${anime.titleEnglish ? `<p class="details-alt-title">${anime.titleEnglish}</p>` : ''}
                         </div>
 
-                        <!-- CARDS E INFOS DA SIDEBAR -->
-                        <div class="sidebar-stats">
-                            <div class="main-score">
-                                <i class="fas fa-star"></i>
-                                <div>
-                                    <span class="stats-value">${anime.score || '-'}</span>
-                                    <span class="stats-label">Sua Avaliação: ${userAnime?.rating ? userAnime.rating + ' / 10' : '-'}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="stats-mini-grid">
-                                <div class="mini-stat" title="Episódios">
-                                    <i class="fas fa-tv" style="color:var(--color-primary)"></i> ${anime.episodes || anime.total_episodes || '?'}
-                                </div>
-                                <div class="mini-stat" title="Duração">
-                                    <i class="fas fa-clock" style="color:var(--color-primary)"></i> ${anime.duration || '24m'}
-                                </div>
-                                <div class="mini-stat" title="Status" style="grid-column: 1 / 3;">
-                                    <i class="fas fa-signal" style="color:var(--color-primary)"></i> ${anime.status}
-                                </div>
-                                <div class="mini-stat" title="Ano de Lançamento" style="grid-column: 1 / 3;">
-                                    <i class="fas fa-calendar" style="color:var(--color-primary)"></i> ${anime.year || '-'}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- AIRING STATUS -->
-                        ${anime.nextAiringEpisode ? `
-                            <div class="airing-status-card" id="airing-status">
-                                <div class="airing-header">
-                                    <div class="pulse-dot"></div> Ep ${anime.nextAiringEpisode.episode} lança em:
-                                </div>
-                                <div class="countdown-timer" id="countdown-timer">Carregando...</div>
-                            </div>
-                        ` : ''}
-
-                        <!-- GÊNEROS -->
-                        <div class="details-genres" style="display:flex; flex-wrap:wrap; gap:5px; margin-top: 5px;">
-                            ${anime.genres.map(g => `<span class="genre-tag" style="font-size: 0.7rem; padding: 2px 8px;">${g}</span>`).join('')}
-                        </div>
-
-                        <!-- INFO EXTRA LIST -->
-                        <div class="sidebar-info-list" style="margin-top: 10px;">
-                            <div class="info-item">
-                                <span class="info-label">Formato</span>
-                                <span class="info-value">${anime.format || 'TV'}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Estúdio</span>
-                                <span class="info-value" style="text-align: right;">${anime.studios.join(', ') || '-'}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Rank Global</span>
-                                <span class="info-value">#${anime.rank || '-'}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Popularidade</span>
-                                <span class="info-value">#${anime.popularity || '-'}</span>
-                            </div>
-                        </div>
-                        
                         <!-- BOTÕES DE AÇÃO INTERATIVA -->
                         <div class="sidebar-actions">
                             
@@ -322,6 +261,67 @@ const DetalhesPage = {
                                         </button>
                                     ` : '<button class="btn btn-secondary" style="padding: 10px 5px; opacity:0.5; cursor:not-allowed;" title="Sem música"><i class="fas fa-music"></i></button>'}
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- CARDS E INFOS DA SIDEBAR -->
+                        <div class="sidebar-stats" style="margin-top:20px;">
+                            <div class="main-score">
+                                <i class="fas fa-star"></i>
+                                <div>
+                                    <span class="stats-value">${anime.score || '-'}</span>
+                                    <span class="stats-label">Sua Avaliação: ${userAnime?.rating ? userAnime.rating + ' / 10' : '-'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-mini-grid">
+                                <div class="mini-stat" title="Episódios">
+                                    <i class="fas fa-tv" style="color:var(--color-primary)"></i> ${anime.episodes || anime.total_episodes || '?'}
+                                </div>
+                                <div class="mini-stat" title="Duração">
+                                    <i class="fas fa-clock" style="color:var(--color-primary)"></i> ${anime.duration || '24m'}
+                                </div>
+                                <div class="mini-stat" title="Status" style="grid-column: 1 / 3;">
+                                    <i class="fas fa-signal" style="color:var(--color-primary)"></i> ${anime.status}
+                                </div>
+                                <div class="mini-stat" title="Ano de Lançamento" style="grid-column: 1 / 3;">
+                                    <i class="fas fa-calendar" style="color:var(--color-primary)"></i> ${anime.year || '-'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AIRING STATUS -->
+                        ${anime.nextAiringEpisode ? `
+                            <div class="airing-status-card" id="airing-status">
+                                <div class="airing-header">
+                                    <div class="pulse-dot"></div> Ep ${anime.nextAiringEpisode.episode} lança em:
+                                </div>
+                                <div class="countdown-timer" id="countdown-timer">Carregando...</div>
+                            </div>
+                        ` : ''}
+
+                        <!-- GÊNEROS -->
+                        <div class="details-genres" style="display:flex; flex-wrap:wrap; gap:5px; margin-top: 5px;">
+                            ${anime.genres.map(g => `<span class="genre-tag" style="font-size: 0.7rem; padding: 2px 8px;">${g}</span>`).join('')}
+                        </div>
+
+                        <!-- INFO EXTRA LIST -->
+                        <div class="sidebar-info-list" style="margin-top: 10px;">
+                            <div class="info-item">
+                                <span class="info-label">Formato</span>
+                                <span class="info-value">${anime.format || 'TV'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Estúdio</span>
+                                <span class="info-value" style="text-align: right;">${anime.studios.join(', ') || '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Rank Global</span>
+                                <span class="info-value">#${anime.rank || '-'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Popularidade</span>
+                                <span class="info-value">#${anime.popularity || '-'}</span>
                             </div>
                         </div>
                     </div>
