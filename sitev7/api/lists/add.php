@@ -62,19 +62,22 @@ $sql = "INSERT INTO animes_cache
 mysqli_query($conn, $sql);
 
 // Adicionar à lista do usuário
-$sql = "INSERT INTO listas_anime (usuario_id, anime_id, tipo_lista)
-        VALUES ($usuario_id, $anime_id, '$tipo_lista')
+$progresso_final = ($tipo_lista === 'completed') ? $episodios : 0;
+
+$sql = "INSERT INTO listas_anime (usuario_id, anime_id, tipo_lista, progresso)
+        VALUES ($usuario_id, $anime_id, '$tipo_lista', $progresso_final)
         ON DUPLICATE KEY UPDATE
             tipo_lista = VALUES(tipo_lista),
+            progresso = GREATEST(progresso, VALUES(progresso)),
             atualizado_em = NOW()";
 
 if (mysqli_query($conn, $sql)) {
     // Registrar atividade (antes de fechar conexão)
     $tipo_atividade = $tipo_lista === 'completed' ? 'complete' : 'add';
     registrarAtividade($usuario_id, $tipo_atividade, $anime_id, ['titulo' => $anime_data['title'] ?? '']);
-    
+
     mysqli_close($conn);
-    
+
     jsonSuccess('Anime adicionado à lista!', [
         'anime_id' => $anime_id,
         'tipo_lista' => $tipo_lista

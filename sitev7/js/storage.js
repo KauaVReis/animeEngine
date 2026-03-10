@@ -127,26 +127,120 @@ const Storage = {
             paused: []
         });
 
+        const animeId = anime.id || anime.anime_id;
+
         // Remove from all other lists first (an anime can only be in one list status)
         Object.keys(lists).forEach(key => {
-            lists[key] = lists[key].filter(i => i.id != anime.id);
+            lists[key] = lists[key].filter(i => i.id != animeId);
         });
 
-        // Add to target list
         // Store strict structure
         const item = {
-            id: anime.id,
-            title: anime.title || anime.title_english, // Fallback
-            image: anime.image,
-            score: null, // User score
+            id: animeId,
+            title: anime.title?.romaji || anime.title || anime.title_english,
+            image: anime.image || anime.coverImage?.large,
+            score: anime.rating || anime.score || null,
             progress: listType === 'completed' ? (anime.episodes || anime.total_episodes || 0) : (anime.progress || 0),
             total_episodes: anime.episodes || anime.total_episodes || anime.totalEpisodes || 0,
-            updated_at: new Date().toISOString(),
-            data: anime // Optional: cache full data
+            updated_at: new Date().toISOString()
         };
 
         lists[listType].push(item);
         this.set(this.KEYS.LISTS, lists);
+
+        // Sync with backend
+        this.syncWithBackend(animeId, listType, anime);
+    },
+
+    /**
+     * Move anime between lists with Sync
+     */
+    moveToList(animeId, fromList, toList) {
+        const lists = this.get(this.KEYS.LISTS, {});
+        const anime = lists[fromList]?.find(a => a.id == animeId);
+
+        if (anime) {
+            // Remove from old
+            lists[fromList] = lists[fromList].filter(a => a.id != animeId);
+
+            // Update status and progress if completed
+            if (toList === 'completed') {
+                anime.progress = anime.total_episodes || anime.episodes || 0;
+            }
+
+            // Add to new
+            if (!lists[toList]) lists[toList] = [];
+            lists[toList].push(anime);
+
+            this.set(this.KEYS.LISTS, lists);
+
+            // Sync with backend
+            fetch('api/lists/move.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ anime_id: animeId, tipo_lista: toList })
+            }).catch(e => console.error('Sync Error:', e));
+        }
+    },
+
+    /**
+     * Helper to sync add/update with backend
+     */
+    async syncWithBackend(animeId, listType, rawAnime) {
+        try {
+            return await fetch('api/lists/add.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    anime_id: animeId,
+                    tipo_lista: listType,
+                    anime_data: {
+                        id: animeId,
+                        title: rawAnime.title?.romaji || rawAnime.title,
+                        image: rawAnime.image || rawAnime.coverImage?.large,
+                        episodes: rawAnime.episodes || rawAnime.total_episodes || 0,
+                        score: rawAnime.averageScore || rawAnime.score || 0,
+                        status: rawAnime.status,
+                        synopsis: rawAnime.synopsis || rawAnime.description
+                    }
+                })
+            });
+        } catch (e) {
+            console.error('Backend sync failed:', e);
+            throw e;
+        }
+    },
+
+    /**
+     * Mark all episodes as watched
+     */
+    markAllEpisodesAsWatched(anime) {
+        const lists = this.get(this.KEYS.LISTS, {});
+        const animeId = anime.id || anime.anime_id;
+        let found = false;
+
+        for (const type in lists) {
+            const item = lists[type].find(a => a.id == animeId);
+            if (item) {
+                item.progress = item.total_episodes || anime.episodes || 0;
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            this.set(this.KEYS.LISTS, lists);
+
+            // Sync with backend
+            fetch('api/lists/update.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    anime_id: animeId,
+                    progresso: anime.episodes || 0
+                })
+            }).catch(e => console.error('Sync error:', e));
+        }
     },
 
     getAnimeStatus(id) {
@@ -237,9 +331,35 @@ const Storage = {
 
         this.set(key, watched);
 
-        // Auto-update global progress
+        // Auto-update global progress & sync
         this.updateProgressFromEpisodes(anime, watched);
         return watched.includes(epNum);
+    },
+
+    /**
+     * Mark all episodes from 1 up to episodeNumber
+     */
+    markEpisodesUpTo(anime, episodeNumber) {
+        const key = `watched_eps_${anime.id}`;
+        const total = anime.episodes || anime.total_episodes || 0;
+        const target = Math.min(parseInt(episodeNumber), total > 0 ? total : episodeNumber);
+
+        // Generate array from 1 to target
+        const watched = Array.from({ length: target }, (_, i) => i + 1);
+
+        this.set(key, watched);
+        this.updateProgressFromEpisodes(anime, watched);
+
+        return watched;
+    },
+
+    /**
+     * Mark all episodes as watched
+     */
+    markAllEpisodesAsWatched(anime) {
+        const total = anime.episodes || anime.total_episodes || 0;
+        if (total === 0) return;
+        return this.markEpisodesUpTo(anime, total);
     },
 
     updateProgressFromEpisodes(anime, watched = null) {
@@ -247,9 +367,7 @@ const Storage = {
         const total = anime.episodes || anime.total_episodes || 0;
         const status = this.getAnimeStatus(anime.id);
 
-        if (watched.length === 0) return;
-
-        const maxWatched = Math.max(...watched);
+        const maxWatched = watched.length > 0 ? Math.max(...watched) : 0;
         const isAllWatched = total > 0 && watched.length >= total;
 
         // Se já está na lista, atualiza o progresso
@@ -264,7 +382,7 @@ const Storage = {
 
             // Caso contrário, apenas atualiza o progresso na lista atual
             const item = lists[status].find(i => i.id == anime.id);
-            if (item && item.progress < maxWatched) {
+            if (item) {
                 item.progress = maxWatched;
                 item.updated_at = new Date().toISOString();
                 this.set(this.KEYS.LISTS, lists);
@@ -273,19 +391,29 @@ const Storage = {
             // Se não está em nenhuma lista, adiciona como 'watching' ou 'completed'
             const targetList = isAllWatched ? 'completed' : 'watching';
             this.addToList(targetList, { ...anime, progress: maxWatched });
+            return; // addToList handles sync
         }
-    },
 
-    markAllEpisodesAsWatched(anime) {
-        const total = anime.episodes || anime.total_episodes || 0;
-        if (total === 0) return;
-
-        const key = `watched_eps_${anime.id}`;
-        const allEpisodes = Array.from({ length: total }, (_, i) => i + 1);
-        this.set(key, allEpisodes);
-
-        // Update progress in the main list
-        this.updateProgressFromEpisodes(anime, allEpisodes);
+        // Sync progress with backend (Only if we didn't call addToList)
+        fetch('api/lists/update.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                anime_id: anime.id,
+                progresso: maxWatched
+            })
+        })
+            .then(() => {
+                // Se mudou para completo, garante que o tipo_lista também sincronizou
+                if (isAllWatched && status !== 'completed') {
+                    fetch('api/lists/move.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ anime_id: anime.id, tipo_lista: 'completed' })
+                    });
+                }
+            })
+            .catch(e => console.error('Sync error:', e));
     },
 
     unmarkAllEpisodes(animeId) {

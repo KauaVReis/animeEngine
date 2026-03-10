@@ -724,7 +724,7 @@ const DetalhesPage = {
                      data-number="${i}" 
                      data-type="${type}"
                      title="${title} (${type})"
-                     onclick="DetalhesPage.toggleWatched(${i})">
+                     onclick="DetalhesPage.toggleWatched(event, ${i})">
                     <span class="ep-number">${i}</span>
                     <span class="ep-title-hover">${title}</span>
                     <div class="watched-overlay"><i class="fas fa-check"></i></div>
@@ -743,19 +743,39 @@ const DetalhesPage = {
         const pFiller = (counts.filler / totalRaw) * 100;
         const pMixed = (counts.mixed / totalRaw) * 100;
 
-        document.getElementById('bar-canon').style.width = `${pCanon}%`;
-        document.getElementById('bar-filler').style.width = `${pFiller}%`;
-        document.getElementById('bar-mixed').style.width = `${pMixed}%`;
+        const barCanon = document.getElementById('bar-canon');
+        const barFiller = document.getElementById('bar-filler');
+        const barMixed = document.getElementById('bar-mixed');
 
-        document.getElementById('count-canon').textContent = counts.canon;
-        document.getElementById('count-filler').textContent = counts.filler;
-        document.getElementById('watched-count').textContent = watchedCount;
+        if (barCanon) barCanon.style.width = `${pCanon}%`;
+        if (barFiller) barFiller.style.width = `${pFiller}%`;
+        if (barMixed) barMixed.style.width = `${pMixed}%`;
 
-        const fillerPercent = Math.round(((counts.filler + counts.mixed) / totalRaw) * 100);
-        document.getElementById('filler-percent').textContent = `${fillerPercent}% Filler`;
+        const cntCanon = document.getElementById('count-canon');
+        const cntFiller = document.getElementById('count-filler');
+        const cntWatched = document.getElementById('watched-count');
+
+        if (cntCanon) cntCanon.textContent = counts.canon;
+        if (cntFiller) cntFiller.textContent = counts.filler;
+        if (cntWatched) cntWatched.textContent = watchedCount;
+
+        const fillerPercentEl = document.getElementById('filler-percent');
+        if (fillerPercentEl) {
+            const fillerPercent = Math.round(((counts.filler + counts.mixed) / totalRaw) * 100);
+            fillerPercentEl.textContent = `${fillerPercent}% Filler`;
+        }
     },
 
-    toggleWatched(number) {
+    toggleWatched(event, number) {
+        if (event && event.ctrlKey) {
+            // Ctrl + Click: Mark all up to this
+            Storage.markEpisodesUpTo(this.anime, number);
+            this.render(); // Re-render everything for visual consistency
+            Common.showNotification(`Marcado até o episódio ${number}`);
+            return;
+        }
+
+        // Regular click: Toggle single
         const isNowWatched = Storage.toggleWatchedEpisode(this.anime, number);
         const epElement = document.querySelector(`.episode-item[data-number="${number}"]`);
 
@@ -764,11 +784,9 @@ const DetalhesPage = {
         }
 
         // Update count
-        const watched = Storage.getWatchedEpisodes(this.animeId);
-        document.getElementById('watched-count').textContent = watched.length;
-
-        // Sync with the main status dropdown if applicable
-        this.syncMainProgress(number, isNowWatched);
+        const watched = Storage.getWatchedEpisodes(this.anime.id);
+        const watchedCountEl = document.getElementById('watched-count');
+        if (watchedCountEl) watchedCountEl.textContent = watched.length;
     },
 
     syncMainProgress(number, isWatched) {
@@ -1065,34 +1083,27 @@ const DetalhesPage = {
     /**
      * Adicionar à lista (Local Storage)
      */
-    addToList(listName) {
+    async addToList(listName) {
         try {
             const currentStatus = Storage.getAnimeStatus(this.anime.id);
 
             // LOGIC: Toggle (Remove if clicking same status)
             if (currentStatus === listName) {
-                Storage.removeFromAllLists(this.anime.id);
-                Common.showNotification('Removido da lista');
-                this.render();
+                this.removeFromList();
                 return;
             }
 
-            // Remove from old list if exists
-            if (currentStatus) {
-                Storage.removeFromAllLists(this.anime.id);
-            }
-
-            // Add to new list (Pass raw anime object, Storage handles formatting)
-            Storage.addToList(listName, this.anime);
+            // Add to new list (Syncs via Storage.addToList)
+            // We await it to ensure it's in the DB before any subsequent updates (like progress)
+            await Storage.addToList(listName, this.anime);
 
             // LOGIC: If 'completed', mark all episodes as watched
             if (listName === 'completed') {
                 Storage.markAllEpisodesAsWatched(this.anime);
-                // The render() call below will update the episode grid
             }
 
             // UI Feedback
-            Common.showNotification(`"${this.anime.title}" adicionado à lista!`);
+            Common.showNotification(`"${this.anime.title.romaji || this.anime.title}" adicionado à lista!`);
             Storage.addXP(10); // Bonus XP
 
             // Close dropdown and refresh
@@ -1182,6 +1193,17 @@ const DetalhesPage = {
         if (anime) {
             anime.rating = rating;
             Storage.save(Storage.KEYS.LISTS, lists);
+
+            // Sync with backend
+            fetch('api/lists/update.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    anime_id: this.anime.id,
+                    nota: rating
+                })
+            }).catch(e => console.error('Sync error:', e));
+
             Storage.addXP(5);
             Common.showNotification(`Avaliação: ${rating} estrelas!`);
 
@@ -1196,7 +1218,15 @@ const DetalhesPage = {
      */
     removeFromList() {
         Storage.removeFromAllLists(this.anime.id);
-        Common.showNotification(`"${this.anime.title}" removido da lista`);
+
+        // Sync with backend
+        fetch('api/lists/delete.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ anime_id: this.anime.id })
+        }).catch(e => console.error('Sync error:', e));
+
+        Common.showNotification(`"${this.anime.title.romaji || this.anime.title}" removido da lista`);
         this.render();
     },
 

@@ -34,8 +34,17 @@ if (!in_array($tipo_lista, $tipos_validos)) {
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-$sql = "UPDATE listas_anime SET tipo_lista = '$tipo_lista' 
-        WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+// Se for para 'completed', atualizar o progresso para o total de episódios
+if ($tipo_lista === 'completed') {
+    $sql = "UPDATE listas_anime la 
+            JOIN animes_cache ac ON la.anime_id = ac.anime_id 
+            SET la.tipo_lista = '$tipo_lista', 
+                la.progresso = ac.episodios 
+            WHERE la.usuario_id = $usuario_id AND la.anime_id = $anime_id";
+} else {
+    $sql = "UPDATE listas_anime SET tipo_lista = '$tipo_lista' 
+            WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+}
 
 if (mysqli_query($conn, $sql)) {
     if (mysqli_affected_rows($conn) > 0) {

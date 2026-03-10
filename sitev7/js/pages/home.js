@@ -292,9 +292,11 @@ const HomePage = {
                 Goals.updateProgress('minutes', 24); // ~24min por episódio
             }
 
+            // Sync via Storage happens automatically in toggleWatchedEpisode / moveToList
+
             // Verificar se completou
             if (anime.episodes && anime.progress >= anime.episodes) {
-                // Mover para completed
+                // Mover para completed (Storage.moveToList handles API sync)
                 Storage.moveToList(animeId, 'watching', 'completed');
                 Common.showNotification(`🎉 "${anime.title}" completo!`);
 
@@ -305,6 +307,9 @@ const HomePage = {
             } else {
                 Storage.save('lists', lists);
                 Common.showNotification(`EP ${anime.progress}/${anime.episodes || '?'} ✓`);
+
+                // Manually trigger sync for non-completion increment if needed
+                Storage.updateProgressFromEpisodes(anime, [anime.progress]);
             }
 
             // Dar XP
