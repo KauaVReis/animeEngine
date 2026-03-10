@@ -240,6 +240,10 @@ const ExplorePage = {
                 };
                 variables.genre = genreMap[this.selectedGenre] || 'Action';
                 break;
+
+            case 'ost':
+                // O filtro de OST é estático no PHP, não faz busca na AniList
+                return [];
         }
 
         const response = await fetch('https://graphql.anilist.co', {

@@ -17,21 +17,14 @@ const CalculadoraPage = {
 
     // Elementos DOM
     elements: {
-        globalEpInput: null,
-        progressBar: null,
-        progressContainer: null,
-        progressPercent: null,
         btnMinus: null,
-        btnPlus: null
+        btnPlus: null,
+        radarCanvas: null,
+        radarCtx: null,
+        timelineContainer: null
     },
 
-    // Fillers conhecidos (do v4)
-    fillerEpisodes: {
-        'Naruto': [[26, 26], [97, 106], [136, 220]],
-        'Naruto Shippuden': [[57, 71], [91, 112], [144, 151], [170, 171], [176, 196], [223, 242], [257, 260], [271, 271], [279, 281], [284, 295], [303, 320], [347, 361], [376, 377], [388, 390], [394, 413], [416, 417], [422, 423], [427, 457], [460, 462], [464, 469], [480, 483]],
-        'One Piece': [[54, 61], [98, 99], [102, 102], [131, 143], [196, 206], [213, 216], [220, 226], [279, 283], [291, 292], [303, 303], [317, 319], [326, 336], [382, 384], [406, 407], [426, 429], [457, 458], [492, 496], [506, 506], [542, 542], [575, 578], [590, 590], [626, 628], [747, 750], [775, 778], [780, 782], [807, 807], [881, 891], [895, 896], [907, 907]],
-        'Bleach': [[33, 33], [50, 50], [64, 109], [128, 137], [168, 189], [204, 205], [213, 214], [227, 266], [287, 287], [298, 299], [303, 305], [311, 342], [355, 355]]
-    },
+
 
     init() {
         console.log('🧮 Loading Calculadora Page...');
@@ -43,6 +36,14 @@ const CalculadoraPage = {
         this.elements.progressPercent = document.getElementById('progress-percent');
         this.elements.btnMinus = document.getElementById('btn-minus');
         this.elements.btnPlus = document.getElementById('btn-plus');
+        this.elements.radarCanvas = document.getElementById('radar-canvas');
+        this.elements.timelineContainer = document.getElementById('interactive-timeline');
+
+        if (this.elements.radarCanvas) {
+            this.elements.radarCtx = this.elements.radarCanvas.getContext('2d');
+            this.elements.radarCanvas.width = 100;
+            this.elements.radarCanvas.height = 100;
+        }
 
         this.loadSettings();
         this.loadStack();
@@ -52,8 +53,67 @@ const CalculadoraPage = {
         this.setupEpisodeControls();
         this.updateIdleState();
         this.calculate();
+        this.initRadarAnimation();
 
         console.log('✅ Calculadora Page loaded!');
+    },
+
+    initRadarAnimation() {
+        const animate = () => {
+            this.drawRadar();
+            requestAnimationFrame(animate);
+        };
+        animate();
+    },
+
+    drawRadar() {
+        const ctx = this.elements.radarCtx;
+        if (!ctx) return;
+
+        const w = 100;
+        const h = 100;
+        const time = Date.now() / 1000;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Background grid
+        ctx.strokeStyle = 'rgba(255, 102, 0, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, 45, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, 30, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Crosshair
+        ctx.beginPath();
+        ctx.moveTo(w / 2, 10); ctx.lineTo(w / 2, 90);
+        ctx.moveTo(10, h / 2); ctx.lineTo(90, h / 2);
+        ctx.stroke();
+
+        // Scanning Line
+        const angle = time * 2;
+        ctx.strokeStyle = 'rgba(255, 102, 0, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(w / 2, h / 2);
+        ctx.lineTo(w / 2 + Math.cos(angle) * 45, h / 2 + Math.sin(angle) * 45);
+        ctx.stroke();
+
+        // Glow
+        ctx.fillStyle = 'rgba(255, 102, 0, 0.1)';
+        ctx.beginPath();
+        ctx.moveTo(w / 2, h / 2);
+        ctx.arc(w / 2, h / 2, 45, angle - 0.5, angle);
+        ctx.fill();
+    },
+
+    updateRadar(percent) {
+        const percentEl = document.getElementById('radar-percent');
+        if (percentEl) {
+            percentEl.textContent = `${Math.round(percent)}%`;
+        }
     },
 
     loadSettings() {
@@ -511,36 +571,22 @@ const CalculadoraPage = {
                 const animeEps = anime.episodes || 0;
                 const startEp = cumulative;
 
-                // Normalizar título para busca (remover pontos, traços, espaços extras e lowercase)
-                // Ex: "Naruto: Shippuuden" -> "narutoshippuuden"
-                const cleanTitle = anime.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+                // Tentar encontrar dados de filler usando o módulo central AnimeData
+                if (typeof AnimeData !== 'undefined') {
+                    const data = AnimeData.getAnimeData(anime.title);
 
-                let fillers = null;
-
-                // Tentar encontrar correspondência nas chaves
-                const keys = Object.keys(this.fillerEpisodes);
-                for (const key of keys) {
-                    const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    // Check parcial para Shippuden (shippuden vs shippuuden)
-                    if (cleanTitle === cleanKey ||
-                        (cleanTitle.includes('shippu') && cleanKey.includes('shippu') && cleanTitle.includes('naruto')) ||
-                        cleanTitle === cleanKey.replace('shippuden', 'shippuuden')) {
-                        fillers = this.fillerEpisodes[key];
-                        break;
-                    }
-                }
-
-                if (fillers) {
-                    fillers.forEach(range => {
-                        for (let i = range[0]; i <= range[1]; i++) {
-                            // Só contar fillers que ainda não foram assistidos
-                            const globalFillerEp = startEp + i;
-                            if (globalFillerEp > this.globalEp && i <= animeEps) {
-                                remainingEps--;
-                                savedEps++;
+                    if (data && data.fillerRanges) {
+                        data.fillerRanges.forEach(range => {
+                            for (let i = range[0]; i <= range[1]; i++) {
+                                // Só contar fillers que ainda não foram assistidos
+                                const globalFillerEp = startEp + i;
+                                if (globalFillerEp > this.globalEp && i <= animeEps) {
+                                    remainingEps--;
+                                    savedEps++;
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
                 cumulative += animeEps;
             });
@@ -553,7 +599,11 @@ const CalculadoraPage = {
         const totalMinutes = remainingEps * epDuration;
         const totalHours = Math.round(totalMinutes / 60);
 
-        const daysNeeded = Math.ceil(remainingEps / this.settings.epsPerDay);
+        // SPEEDRUN LOGIC: No speedrun, você ganha 20% de tempo extra por dia (24/20 = 1.2x)
+        const paceMultiplier = this.settings.speedrun ? 1.2 : 1;
+        const effectiveEpsPerDay = this.settings.epsPerDay * paceMultiplier;
+
+        const daysNeeded = Math.ceil(remainingEps / effectiveEpsPerDay);
         const finishDate = new Date();
         finishDate.setDate(finishDate.getDate() + daysNeeded);
 
@@ -582,8 +632,220 @@ const CalculadoraPage = {
             document.getElementById('calc-finish-date').textContent = 'HOJE! 🎉';
             document.getElementById('calc-days-left').textContent = 'Concluído!';
         }
+
+        // Radar Update - Based on total stack filler
+        const totalFillers = savedEps;
+        const fillerPercent = totalStackEps > 0 ? (totalFillers / totalStackEps) * 100 : 0;
+        this.updateRadar(fillerPercent);
+
+        // Timeline Update
+        this.renderTimeline(remainingEps);
+    },
+
+
+    renderTimeline(remainingEps) {
+        if (this.stack.length === 0 || remainingEps <= 0) {
+            this.elements.timelineContainer.innerHTML = '<div class="timeline-empty">Adicione animes para ver o cronograma</div>';
+            return;
+        }
+
+        const pace = this.settings.epsPerDay;
+        const totalDays = Math.ceil(remainingEps / pace);
+        let html = '';
+
+        // Pegar todos os episódios que faltam em uma lista linear
+        let pendingEpsList = [];
+        let cumulative = 0;
+        this.stack.forEach(anime => {
+            const animeEps = anime.episodes || 0;
+            const startEp = cumulative;
+
+            // Dados de filler
+            let fillerRanges = [];
+            if (typeof AnimeData !== 'undefined') {
+                const data = AnimeData.getAnimeData(anime.title);
+                if (data) fillerRanges = data.fillerRanges || [];
+            }
+
+            for (let i = 1; i <= animeEps; i++) {
+                const globalEpPos = startEp + i;
+                if (globalEpPos > this.globalEp) {
+                    // Verificar se é filler e se deve pular
+                    const isFiller = fillerRanges.some(r => i >= r[0] && i <= r[1]);
+                    if (this.settings.skipFillers && isFiller) continue;
+
+                    pendingEpsList.push({
+                        title: anime.title,
+                        ep: i,
+                        isFiller: isFiller
+                    });
+                }
+            }
+            cumulative += animeEps;
+        });
+
+        const today = new Date();
+        for (let d = 0; d < Math.min(totalDays, 45); d++) { // Aumentado limite para 45 dias
+            const currentDate = new Date(today);
+            currentDate.setDate(today.getDate() + d);
+            const dateStr = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
+
+            const dayEps = pendingEpsList.slice(d * pace, (d + 1) * pace);
+            if (dayEps.length === 0) break;
+
+            html += `
+                <div class="timeline-day">
+                    <div class="td-header">
+                        <span class="td-date">${dateStr}</span>
+                        <span class="td-index">DAY ${d + 1}</span>
+                    </div>
+                    <div class="td-eps-list">
+                        ${dayEps.map(item => `
+                            <div class="td-ep-item ${item.isFiller ? 'filler' : ''}" title="${item.title}">
+                                <span class="td-ep-name">${item.title}</span>
+                                <span class="td-ep-num">EP ${item.ep}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (totalDays > 45) {
+            html += `<div class="timeline-day" style="display:flex; align-items:center; justify-content:center; border:none; opacity:0.5; flex: 0 0 100px;">... +${totalDays - 45}d</div>`;
+        }
+
+        this.elements.timelineContainer.innerHTML = html;
+    },
+
+    showFillersModal() {
+        if (this.stack.length === 0) {
+            if (typeof Common !== 'undefined') Common.showNotification('STACK VAZIA. Adicione animes para escanear!', 'error');
+            return;
+        }
+
+        let content = `<div class="filler-scan-log">
+            <p style="margin:0 0 15px 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; opacity: 0.7;">[SYSTEM] INITIATING DEEP FILLER SCAN...</p>`;
+
+        let totalFound = 0;
+        let cumulative = 0;
+
+        this.stack.forEach(anime => {
+            content += `<div style="margin-bottom: 25px;">
+                <h4 style="color: var(--color-primary); margin: 0 0 10px 0; text-transform: uppercase; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-crosshairs"></i> TARGET: ${anime.title}
+                </h4>`;
+
+            let hasFillers = false;
+            if (typeof AnimeData !== 'undefined') {
+                const data = AnimeData.getAnimeData(anime.title);
+                if (data && data.fillerRanges && data.fillerRanges.length > 0) {
+                    hasFillers = true;
+                    content += `<div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+
+                    data.fillerRanges.forEach(range => {
+                        const start = range[0];
+                        const end = range[1];
+                        const count = (end - start) + 1;
+                        totalFound += count;
+
+                        // Determinar o status atual
+                        const globalStart = cumulative + start;
+                        const globalEnd = cumulative + end;
+                        let statusClass = '';
+
+                        if (this.globalEp >= globalEnd) {
+                            statusClass = 'completed';
+                        } else if (this.globalEp >= globalStart && this.globalEp < globalEnd) {
+                            statusClass = 'active';
+                        }
+
+                        const label = start === end ? `EP ${start}` : `EP ${start}-${end}`;
+                        content += `<span class="filler-badge-item ${statusClass}" title="Total: ${count} episódios">${label}</span>`;
+                    });
+                    content += `</div>`;
+                }
+            }
+
+            if (!hasFillers) {
+                content += `<p style="margin:0; opacity: 0.3; font-size: 0.75rem; font-style: italic;">Status: CLEAR (No filler anomalies detected)</p>`;
+            }
+            content += `</div>`;
+            cumulative += (anime.episodes || 0);
+        });
+
+        content += `<p style="margin:20px 0 0 0; border-top: 1px dashed var(--border-color); padding-top: 15px; font-weight: 800; color: var(--color-primary);">
+            [SYSTEM] SCAN COMPLETE. TOTAL ANOMALIES IDENTIFIED: ${totalFound} EPS
+        </p></div>`;
+
+        if (typeof Common !== 'undefined' && Common.showModal) {
+            Common.showModal('DEEP FILLER SCAN LOGS', content);
+        } else {
+            alert("Scanner Logs: " + totalFound + " fillers found.");
+        }
+    },
+
+    copyForWhatsApp() {
+        if (this.stack.length === 0) return;
+
+        const totalEps = this.getTotalStackEps();
+        const remaining = document.getElementById('result-remaining').textContent;
+        const hours = document.getElementById('result-hours').textContent;
+        const finishDate = document.getElementById('calc-finish-date').textContent;
+        const activeAnime = this.getCurrentAnime();
+
+        let text = `🚀 *MINHA MISSÃO ANIMEENGINE* 🚀\n\n`;
+        text += `📺 *Assistindo:* ${activeAnime ? activeAnime.anime.title : 'Nenhum'}\n`;
+        text += `📊 *Progresso:* ${this.globalEp} / ${totalEps} eps\n`;
+        text += `⏳ *Faltam:* ${remaining} episódios\n`;
+        text += `⏰ *Tempo:* ~${hours} horas\n`;
+        text += `🏁 *Previsão:* ${finishDate}\n\n`;
+        text += `Calculado via *ANIME.ENGINE v7*`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            Common.showNotification('📋 Resumo copiado para o WhatsApp!', 'success');
+        }).catch(err => {
+            Common.showNotification('Erro ao copiar', 'error');
+        });
+    },
+
+    shareMarathonCard() {
+        // Por enquanto, mostra um modal estilizado com o resumo "Premium"
+        const activeAnime = this.getCurrentAnime();
+        if (!activeAnime) return;
+
+        const content = `
+            <div class="marathon-card-preview" style="background: #0d0d0d; border: 2px solid #ff6600; padding: 20px; color: #fff;">
+                <div style="display: flex; gap: 20px;">
+                    <img src="${activeAnime.anime.image}" style="width: 100px; border: 1px solid #ff6600;">
+                    <div>
+                        <h2 style="color: #ff6600; margin: 0;">MARATHON DATA</h2>
+                        <h3 style="margin: 5px 0;">${activeAnime.anime.title}</h3>
+                        <p style="font-family: monospace; opacity: 0.8;">SCANNING PROGRESS: ${this.globalEp}/${this.getTotalStackEps()}</p>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; border-top: 1px dashed #333; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <span style="font-size: 10px; display: block; opacity: 0.6;">REMAINING</span>
+                        <span style="font-size: 20px; font-weight: bold;">${document.getElementById('result-remaining').textContent} EPS</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 10px; display: block; opacity: 0.6;">FINISH DATE</span>
+                        <span style="font-size: 20px; font-weight: bold; color: #00f2ff;">${document.getElementById('calc-finish-date').textContent}</span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" style="width: 100%; margin-top: 15px;" onclick="CalculadoraPage.copyForWhatsApp()">COPIAR RESUMO TEXTUAL</button>
+        `;
+
+        // Assumindo que o sistema v7 tem uma função de modal global
+        if (typeof Common !== 'undefined' && Common.showModal) {
+            Common.showModal('MARATHON COMMAND CARD', content);
+        } else {
+            // Em caso de erro, apenas copia para o WhatsApp como fallback
+            this.copyForWhatsApp();
+        }
     }
 };
 
 document.addEventListener('DOMContentLoaded', () => CalculadoraPage.init());
-

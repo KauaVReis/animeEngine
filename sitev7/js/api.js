@@ -43,6 +43,25 @@ const API = {
         return json.data;
     },
 
+    episodeCache: null,
+    episodeCachePromise: null,
+
+    async initCache() {
+        if (this.episodeCache) return;
+        if (!this.episodeCachePromise) {
+            this.episodeCachePromise = fetch('api/episode_counts.php')
+                .then(res => res.json())
+                .then(data => {
+                    this.episodeCache = data;
+                })
+                .catch(e => {
+                    console.warn('Falha silenciosa ao carregar cache de eps', e);
+                    this.episodeCache = {};
+                });
+        }
+        await this.episodeCachePromise;
+    },
+
     /**
      * Format AniList data to match AnimeEngine internal structure
      */
@@ -59,6 +78,29 @@ const API = {
             // Actually, keep raw English here and let UI components decide when to translate.
         }
 
+        let mediaTitle = media.title?.romaji || media.title?.english || media.title?.native || 'Sem Título';
+        let epsCount = media.episodes;
+
+        // Fallback dinâmico (Sem travar o site): Se for nulo ('?'), puxa da nossa API local rápida
+        if (!epsCount) {
+            await this.initCache();
+            if (this.episodeCache) {
+                // AniList tem vários títulos (romaji, english), testamos os mais prováveis contra nosso cache interno
+                const searchKeys = [
+                    media.title?.romaji,
+                    media.title?.english,
+                    media.title?.native
+                ].filter(Boolean).map(t => t.toLowerCase().trim());
+
+                for (let k of searchKeys) {
+                    if (this.episodeCache[k]) {
+                        epsCount = this.episodeCache[k];
+                        break;
+                    }
+                }
+            }
+        }
+
         return {
             id: media.id, // AniList ID
             mal_id: media.idMal, // Backup for cross-ref
@@ -69,7 +111,7 @@ const API = {
             banner: media.bannerImage || media.coverImage?.extraLarge || 'https://via.placeholder.com/1200x400?text=No+Banner',
             synopsis: media.description || 'Sinopse não disponível.', // HTML format
             score: media.averageScore ? (media.averageScore / 10).toFixed(1) : '?',
-            episodes: media.episodes,
+            episodes: epsCount,
             status: media.status, // FINISHED, RELEASING, NOT_YET_RELEASED
             format: media.format, // TV, MOVIE, etc.
             genres: media.genres || [],

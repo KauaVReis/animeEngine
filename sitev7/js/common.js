@@ -13,7 +13,7 @@ const Common = {
         this.markActiveNav();
         this.createSettingsButton();
         this.createNotificationsButton();
-        this.createMobileRandomButton(); // Mobile Header
+        // this.createMobileRandomButton(); // Disabled on user request
         this.createSidebarRandomButton(); // Desktop Sidebar
         this.initNotifications();
         this.setupEasterEggs();

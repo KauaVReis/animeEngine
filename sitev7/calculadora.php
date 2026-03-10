@@ -100,6 +100,15 @@ require_once 'includes/nav.php';
                         <div class="idle-pulse"></div>
                     </div>
                 </div>
+
+                <!-- NEW: FILLER RADAR WIDGET -->
+                <div class="calc-filler-radar" id="filler-radar" title="Filler Scanner">
+                    <canvas id="radar-canvas"></canvas>
+                    <div class="radar-overlay">
+                        <span class="radar-label">FILLER SCAN</span>
+                        <span id="radar-percent" class="radar-value">0%</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Stats & Configuration -->
@@ -119,39 +128,45 @@ require_once 'includes/nav.php';
                     
                     <!-- Toggle Options -->
                     <div class="calc-toggles">
-                        <!-- Skip Fillers -->
-                        <div class="calc-toggle-item" onclick="CalculadoraPage.toggleOption('skipFillers')">
-                            <div class="toggle-info">
-                                <div class="toggle-label">
-                                    <i class="fas fa-ban toggle-icon toggle-icon-red"></i>
-                                    Skip Fillers
+                        <!-- Skip Fillers w/ Modal Button -->
+                        <div class="calc-toggle-group">
+                            <div class="calc-toggle-item" onclick="CalculadoraPage.toggleOption('skipFillers')">
+                                <div class="toggle-info">
+                                    <div class="toggle-label">
+                                        <i class="fas fa-ban toggle-icon toggle-icon-red"></i>
+                                        SKIP FILLERS
+                                    </div>
+                                    <div class="toggle-hint">DB Check Required</div>
                                 </div>
-                                <div class="toggle-hint">DB Check Required</div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="toggle-fillers" class="toggle-input">
+                                    <div class="toggle-track"></div>
+                                    <div class="toggle-thumb"></div>
+                                </div>
                             </div>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="toggle-fillers" class="toggle-input">
-                                <div class="toggle-track"></div>
-                                <div class="toggle-thumb"></div>
-                            </div>
+                            <button class="btn-filler-scan" onclick="CalculadoraPage.showFillersModal()" title="View Filler Data">
+                                <i class="fas fa-satellite-dish"></i> SCAN LOG
+                            </button>
                         </div>
                         
                         <!-- Speedrun -->
-                        <div class="calc-toggle-item" onclick="CalculadoraPage.toggleOption('speedrun')">
-                            <div class="toggle-info">
-                                <div class="toggle-label">
-                                    <i class="fas fa-forward toggle-icon toggle-icon-blue"></i>
-                                    Speedrun
+                        <div class="calc-toggle-group">
+                            <div class="calc-toggle-item" onclick="CalculadoraPage.toggleOption('speedrun')">
+                                <div class="toggle-info">
+                                    <div class="toggle-label">
+                                        <i class="fas fa-forward toggle-icon toggle-icon-blue"></i>
+                                        SPEEDRUN
+                                    </div>
+                                    <div class="toggle-hint">Skip OP/ED (-4m)</div>
                                 </div>
-                                <div class="toggle-hint">Skip OP/ED (-4m)</div>
-                            </div>
-                            <div class="toggle-switch">
-                                <input type="checkbox" id="toggle-speedrun" class="toggle-input">
-                                <div class="toggle-track"></div>
-                                <div class="toggle-thumb"></div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="toggle-speedrun" class="toggle-input">
+                                    <div class="toggle-track"></div>
+                                    <div class="toggle-thumb"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                 <!-- Results -->
                 <div class="calc-results-panel">
@@ -170,6 +185,28 @@ require_once 'includes/nav.php';
                     <div class="calc-saved" id="calc-saved">
                         <span class="saved-badge">SAVED 0h</span>
                     </div>
+
+                    <!-- NEW: SHARE ACTIONS -->
+                    <div class="calc-actions">
+                        <button class="btn-calc-action share-whatsapp" onclick="CalculadoraPage.copyForWhatsApp()" title="Copiar para WhatsApp">
+                            <i class="fab fa-whatsapp"></i> WHATSAPP
+                        </button>
+                        <button class="btn-calc-action share-card" onclick="CalculadoraPage.shareMarathonCard()" title="Gerar Marathon Card">
+                            <i class="fas fa-id-card"></i> CARD
+                        </button>
+                    </div>
+                </div>
+            </div> <!-- End of .calc-bottom -->
+
+            <!-- NEW: INTERACTIVE TIMELINE -->
+            <div class="calc-timeline-section">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-stream"></i> MISSION TIMELINE</h3>
+                    <div class="section-line"></div>
+                </div>
+                <div id="interactive-timeline" class="interactive-timeline">
+                    <!-- Gerado via JS -->
+                    <div class="timeline-empty">Adicione animes para ver o cronograma</div>
                 </div>
             </div>
         </div>

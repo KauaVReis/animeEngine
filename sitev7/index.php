@@ -28,17 +28,84 @@ require_once 'includes/nav.php';
                     <button class="btn btn-secondary" id="hero-list-btn">
                         <i class="fas fa-plus"></i> Minha Lista
                     </button>
-                <?php else: ?>
+                <?php
+else: ?>
                     <a href="login.php" class="btn btn-secondary">
                         <i class="fas fa-sign-in-alt"></i> Entrar para Salvar
                     </a>
-                <?php endif; ?>
+                <?php
+endif; ?>
             </div>
         </div>
     </section>
 
     <!-- QUOTE OF THE DAY -->
     <div id="quote-container"></div>
+
+    <!-- SECTION: RADIO OST -->
+    <section class="anime-section" id="section-radio">
+        <div class="section-header">
+            <h2 class="section-title"><i class="fas fa-headphones-alt"></i> Rádio & Trilhas Sonoras</h2>
+            <a href="explorar.php" class="section-link">Sintonizar →</a>
+        </div>
+        <div class="carousel ost-carousel" style="display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: 20px;">
+            <!-- Cards de OST Premium -->
+            <div class="ost-card-premium" onclick="OSTPlayer.play('owS7fA2mIu0', 'Tokyo Ghoul', 'Unravel (Opening 1)', 'https://img.youtube.com/vi/owS7fA2mIu0/0.jpg')">
+                <div class="card-image-wrapper">
+                    <img src="https://img.youtube.com/vi/owS7fA2mIu0/0.jpg" alt="Unravel" onerror="window.OSTPlayer.onCoverError(this, 'Tokyo Ghoul')">
+                    <div class="card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="card-info">
+                    <h3 class="card-title">Unravel</h3>
+                    <p class="card-studio">Tokyo Ghoul</p>
+                </div>
+            </div>
+
+            <div class="ost-card-premium" onclick="OSTPlayer.play('u3z89_P4Y_U', 'Naruto Shippuden', 'Blue Bird (Opening 3)', 'https://img.youtube.com/vi/u3z89_P4Y_U/0.jpg')">
+                <div class="card-image-wrapper">
+                    <img src="https://img.youtube.com/vi/u3z89_P4Y_U/0.jpg" alt="Blue Bird" onerror="window.OSTPlayer.onCoverError(this, 'Naruto Shippuden')">
+                    <div class="card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="card-info">
+                    <h3 class="card-title">Blue Bird</h3>
+                    <p class="card-studio">Naruto Shippuden</p>
+                </div>
+            </div>
+
+            <div class="ost-card-premium" onclick="OSTPlayer.play('GwaRztMaoY0', 'Jujutsu Kaisen', 'Kaikai Kitan', 'https://img.youtube.com/vi/GwaRztMaoY0/0.jpg')">
+                <div class="card-image-wrapper">
+                    <img src="https://img.youtube.com/vi/GwaRztMaoY0/0.jpg" alt="Kaikai Kitan" onerror="window.OSTPlayer.onCoverError(this, 'Jujutsu Kaisen')">
+                    <div class="card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="card-info">
+                    <h3 class="card-title">Kaikai Kitan</h3>
+                    <p class="card-studio">Jujutsu Kaisen</p>
+                </div>
+            </div>
+
+            <div class="ost-card-premium" onclick="OSTPlayer.play('X9LwI6G2X74', 'Saint Seiya', 'Pegasus Fantasy', 'https://img.youtube.com/vi/X9LwI6G2X74/0.jpg')">
+                <div class="card-image-wrapper">
+                    <img src="https://img.youtube.com/vi/X9LwI6G2X74/0.jpg" alt="Pegasus Fantasy" onerror="window.OSTPlayer.onCoverError(this, 'Saint Seiya')">
+                    <div class="card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="card-info">
+                    <h3 class="card-title">Pegasus Fantasy</h3>
+                    <p class="card-studio">Saint Seiya</p>
+                </div>
+            </div>
+
+            <div class="ost-card-premium" onclick="OSTPlayer.play('h0S8H0MNoM4', 'Hunter x Hunter', 'Departure!', 'https://img.youtube.com/vi/h0S8H0MNoM4/0.jpg')">
+                <div class="card-image-wrapper">
+                    <img src="https://img.youtube.com/vi/h0S8H0MNoM4/0.jpg" alt="Departure!" onerror="window.OSTPlayer.onCoverError(this, 'Hunter x Hunter')">
+                    <div class="card-overlay"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="card-info">
+                    <h3 class="card-title">Departure!</h3>
+                    <p class="card-studio">Hunter x Hunter</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- SECTION: CONTINUAR ASSISTINDO -->
     <?php if ($usuario): ?>
@@ -49,7 +116,8 @@ require_once 'includes/nav.php';
         </div>
         <div class="carousel" id="carousel-watching"></div>
     </section>
-    <?php endif; ?>
+    <?php
+endif; ?>
 
     <!-- ANIME OF THE DAY -->
     <div id="anime-of-day-container"></div>

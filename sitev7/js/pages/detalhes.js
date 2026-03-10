@@ -667,6 +667,20 @@ const DetalhesPage = {
 
             console.info('Fillers carregados com sucesso. Slug:', data.slug);
             this.fillers = data.episodes;
+
+            // Correção Dinâmica de Episódios (Para animes em lançamento com '?')
+            if (!this.anime.episodes && this.fillers && this.fillers.length > 0) {
+                this.anime.episodes = this.fillers.length;
+
+                // Atualizar texto na DOM
+                const metaSpans = document.querySelectorAll('.details-meta span');
+                metaSpans.forEach(span => {
+                    if (span.innerHTML.includes('fa-tv')) {
+                        span.innerHTML = `<i class="fas fa-tv"></i> ${this.anime.episodes} episódios`;
+                    }
+                });
+            }
+
             this.renderEpisodes(this.fillers);
         } catch (error) {
             console.error('Erro ao buscar fillers:', error);
