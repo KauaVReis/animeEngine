@@ -81,11 +81,16 @@ const API = {
         let mediaTitle = media.title?.romaji || media.title?.english || media.title?.native || 'Sem Título';
         let epsCount = media.episodes;
 
-        // Fallback dinâmico (Sem travar o site): Se for nulo ('?'), puxa da nossa API local rápida
+        // SMART FALLBACK: Se o anime está em lançamento (RELEASING) e não tem número total de eps,
+        // usamos o track do próximo episódio (Próximo - 1) para ter o número atual exato sem scrap.
+        if (!epsCount && media.nextAiringEpisode && media.nextAiringEpisode.episode) {
+            epsCount = media.nextAiringEpisode.episode - 1;
+        }
+
+        // Fallback dinâmico (Cache local) se ainda estiver nulo
         if (!epsCount) {
             await this.initCache();
             if (this.episodeCache) {
-                // AniList tem vários títulos (romaji, english), testamos os mais prováveis contra nosso cache interno
                 const searchKeys = [
                     media.title?.romaji,
                     media.title?.english,
@@ -147,6 +152,7 @@ const API = {
                     averageScore
                     episodes
                     format
+                    nextAiringEpisode { episode }
                 }
             }
         }`;
@@ -170,6 +176,7 @@ const API = {
                     averageScore
                     episodes
                     format
+                    nextAiringEpisode { episode }
                 }
             }
         }`;
@@ -224,6 +231,7 @@ const API = {
                     averageScore
                     episodes
                     format
+                    nextAiringEpisode { episode }
                 }
             }
         }`;
@@ -446,6 +454,7 @@ const API = {
                     episodes
                     format
                     status
+                    nextAiringEpisode { episode }
                 }
             }
         }`;
