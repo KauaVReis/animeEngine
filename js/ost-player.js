@@ -20,10 +20,13 @@ const OSTPlayer = {
     init() {
         // Load saved state from LocalStorage
         const savedState = localStorage.getItem('ost_engine_state');
-        if (savedState) {
+        if (savedState && savedState !== "null" && savedState !== "undefined") {
             try {
                 this.state = JSON.parse(savedState);
-            } catch (e) { }
+            } catch (e) { 
+                console.error('Erro ao ler estado do OST Player:', e);
+                localStorage.removeItem('ost_engine_state');
+            }
         }
 
         this.createUI();
@@ -272,14 +275,19 @@ const OSTPlayer = {
     },
 
     close() {
+        console.log('🔇 Fechando OST Player...');
         if (this.isReady && this.ytPlayer) {
-            this.ytPlayer.pauseVideo();
-            this.ytPlayer.stopVideo();
+            try {
+                this.ytPlayer.pauseVideo();
+                this.ytPlayer.stopVideo();
+            } catch (e) { console.warn('Erro ao parar YT Player:', e); }
         }
+        
         this.state.isPlaying = false;
         this.state.videoId = null;
         this.state.currentTime = 0;
-        this.saveState();
+        localStorage.removeItem('ost_engine_state');
+
         if (this.player) {
             this.player.classList.remove('active');
         }
