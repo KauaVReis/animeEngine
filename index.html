@@ -11,12 +11,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            /* AnimeEngine v6 Tokens */
+            /* AnimeEngine Tokens */
             --color-bg: #f5f5f5;
             --color-surface: #ffffff;
             --color-black: #1a1a1a;
             --color-white: #ffffff;
 
+            --color-primary-v7: #10b981;
+            /* v7 Green Style */
             --color-primary-v6: #ff3366;
             /* v6 Primary */
             --color-primary-v5: #3366ff;
@@ -132,6 +134,10 @@
             animation-delay: 0.4s;
         }
 
+        #old-versions.show .version-card:nth-child(6) {
+            animation-delay: 0.5s;
+        }
+
         .version-card {
             background: var(--color-surface);
             border: var(--border-width) solid var(--border-color);
@@ -166,6 +172,11 @@
             border-left: var(--border-width) solid var(--border-color);
         }
 
+        .v7-theme .badge {
+            background: var(--color-primary-v7);
+            color: white;
+        }
+
         .v6-theme .badge {
             background: var(--color-primary-v6);
             color: white;
@@ -185,6 +196,10 @@
         .card-icon {
             font-size: 3rem;
             margin-bottom: 1.5rem;
+        }
+
+        .v7-theme .card-icon {
+            color: var(--color-primary-v7);
         }
 
         .v6-theme .card-icon {
@@ -233,6 +248,10 @@
             font-size: 1rem;
         }
 
+        .v7-theme .feature-list i {
+            color: var(--color-primary-v7);
+        }
+
         .v6-theme .feature-list i {
             color: var(--color-primary-v6);
         }
@@ -260,14 +279,22 @@
             box-shadow: 2px 2px 0 var(--border-color);
         }
 
-        .v6-theme .btn {
-            background: var(--color-primary-v6);
+        /* Botão V7 */
+        .v7-theme .btn {
+            background: var(--color-primary-v7);
             color: white;
             border-color: var(--color-black);
         }
 
-        .arcade-theme .btn {
-            background: var(--color-primary-arcade);
+        .v7-theme:hover .btn {
+            background: #059669;
+            box-shadow: 4px 4px 0 var(--border-color);
+            transform: translate(-1px, -1px);
+        }
+
+        /* Botão V6 */
+        .v6-theme .btn {
+            background: var(--color-primary-v6);
             color: white;
             border-color: var(--color-black);
         }
@@ -278,12 +305,20 @@
             transform: translate(-1px, -1px);
         }
 
+        /* Botão Arcade */
+        .arcade-theme .btn {
+            background: var(--color-primary-arcade);
+            color: white;
+            border-color: var(--color-black);
+        }
+
         .arcade-theme:hover .btn {
             background: #9333ea;
             box-shadow: 4px 4px 0 var(--border-color);
             transform: translate(-1px, -1px);
         }
 
+        /* Botões Antigos */
         .v5-theme .btn {
             background: #fff;
             color: var(--color-black);
@@ -323,109 +358,14 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.8s ease, visibility 0.8s;
-            text-align: center;
+            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
+            overflow: hidden;
             color: #fff;
         }
 
         #splash-screen.hidden {
             opacity: 0;
             visibility: hidden;
-        }
-
-        .splash-content h1 {
-            font-family: var(--font-display);
-            font-size: 3rem;
-            text-transform: uppercase;
-            letter-spacing: 15px;
-            margin: 0;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 1s ease forwards 0.5s;
-        }
-
-        .splash-content p {
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            margin-top: 10px;
-            opacity: 0;
-            animation: fadeIn 1s ease forwards 1.5s;
-            color: #888;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .splash-content h1 {
-                font-size: 1.8rem;
-                letter-spacing: 8px;
-            }
-
-            .splash-content p {
-                font-size: 0.9rem;
-            }
-
-            .logo {
-                font-size: 2.5rem;
-            }
-
-            .versions-grid {
-                grid-template-columns: 1fr;
-            }
-
-            body {
-                padding: 1rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- Splash Screen Premium -->
-    <div id="splash-screen">
-        <canvas id="splash-particles"></canvas>
-        <div class="scanline"></div>
-        <div class="splash-content">
-            <h1 class="glitch" data-text="BRUH PRODUCTIONS">BRUH PRODUCTIONS</h1>
-            <p>site desenvolvido por Kauã Vitor Reis</p>
-        </div>
-    </div>
-
-    <style>
-        /* CSS Premium do Splash */
-        #splash-screen {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
-            overflow: hidden;
-            color: #fff;
         }
 
         #splash-particles {
@@ -448,6 +388,7 @@
             position: relative;
             z-index: 5;
             animation: kenBurns 6s ease-out forwards;
+            text-align: center;
         }
 
         .glitch {
@@ -458,6 +399,7 @@
             position: relative;
             opacity: 0;
             animation: fadeInUp 1s ease forwards 0.5s;
+            margin: 0;
         }
 
         .glitch::before,
@@ -575,8 +517,33 @@
                 font-size: 0.7rem;
                 letter-spacing: 2px;
             }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .versions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 1rem;
+            }
         }
     </style>
+</head>
+
+<body>
+
+    <!-- Splash Screen Premium -->
+    <div id="splash-screen">
+        <canvas id="splash-particles"></canvas>
+        <div class="scanline"></div>
+        <div class="splash-content">
+            <h1 class="glitch" data-text="BRUH PRODUCTIONS">BRUH PRODUCTIONS</h1>
+            <p>site desenvolvido por Kauã Vitor Reis</p>
+        </div>
+    </div>
 
     <script>
         // Splash Particles Logic
@@ -590,9 +557,7 @@
         }
 
         class Particle {
-            constructor() {
-                this.reset();
-            }
+            constructor() { this.reset(); }
             reset() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
@@ -640,6 +605,18 @@
                 setTimeout(() => splash.remove(), 1200);
             }, 4500);
         });
+
+        // Configuração Dinâmica do Link V7 (Vercel PHP fallback vs Localhost)
+        document.addEventListener('DOMContentLoaded', () => {
+            const linkV7 = document.getElementById('link-v7');
+            if (linkV7) {
+                const hostname = window.location.hostname;
+                const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168');
+
+                // Se for localhost, usa o caminho relativo padrão. Senão, direciona pro servidor hospedado.
+                linkV7.href = isLocal ? 'sitev7/index.php' : 'https://animeengine.ct.ws/sitev7/';
+            }
+        });
     </script>
 
     <div class="container">
@@ -649,22 +626,22 @@
         </header>
 
         <div class="versions-grid" id="current-versions">
-            <!-- V6 CARD (New, primary) -->
-            <a href="sitev6/index.html" class="version-card v6-theme">
-                <div class="badge">Nova Geração</div>
+            <!-- V7 CARD (New, official) -->
+            <a href="#" id="link-v7" class="version-card v7-theme">
+                <div class="badge">Oficial</div>
                 <div class="card-icon">
-                    <i class="fas fa-bolt"></i>
+                    <i class="fas fa-server"></i>
                 </div>
-                <h2 class="card-title">Versão 6.0</h2>
+                <h2 class="card-title">Versão 7.0</h2>
                 <p class="card-desc">
-                    Experiência completa com timeline, calendário sazonal e sincronização automática via AniList.
+                    Nova geração com Backend em PHP, base de dados segura e sistema avançado de perfis.
                 </p>
                 <ul class="feature-list">
-                    <li><i class="fas fa-check-circle"></i> Design Neo‑Brutalist</li>
-                    <li><i class="fas fa-check-circle"></i> Timeline & Calendário</li>
-                    <li><i class="fas fa-check-circle"></i> Tradução Automática</li>
+                    <li><i class="fas fa-check-circle"></i> Sistema de Perfil Seguro</li>
+                    <li><i class="fas fa-check-circle"></i> Streaks & Estatísticas</li>
+                    <li><i class="fas fa-check-circle"></i> Sincronização e Listas</li>
                 </ul>
-                <div class="btn">Acessar v6 (Recomendado)</div>
+                <div class="btn">Acessar v7 (Oficial)</div>
             </a>
         </div>
 
@@ -673,6 +650,14 @@
         </div>
 
         <div class="versions-grid" id="old-versions" style="display:none;">
+            <!-- V6 CARD (Moved to old versions) -->
+            <a href="sitev6/index.html" class="version-card v6-theme">
+                <div class="badge">V6</div>
+                <div class="card-icon"><i class="fas fa-bolt"></i></div>
+                <h2 class="card-title">Versão 6.0</h2>
+                <p class="card-desc">Design Neo‑Brutalist, timeline, calendário sazonal e front-end completo.</p>
+                <div class="btn">Acessar</div>
+            </a>
             <!-- V5 CARD (Legacy) -->
             <a href="sitev5/index.html" class="version-card v5-theme">
                 <div class="badge">V5</div>
@@ -718,18 +703,21 @@
         <!-- Coming soon section -->
         <h2 style="text-align:center; margin-top:4rem;">Em breve</h2>
         <div class="versions-grid" id="coming-soon">
+
+            <!-- V8 CARD -->
             <div class="version-card coming-soon-theme">
                 <div class="badge">Coming Soon</div>
                 <div class="card-icon">
                     <i class="fas fa-rocket"></i>
                 </div>
-                <h2 class="card-title">Versão 7.0</h2>
+                <h2 class="card-title">Versão 8.0</h2>
                 <p class="card-desc">
-                    Nova geração com backend PHP, perfis, estatísticas e mais funcionalidades.
+                    Arquitetura SPA (App Nativo), JS Modular, CSS Otimizado e performance Extrema.
                 </p>
-                <div class="btn" style="opacity:0.5; cursor:not-allowed;">Aguardando</div>
+                <div class="btn" style="opacity:0.5; cursor:not-allowed;">Em Desenvolvimento</div>
             </div>
 
+            <!-- Arcade -->
             <div class="version-card arcade-theme coming-soon-theme">
                 <div class="badge">Coming Soon</div>
                 <div class="card-icon">
@@ -737,7 +725,7 @@
                 </div>
                 <h2 class="card-title">Arcade</h2>
                 <p class="card-desc">
-                    Minigames diários: Music Quiz, CharacterDle e outros projetos divertidos.
+                    Minigames diários: Music Quiz, CharacterDle e outros projetos divertidos integrados ao seu perfil.
                 </p>
                 <div class="btn" style="opacity:0.5; cursor:not-allowed;">Aguardando</div>
             </div>
@@ -768,7 +756,7 @@
         </script>
 
         <p style="text-align: center; margin-top: 3rem; color: #888; font-size: 0.9rem;">
-            AnimeEngine &copy; 2025 - Todos os direitos reservados.
+            AnimeEngine &copy; 2026 - Todos os direitos reservados.
         </p>
     </div>
 
