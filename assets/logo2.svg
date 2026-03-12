@@ -1,0 +1,56 @@
+<svg width="512" height="512" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sombra Neo-Brutalist Dinâmica (Inclinada) -->
+  <g transform="translate(5, 5) skewX(-5)">
+    <circle cx="50" cy="55" r="18" fill="#1A1A1A" opacity="0.3"/>
+    <g fill="#1A1A1A" opacity="0.3">
+      <rect x="47" y="32" width="6" height="8" transform="rotate(20 50 55)"/>
+      <rect x="47" y="32" width="6" height="8" transform="rotate(110 50 55)"/>
+      <rect x="47" y="32" width="6" height="8" transform="rotate(200 50 55)"/>
+      <rect x="47" y="32" width="6" height="8" transform="rotate(290 50 55)"/>
+    </g>
+  </g>
+
+  <!-- Engrenagem Dinâmica (Gear with Motion) -->
+  <g id="gear-v2" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round">
+    <!-- Base da Engrenagem com gradiente ou cor vibrante -->
+    <circle cx="50" cy="55" r="18" fill="#4B5563"/>
+    
+    <!-- Acentos Neon -->
+    <circle cx="50" cy="55" r="14" fill="none" stroke="#10B981" stroke-width="1.5" stroke-dasharray="10 5"/>
+
+    <!-- Dentes Assimétricos (Efeito de Rotação) -->
+    <g fill="#4B5563">
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(15 50 55)"/>
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(60 50 55)"/>
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(105 50 55)"/>
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(150 50 55)"/>
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(195 50 55)"/>
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(240 50 55)"/>
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(285 50 55)"/>
+      <path d="M47 32 L53 32 L55 24 L45 24 Z" transform="rotate(330 50 55)"/>
+    </g>
+    
+    <!-- Furo Central -->
+    <circle cx="50" cy="55" r="6" fill="#F3F4F6"/>
+  </g>
+
+  <!-- Chapéu de Palha Estilizado (Tilted/Jaunty Angle) -->
+  <g id="hat-v2" transform="rotate(-15 50 40)" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round">
+    <!-- Aba -->
+    <path d="M20 42 Q50 32 80 42 Q80 52 50 52 Q20 52 20 42 Z" fill="#FCD34D"/>
+    <!-- Copa -->
+    <path d="M32 40 C32 18 68 18 68 40" fill="#FCD34D"/>
+    <!-- Fita Vermelha Vibrante -->
+    <path d="M32 36 C32 30 68 30 68 36 L68 41 C68 35 32 35 32 41 Z" fill="#EF4444"/>
+    
+    <!-- Detalhes de Brilho -->
+    <path d="M40 25 Q45 22 50 25" fill="none" stroke="white" stroke-width="1.5" opacity="0.6" stroke-linecap="round"/>
+  </g>
+
+  <!-- Linhas de Velocidade (Motion Lines) -->
+  <g stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" opacity="0.8">
+    <line x1="15" y1="30" x2="5" y2="25" />
+    <line x1="12" y1="40" x2="2" y2="38" />
+    <line x1="18" y1="22" x2="10" y2="15" />
+  </g>
+</svg>
