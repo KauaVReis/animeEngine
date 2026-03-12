@@ -36,12 +36,12 @@ Thumbs.db
 *.sqlite
 *.db
 .agents/
+.gemini/
 .phpunit.result.cache
 
 # Outros
 naoSubir/
-miniGamesTeste/
 
-#jsons no cache
+# jsons no cache
 
 sitev7/api/cache/*
