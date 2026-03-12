@@ -20,17 +20,23 @@ const OSTPlayer = {
     init() {
         // Load saved state from LocalStorage
         const savedState = localStorage.getItem('ost_engine_state');
-        if (savedState) {
+        if (savedState && savedState !== "null" && savedState !== "undefined") {
             try {
                 this.state = JSON.parse(savedState);
-            } catch (e) { }
+            } catch (e) { 
+                console.error('Erro ao ler estado do OST Player:', e);
+                localStorage.removeItem('ost_engine_state');
+            }
         }
 
         this.createUI();
 
         // Load YouTube Iframe API only if a video was played or is playing
-        if (this.state.videoId) {
+        if (this.state.videoId && this.state.videoId !== 'null') {
             this.loadYTApi();
+        } else {
+            // Force hide if no valid videoId
+            if (this.player) this.player.classList.remove('active');
         }
     },
 
@@ -53,7 +59,8 @@ const OSTPlayer = {
 
         this.player = document.createElement('div');
         this.player.id = 'ost-global-player';
-        this.player.className = 'ost-global-player ' + (this.state.videoId ? 'active' : '');
+        const isActive = this.state.videoId && this.state.videoId !== 'null';
+        this.player.className = 'ost-global-player ' + (isActive ? 'active' : '');
 
         this.player.innerHTML = `
             <div id="ost-yt-container" class="ost-youtube-hidden"></div>
@@ -73,7 +80,7 @@ const OSTPlayer = {
                         <i class="fas fa-${this.state.isPlaying ? 'pause' : 'play'}-circle"></i>
                     </button>
                     <button class="ost-btn" onclick="OSTPlayer.seek(10)" title="Avançar 10s"><i class="fas fa-forward"></i></button>
-                    <button class="ost-btn" onclick="OSTPlayer.close()" title="Fechar Player"><i class="fas fa-times"></i></button>
+                    <button class="ost-btn ost-btn-close" onclick="OSTPlayer.close()" title="Fechar Player"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="ost-progress-container">
                     <span class="ost-time" id="ost-time-current">0:00</span>
@@ -268,12 +275,19 @@ const OSTPlayer = {
     },
 
     close() {
+        console.log('🔇 Fechando OST Player...');
         if (this.isReady && this.ytPlayer) {
-            this.ytPlayer.pauseVideo();
+            try {
+                this.ytPlayer.pauseVideo();
+                this.ytPlayer.stopVideo();
+            } catch (e) { console.warn('Erro ao parar YT Player:', e); }
         }
+        
         this.state.isPlaying = false;
         this.state.videoId = null;
-        this.saveState();
+        this.state.currentTime = 0;
+        localStorage.removeItem('ost_engine_state');
+
         if (this.player) {
             this.player.classList.remove('active');
         }

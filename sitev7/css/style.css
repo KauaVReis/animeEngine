@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AnimeEngine v6 - CSS Design System
  * Neo-Brutalist Style
  */
@@ -112,7 +112,13 @@
 [data-theme="migueliMode"] .format-tag,
 [data-theme="kauaMode"] .quick-filter,
 [data-theme="kauaMode"] .genre-tag,
-[data-theme="kauaMode"] .format-tag {
+[data-theme="kauaMode"] .format-tag,
+[data-theme="pirraMode"] .quick-filter,
+[data-theme="pirraMode"] .genre-tag,
+[data-theme="pirraMode"] .format-tag,
+[data-theme="mobyMode"] .quick-filter,
+[data-theme="mobyMode"] .genre-tag,
+[data-theme="mobyMode"] .format-tag {
     background: var(--color-surface) !important;
     color: var(--color-text) !important;
     border: var(--border-width) solid var(--border-color) !important;
@@ -131,7 +137,11 @@
 [data-theme="benevaMode"] .quick-filter.active,
 [data-theme="benevaMode"] .format-tag.active,
 [data-theme="kauaMode"] .quick-filter.active,
-[data-theme="kauaMode"] .format-tag.active {
+[data-theme="kauaMode"] .format-tag.active,
+[data-theme="pirraMode"] .quick-filter.active,
+[data-theme="pirraMode"] .format-tag.active,
+[data-theme="mobyMode"] .quick-filter.active,
+[data-theme="mobyMode"] .format-tag.active {
     background: var(--color-primary) !important;
     color: var(--color-on-primary) !important;
 }
@@ -193,8 +203,6 @@
     /* Primary elements are bright green */
     /* Text on filled buttons is black */
     --color-on-primary: #000000;
-
-    --color-primary: #00ff41;
 
     --color-primary: #00ff41;
     --color-secondary: #008f11;
@@ -406,9 +414,9 @@
     --color-text-muted: #888888;
     --color-text-light: #444444;
 
-    --border-color: #333333;
+    --border-color: #ffffff;
     --shadow-neo: 0px 0px 0 #000000;
-    --shadow-neo-hover: 0px 0px 10px rgba(255, 255, 255, 0.2);
+    --shadow-neo-hover: 0px 0px 10px rgba(255, 255, 255, 0.4);
 }
 
 /* Developer Mode (VS Code Dark) */
@@ -1700,8 +1708,13 @@ h6 {
 
 /* Login Button Custom Styles */
 .btn-login {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    color: var(--color-text) !important;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)) !important;
+    color: var(--color-on-primary) !important;
     border: none;
     border-radius: 50%;
     box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
@@ -1796,7 +1809,7 @@ h6 {
     font-size: 0.75rem;
     font-weight: 700;
     background: var(--color-primary);
-    color: white;
+    color: var(--color-on-primary);
     padding: 2px 6px;
     transform: rotate(-3deg);
 }
@@ -1844,7 +1857,7 @@ h6 {
     /* Wider button */
     background: var(--color-primary);
     /* Primary color */
-    color: var(--color-white);
+    color: var(--color-on-primary);
     border-left: var(--border-width) solid var(--border-color);
     transition: all var(--transition-fast);
 }
@@ -2062,6 +2075,7 @@ h6 {
     gap: var(--space-xs);
     padding: var(--space-xs) var(--space-sm);
     background: var(--color-secondary);
+    color: var(--color-on-primary);
     border: var(--border-width) solid var(--border-color);
     cursor: pointer;
     transition: transform var(--transition-fast);
@@ -11413,3 +11427,212 @@ body.trailer-focus-mode .trailer-focus-close {
         background-position: 200% 0;
     }
 }
+
+/* ========================================
+   AIRING COUNTDOWN WIDGET
+======================================== */
+.section-subtitle {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 2px;
+    margin-top: -var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.airing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.airing-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    display: flex;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.airing-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--color-primary);
+    transform: scaleY(0);
+    transition: transform var(--transition-fast);
+}
+
+.airing-card:hover {
+ transform: translateX(5px);
+ box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.airing-card:hover::before {
+ transform: scaleY(1);
+}
+
+.airing-card-image {
+ width: 80px;
+ height: 110px;
+ flex-shrink: 0;
+ position: relative;
+}
+
+.airing-card-image img {
+ width: 100%;
+ height: 100%;
+ object-fit: cover;
+}
+
+.airing-badge {
+ position: absolute;
+ bottom: 0;
+ left: 0;
+ right: 0;
+ background: rgba(0, 0, 0, 0.8);
+ color: var(--color-primary);
+ font-size: 0.7rem;
+ font-weight: 900;
+ text-align: center;
+ padding: 2px 0;
+}
+
+.airing-card-info {
+ padding: var(--space-md);
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ gap: var(--space-xs);
+ flex-grow: 1;
+}
+
+.airing-title {
+ font-size: 0.9rem;
+ font-weight: 700;
+ display: -webkit-box;
+ -webkit-line-clamp: 2;
+ -webkit-box-orient: vertical;
+ overflow: hidden;
+}
+
+.airing-timer {
+ display: flex;
+ gap: 10px;
+}
+
+.timer-unit {
+ background: var(--color-black);
+ color: var(--color-white);
+ padding: 2px 8px;
+    font-family: 'JetBrains Mono', monospace;
+ font-size: 0.8rem;
+ font-weight: 700;
+ border-radius: 2px;
+}
+
+.timer-now {
+ color: var(--color-primary);
+ font-weight: 900;
+ text-transform: uppercase;
+ font-size: 0.8rem;
+ animation: flash 1s infinite;
+}
+
+@keyframes flash {
+ 0%, 100% { opacity: 1; }
+ 50% { opacity: 0.5; }
+}
+
+/* ========================================
+ VIEW TRANSITIONS
+======================================== */
+@view-transition {
+ navigation: auto;
+}
+
+.header { view-transition-name: main-header; }
+.sidebar { view-transition-name: main-sidebar; }
+.hero-banner { view-transition-name: hero-banner; }
+.hero-title { view-transition-name: hero-title; }
+
+/* Custom Animations for View Transitions */
+::view-transition-old(root) {
+ animation: 0.3s ease-out both fade-out;
+}
+
+::view-transition-new(root) {
+ animation: 0.4s ease-in both fade-in;
+}
+
+@keyframes fade-in {
+ from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+
+
+/* ========================================
+   CUSTOM THEMES: PIRRA & MOBY
+======================================== */
+
+/* Pirra Mode (Venezuela Flag Colors) */
+:root[data-theme="pirraMode"] {
+    --color-bg: #001e40; /* Deep Blue background */
+    --color-surface: #00247D; /* Traditional Blue */
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-on-primary: #000000;
+
+    --color-primary: #FFCC00; /* Vibrant Yellow */
+    --color-secondary: #CF142B; /* Deep Red */
+    --color-blue: #00247D;
+    --color-green: #33cc66;
+    --color-purple: #9966ff;
+
+    --color-text: #ffffff;
+    --color-text-muted: #e0e0e0;
+    --color-text-light: #b0b0b0;
+
+    --border-color: #FFCC00;
+    --shadow-neo: 4px 4px 0 #CF142B;
+    --shadow-neo-hover: 6px 6px 0 #FFCC00;
+}
+
+/* Moby Mode (Dark Oceanic Theme) */
+
+
+
+/* Moby Mode (Dark Oceanic Theme) */
+:root[data-theme="mobyMode"] {
+    --color-bg: #000b1a;
+    --color-surface: #001429;
+    --color-black: #000000;
+    --color-white: #ffffff;
+    --color-on-primary: #ffffff;
+    --color-primary: #00aaff;
+    --color-secondary: #006994;
+    --color-blue: #005f73;
+    --color-green: #0a9396;
+    --color-purple: #94d2bd;
+    --color-text: #e0faff;
+    --color-text-muted: #94d2bd;
+    --color-text-light: #0a9396;
+    --border-color: #00aaff;
+    --shadow-neo: 4px 4px 0 #005f73;
+    --shadow-neo-hover: 6px 6px 0 #00aaff;
+}
+

@@ -40,7 +40,9 @@ const Particles = {
         bloodMoon: { type: 'snow', color: '#ff0000', count: 40, speed: 0.7 },
         oledMode: { type: 'dots', color: '#333333', count: 10, speed: 0.2 },
         developerMode: { type: 'matrix', color: '#7cfc00', count: 30, speed: 1 },
-        yandereMode: { type: 'sakura', color: '#8b0000', count: 30, speed: 1.5 }
+        yandereMode: { type: 'sakura', color: '#8b0000', count: 30, speed: 1.5 },
+        pirraMode: { type: 'dots', color: '#FFCC00', count: 40, speed: 1.5 },
+        mobyMode: { type: 'whale', color: '#ffffff', count: 8, speed: 1.2 }
     },
 
 
@@ -113,7 +115,10 @@ const Particles = {
             type: config.type,
             // For matrix effect
             char: String.fromCharCode(0x30A0 + Math.random() * 96),
-            trail: []
+            trail: [],
+            // Whale specific
+            tailAngle: 0,
+            mouthOpen: 0
         };
     },
 
@@ -142,8 +147,15 @@ const Particles = {
             p.y = -20;
             p.x = Math.random() * this.canvas.width;
         }
-        if (p.x > this.canvas.width + 20) p.x = -20;
-        if (p.x < -20) p.x = this.canvas.width + 20;
+        if (p.x > this.canvas.width + 100) p.x = -100;
+        if (p.x < -100) p.x = this.canvas.width + 100;
+
+        // Whale animation
+        if (p.type === 'whale') {
+            p.tailAngle = Math.sin(Date.now() / 500) * 0.3;
+            p.mouthOpen = (Math.sin(Date.now() / 1000) + 1) * 0.1;
+            p.speedY = Math.sin(p.x / 100) * 0.5; // Slight wave motion
+        }
 
         // Matrix trail
         if (p.type === 'matrix') {
@@ -176,6 +188,9 @@ const Particles = {
                 break;
             case 'dots':
                 this.drawDots(p);
+                break;
+            case 'whale':
+                this.drawWhale(p);
                 break;
         }
 
@@ -252,6 +267,45 @@ const Particles = {
 
         this.ctx.beginPath();
         this.ctx.arc(p.x, p.y, p.size / 3, 0, Math.PI * 2);
+        this.ctx.fill();
+    },
+
+    drawWhale(p) {
+        this.ctx.translate(p.x, p.y);
+        // Whales swim horizontally, flip based on speedX
+        if (p.speedX < 0) this.ctx.scale(-1, 1);
+        
+        this.ctx.globalAlpha = p.opacity * 0.4;
+        this.ctx.fillStyle = p.color;
+        this.ctx.shadowBlur = 15;
+        this.ctx.shadowColor = p.color;
+
+        // Body
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 0, p.size * 2, p.size, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Tail
+        this.ctx.save();
+        this.ctx.translate(-p.size * 1.8, 0);
+        this.ctx.rotate(p.tailAngle);
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, 0);
+        this.ctx.lineTo(-p.size, -p.size);
+        this.ctx.lineTo(-p.size, p.size);
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.restore();
+
+        // Fin
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, p.size * 0.5, p.size * 0.5, p.size * 0.8, Math.PI / 4, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Eye
+        this.ctx.fillStyle = '#000000';
+        this.ctx.beginPath();
+        this.ctx.arc(p.size * 1.2, -p.size * 0.2, p.size * 0.1, 0, Math.PI * 2);
         this.ctx.fill();
     },
 

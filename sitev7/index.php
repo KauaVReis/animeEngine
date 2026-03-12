@@ -107,6 +107,9 @@ endif; ?>
         </div>
     </section>
 
+    <!-- SECTION: PRÓXIMOS EPISÓDIOS -->
+    <section class="anime-section" id="section-airing" style="display: none;"></section>
+
     <!-- SECTION: CONTINUAR ASSISTINDO -->
     <?php if ($usuario): ?>
     <section class="anime-section" id="section-watching">
@@ -157,6 +160,6 @@ endif; ?>
 </main>
 
 <?php
-$scripts_pagina = ['js/pages/home.js'];
+$scripts_pagina = ['js/airing.js', 'js/pages/home.js'];
 require_once 'includes/footer.php';
 ?>

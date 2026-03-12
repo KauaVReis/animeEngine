@@ -221,7 +221,7 @@ const CalculadoraPage = {
             const query = e.target.value.trim();
 
             // Lógica de Temas Secretos
-            const secretThemes = ['benevaMode', 'parafaMode', 'migueliMode', 'kauaMode', 'ruanMode', 'johnMode', 'bonfinMode', 'arcadeMode', 'zenMode', 'goldMode', 'xpMode', 'sakuraMode', 'cyberHacker', 'vaporwaveMode', 'vestaMode', 'hollowMode', 'blueprintMode'];
+            const secretThemes = ['benevaMode', 'parafaMode', 'migueliMode', 'kauaMode', 'ruanMode', 'johnMode', 'bonfinMode', 'arcadeMode', 'zenMode', 'goldMode', 'xpMode', 'sakuraMode', 'cyberHacker', 'vaporwaveMode', 'vestaMode', 'hollowMode', 'blueprintMode', 'pirraMode', 'mobyMode'];
             const matchedTheme = secretThemes.find(t => t.toLowerCase() === query.toLowerCase());
 
             if (matchedTheme) {

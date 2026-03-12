@@ -152,7 +152,7 @@ const API = {
                     averageScore
                     episodes
                     format
-                    nextAiringEpisode { episode }
+                    nextAiringEpisode { airingAt timeUntilAiring episode }
                 }
             }
         }`;
@@ -176,7 +176,7 @@ const API = {
                     averageScore
                     episodes
                     format
-                    nextAiringEpisode { episode }
+                    nextAiringEpisode { airingAt timeUntilAiring episode }
                 }
             }
         }`;
@@ -231,7 +231,7 @@ const API = {
                     averageScore
                     episodes
                     format
-                    nextAiringEpisode { episode }
+                    nextAiringEpisode { airingAt timeUntilAiring episode }
                 }
             }
         }`;
@@ -454,7 +454,7 @@ const API = {
                     episodes
                     format
                     status
-                    nextAiringEpisode { episode }
+                    nextAiringEpisode { airingAt timeUntilAiring episode }
                 }
             }
         }`;

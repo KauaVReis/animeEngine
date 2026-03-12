@@ -43,5 +43,4 @@ miniGamesTeste/
 
 #jsons no cache
 
-sitev7/api/cache/*.json
-sitev7/api/cache/*.txt
+sitev7/api/cache/*

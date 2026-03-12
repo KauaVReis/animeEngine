@@ -167,6 +167,18 @@ var Themes = window.Themes || {
             icon: '🔪',
             description: 'Doce, mas letal...',
             secret: true
+        },
+        pirraMode: {
+            name: 'Pirra Mode',
+            icon: '🇻🇪',
+            description: 'Orgulho Venezuelano',
+            secret: true
+        },
+        mobyMode: {
+            name: 'Moby Mode',
+            icon: '🐋',
+            description: 'Mergulho Profundo no Oceano',
+            secret: true
         }
     },
 
