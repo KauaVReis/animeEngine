@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANIME.TIME // v2.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['"Archivo Black"', 'sans-serif'],
+                        'body': ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    colors: {
+                        'neo-yellow': '#FBbf24',
+                        'neo-purple': '#a855f7',
+                        'neo-pink': '#ec4899',
+                        'neo-bg': '#f0f0f0',
+                        'neo-black': '#121212',
+                    },
+                    boxShadow: {
+                        'neo': '5px 5px 0px 0px #000000',
+                        'neo-hover': '2px 2px 0px 0px #000000',
+                        'neo-deep': '8px 8px 0px 0px #000000',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #e0e7ff;
+            background-image: radial-gradient(#a5b4fc 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        /* Neo-Brutalist Utility Classes */
+       .neo-box {
+            background-color: white;
+            border: 3px solid black;
+            box-shadow: 6px 6px 0px 0px black;
+            transition: all 0.1s ease-in-out;
+        }
+        
+       .neo-input {
+            border: 3px solid black;
+            box-shadow: 4px 4px 0px 0px black;
+            font-weight: bold;
+        }
+       .neo-input:focus {
+            outline: none;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px black;
+        }
+
+       .neo-btn {
+            background-color: #FBbf24; /* yellow */
+            border: 3px solid black;
+            font-family: 'Archivo Black', sans-serif;
+            text-transform: uppercase;
+            box-shadow: 4px 4px 0px 0px black;
+            transition: all 0.1s;
+        }
+       .neo-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px black;
+        }
+       .neo-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px 0px black;
+        }
+
+        /* Custom Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border: 3px solid black;
+            border-radius: 0;
+            background: #ec4899;
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 2px 2px 0px 0px black;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: white;
+            border: 2px solid black;
+        }
+
+        /* Number Input specific styling to hide arrows and look cool */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        
+        /* Glitch Effect for Title */
+       .glitch-wrapper {
+            position: relative;
+        }
+       .glitch-wrapper::before {
+            content: "ANIME.TIME";
+            position: absolute;
+            top: 0;
+            left: 3px;
+            color: #ec4899;
+            z-index: -1;
+            mix-blend-mode: multiply;
+        }
+       .glitch-wrapper::after {
+            content: "ANIME.TIME";
+            position: absolute;
+            top: 0;
+            left: -3px;
+            color: #06b6d4;
+            z-index: -2;
+            mix-blend-mode: multiply;
+        }
+
+       .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #000;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-body text-neo-black min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <nav class="w-full max-w-6xl mb-12 flex justify-between items-center">
+        <div class="neo-box px-4 py-2 bg-white -rotate-2">
+            <h1 class="text-3xl md:text-5xl font-display tracking-tighter italic glitch-wrapper">ANIME.TIME</h1>
+        </div>
+        <div class="hidden md:flex gap-4">
+            <div class="neo-box px-3 py-1 bg-cyan-300 text-xs font-bold uppercase">v2.1</div>
+            <div class="neo-box px-3 py-1 bg-green-300 text-xs font-bold uppercase">System: Online</div>
+        </div>
+    </nav>
+
+    <main class="w-full max-w-5xl relative">
+        
+        <section id="search-section" class="w-full max-w-2xl mx-auto text-center transition-all duration-500">
+            <h2 class="text-xl font-bold mb-4 uppercase tracking-widest bg-black text-white inline-block px-2">Initiate Protocol</h2>
+            
+            <div class="relative group">
+                <input type="text" id="anime-search" 
+                    class="neo-input w-full p-4 text-xl md:text-2xl bg-white placeholder-gray-400" 
+                    placeholder="TYPE ANIME NAME..."
+                    autocomplete="off">
+                <button class="absolute right-4 top-1/2 -translate-y-1/2 text-2xl hover:scale-110 transition-transform">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <div id="search-loader" class="hidden mt-8">
+                <span class="loader"></span>
+            </div>
+
+            <div id="search-results" class="hidden mt-4 grid gap-3 text-left">
+                </div>
+        </section>
+
+        <section id="dashboard-section" class="hidden animate-slide-up">
+            
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <button onclick="resetApp()" class="neo-btn px-6 py-3 text-sm flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <div class="neo-box flex-1 px-4 py-3 bg-white flex items-center justify-between">
+                    <span class="font-bold uppercase text-sm md:text-base truncate" id="dash-title">ONE PIECE</span>
+                    <span class="bg-black text-white px-2 text-xs font-mono" id="dash-status">AIRING</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-auto">
+                
+                <div class="neo-box md:row-span-2 p-2 bg-white flex flex-col items-center">
+                    <div class="w-full h-full border-2 border-black overflow-hidden relative group">
+                        <img id="dash-cover" src="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0">
+                        <div class="absolute bottom-0 left-0 w-full bg-black text-white text-center py-1 font-mono text-xs">
+                            TOTAL: <span id="dash-total-eps" class="text-yellow-400">1000</span> EPS
+                        </div>
+                    </div>
+                </div>
+
+                <div class="neo-box md:col-span-2 lg:col-span-3 p-6 bg-white relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                        <i class="fas fa-calculator text-9xl"></i>
+                    </div>
+                    
+                    <h3 class="font-display text-2xl mb-6 uppercase border-b-4 border-black inline-block">Progress Tracking</h3>
+                    
+                    <div class="mb-8">
+                        <div class="flex justify-between items-end mb-2">
+                            <label class="font-bold text-lg">Current Episode</label>
+                            <!-- UPDATED: Input field instead of div -->
+                            <input type="number" id="ep-input-field" 
+                                class="w-32 text-3xl font-display text-neo-pink bg-black px-2 transform -rotate-2 focus:rotate-0 transition-transform focus:outline-none focus:ring-4 focus:ring-yellow-400 text-center selection:bg-white selection:text-black" 
+                                value="0" min="0">
+                        </div>
+                        <input type="range" id="ep-slider" min="0" max="100" value="0" class="w-full">
+                        <div class="flex justify-between text-xs font-mono mt-1 font-bold">
+                            <span>START</span>
+                            <span id="slider-max-display">FINISH</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="border-2 border-black p-3 bg-gray-50 flex items-center justify-between hover:bg-yellow-50 transition cursor-pointer" onclick="document.getElementById('filler-toggle').click()">
+                            <div>
+                                <div class="font-bold flex items-center gap-2">
+                                    <i class="fas fa-ban text-red-500"></i> SKIP FILLERS
+                                </div>
+                                <div id="filler-status-text" class="text-xs text-gray-500 font-mono mt-1">Checking DB...</div>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" id="filler-toggle" class="peer sr-only">
+                                <div class="w-10 h-6 bg-gray-300 border-2 border-black peer-checked:bg-green-400 transition-all"></div>
+                                <div class="absolute left-0 top-0 w-5 h-6 bg-white border-2 border-black transition-all peer-checked:left-5"></div>
+                            </div>
+                        </div>
+
+                         <div class="border-2 border-black p-3 bg-gray-50 flex items-center justify-between hover:bg-yellow-50 transition cursor-pointer" onclick="document.getElementById('skip-op-toggle').click()">
+                            <div>
+                                <div class="font-bold flex items-center gap-2">
+                                    <i class="fas fa-forward text-blue-500"></i> SPEEDRUN
+                                </div>
+                                <div class="text-xs text-gray-500 font-mono mt-1">Skip OP/ED (~20m)</div>
+                            </div>
+                            <div class="relative">
+                                <input type="checkbox" id="skip-op-toggle" class="peer sr-only">
+                                <div class="w-10 h-6 bg-gray-300 border-2 border-black peer-checked:bg-blue-400 transition-all"></div>
+                                <div class="absolute left-0 top-0 w-5 h-6 bg-white border-2 border-black transition-all peer-checked:left-5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="neo-box p-4 bg-neo-yellow flex flex-col justify-between relative">
+                    <h4 class="font-bold text-sm uppercase">Daily Pace</h4>
+                    <div class="text-center my-2">
+                        <span id="pace-display" class="text-5xl font-display text-black">3</span>
+                        <span class="block text-xs font-bold">EPS / DAY</span>
+                    </div>
+                    <input type="range" id="pace-slider" min="1" max="24" value="3" class="w-full h-2 bg-black accent-white">
+                </div>
+
+                <div class="neo-box md:col-span-2 p-6 bg-neo-black text-white flex flex-col justify-center relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-5 transition-opacity"></div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <p class="text-gray-400 text-xs font-mono mb-1">REMAINING</p>
+                            <p class="text-4xl font-display text-neo-pink"><span id="res-eps">0</span></p>
+                            <p class="text-xs">EPISODES</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-xs font-mono mb-1">WATCH TIME</p>
+                            <p class="text-4xl font-display text-cyan-400"><span id="res-hours">0</span></p>
+                            <p class="text-xs">HOURS</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-800 text-center">
+                        <p class="text-sm text-gray-400 mb-2">ESTIMATED COMPLETION DATE</p>
+                        <p id="res-date-end" class="text-2xl md:text-3xl font-display text-white bg-neo-pink inline-block px-3 transform -rotate-1">LOADING...</p>
+                    </div>
+
+                    <div id="filler-saved-msg" class="hidden absolute top-0 left-0 w-full bg-green-500 text-black text-xs font-bold py-1 text-center">
+                        <i class="fas fa-recycle"></i> SAVED <span id="saved-hours">0</span> HOURS SKIPPING FILLER
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-16 mb-8 text-center opacity-50 font-mono text-xs">
+        <p>POWERED BY JIKAN API • DESIGNED FOR OTAKUS</p>
+    </footer>
+
+    <script>
+        // --- LOGIC CORE --- //
+        
+        let currentAnime = null;
+        let fillerData = [];
+        let hasFillerData = false;
+
+        // DB for Demo (Restored data)
+        const FILLER_DB = {
+            'One Piece': [[54,61], [98,99], [102,102], [131,143], [196,206], [220,225], [227,228], [279,283], [291,292], [303,303], [317,319], [326,336], [382,384], [406,407], [426,429], [457,458], [492,492], [542,542], [575,578], [590,590], [626,628], [747,750], [780,782], [807,807], [881,881], [895,896], [907,907], [1029,1030]],
+            'Naruto': [[26,26], [97,97], [101,106], [136,140], [143,219]],
+            'Naruto: Shippuuden': [[28,28], [57,71], [90,112], [144,151], [170,171], [176,196], [223,242], [257,260], [271,271], [279,281], [284,289], [290,295], [303,320], [347,361], [376,377], [388,390], [394,413], [416,416], [422,423], [427,450], [464,469], [480,483]],
+            'Bleach': [[33,33], [50,50], [64,109], [128,137], [168,189], [204,205], [213,214], [227,266], [287,287], [298,299], [303,305], [311,342], [355,355]]
+        };
+
+        const searchInput = document.getElementById('anime-search');
+        const searchLoader = document.getElementById('search-loader');
+        const searchResults = document.getElementById('search-results');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const searchSection = document.getElementById('search-section');
+
+        // Inputs
+        const epSlider = document.getElementById('ep-slider');
+        const epInputField = document.getElementById('ep-input-field'); // Updated name
+        const paceSlider = document.getElementById('pace-slider');
+        const fillerToggle = document.getElementById('filler-toggle');
+        const skipOpToggle = document.getElementById('skip-op-toggle');
+
+        let debounceTimer;
+
+        // Search Logic
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const query = e.target.value;
+            if(query.length < 3) {
+                searchResults.innerHTML = '';
+                searchResults.classList.add('hidden');
+                return;
+            }
+            searchLoader.classList.remove('hidden');
+            debounceTimer = setTimeout(() => fetchAnime(query), 600);
+        });
+
+        async function fetchAnime(query) {
+            try {
+                const response = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=5`);
+                const data = await response.json();
+                renderResults(data.data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                searchLoader.classList.add('hidden');
+            }
+        }
+
+        function renderResults(animes) {
+            searchResults.innerHTML = '';
+            searchResults.classList.remove('hidden');
+            
+            animes.forEach(anime => {
+                const item = document.createElement('div');
+                item.className = 'neo-box p-3 flex gap-4 items-center cursor-pointer hover:bg-yellow-100 active:scale-95';
+                item.innerHTML = `
+                    <img src="${anime.images.jpg.small_image_url}" class="w-12 h-16 border-2 border-black object-cover">
+                    <div>
+                        <h4 class="font-bold uppercase text-sm leading-tight">${anime.title}</h4>
+                        <span class="text-xs font-mono bg-black text-white px-1">${anime.type}</span>
+                        <span class="text-xs font-mono border border-black px-1">${anime.episodes || '?'} EPS</span>
+                    </div>
+                `;
+                item.onclick = () => selectAnime(anime);
+                searchResults.appendChild(item);
+            });
+        }
+
+        function selectAnime(anime) {
+            currentAnime = anime;
+            
+            // Filler Check
+            const commonName = Object.keys(FILLER_DB).find(key => anime.title.includes(key));
+            if (commonName) {
+                fillerData = FILLER_DB[commonName];
+                hasFillerData = true;
+                document.getElementById('filler-status-text').innerText = `DB LOADED: ${commonName.toUpperCase()}`;
+                document.getElementById('filler-status-text').classList.add('text-green-600');
+                fillerToggle.disabled = false;
+            } else {
+                hasFillerData = false;
+                document.getElementById('filler-status-text').innerText = "NO FILLER DATA";
+                document.getElementById('filler-status-text').classList.remove('text-green-600');
+                fillerToggle.disabled = true;
+                fillerToggle.checked = false;
+            }
+
+            // Populate Dash
+            document.getElementById('dash-title').innerText = anime.title;
+            document.getElementById('dash-status').innerText = anime.status === "Currently Airing"? "ONGOING" : "FINISHED";
+            document.getElementById('dash-cover').src = anime.images.jpg.large_image_url;
+            
+            const maxEps = anime.episodes || 1120;
+            document.getElementById('dash-total-eps').innerText = maxEps;
+            document.getElementById('slider-max-display').innerText = `EP ${maxEps}`;
+            
+            // Set Max for Input and Slider
+            epSlider.max = maxEps;
+            epInputField.max = maxEps;
+            
+            // Reset Values
+            epSlider.value = 0;
+            epInputField.value = 0;
+
+            // Transitions
+            searchSection.classList.add('hidden');
+            dashboardSection.classList.remove('hidden');
+            
+            calculate();
+        }
+
+        function resetApp() {
+            dashboardSection.classList.add('hidden');
+            searchSection.classList.remove('hidden');
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+            searchResults.classList.add('hidden');
+        }
+
+        // Calculator Core
+        function isFiller(ep) {
+            if (!hasFillerData) return false;
+            return fillerData.some(range => ep >= range[0] && ep <= range[1]);
+        }
+
+        function calculate() {
+            if (!currentAnime) return;
+
+            const totalEps = parseInt(epSlider.max);
+            const currentEp = parseInt(epSlider.value);
+            const pace = parseInt(paceSlider.value);
+            const skipFillers = fillerToggle.checked && hasFillerData;
+            const minutesPerEp = skipOpToggle.checked? 20 : 24;
+
+            let remainingEps = 0;
+            let skipped = 0;
+
+            for (let i = currentEp + 1; i <= totalEps; i++) {
+                if (skipFillers && isFiller(i)) {
+                    skipped++;
+                } else {
+                    remainingEps++;
+                }
+            }
+
+            // Time Calcs
+            const totalMinutes = remainingEps * minutesPerEp;
+            const hoursLeft = Math.floor(totalMinutes / 60);
+            const daysLeft = Math.ceil(remainingEps / pace);
+
+            // Date
+            const finishDate = new Date();
+            finishDate.setDate(finishDate.getDate() + daysLeft);
+            const dateStr = finishDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+
+            // Update UI
+            document.getElementById('res-eps').innerText = remainingEps;
+            document.getElementById('res-hours').innerText = hoursLeft;
+            document.getElementById('res-date-end').innerText = remainingEps === 0? "COMPLETED!" : dateStr;
+            
+            // Filler Savings UI
+            const savedMsg = document.getElementById('filler-saved-msg');
+            if (skipped > 0) {
+                const savedHours = ((skipped * minutesPerEp) / 60).toFixed(1);
+                document.getElementById('saved-hours').innerText = savedHours;
+                savedMsg.classList.remove('hidden');
+            } else {
+                savedMsg.classList.add('hidden');
+            }
+        }
+
+        // --- Event Listeners with Sync ---
+
+        // 1. Slider moves -> Updates Input Field
+        epSlider.addEventListener('input', (e) => {
+            epInputField.value = e.target.value;
+            calculate();
+        });
+
+        // 2. Input Field Changed -> Updates Slider & Validates
+        epInputField.addEventListener('input', (e) => {
+            let val = parseInt(e.target.value);
+            const max = parseInt(epSlider.max);
+            
+            // Basic validation so it doesn't break
+            if(isNaN(val)) return;
+
+            // Cap at max episodes
+            if (val > max) {
+                val = max;
+                epInputField.value = max;
+            }
+            // Floor at 0
+            if (val < 0) {
+                val = 0;
+                epInputField.value = 0;
+            }
+
+            epSlider.value = val;
+            calculate();
+        });
+
+        paceSlider.addEventListener('input', (e) => {
+            document.getElementById('pace-display').innerText = e.target.value;
+            calculate();
+        });
+        fillerToggle.addEventListener('change', calculate);
+        skipOpToggle.addEventListener('change', calculate);
+
+    </script>
+</body>
+</html>

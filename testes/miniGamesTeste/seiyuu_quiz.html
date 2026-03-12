@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seiyuu Quiz: Find the Impostor</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Archivo+Black&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .quiz-header {
+            text-align: center;
+            padding: 20px;
+            background: var(--surface);
+            border-bottom: 2px solid var(--border-color);
+            margin-top: 70px;
+            /* Header override */
+        }
+
+        .seiyuu-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        .seiyuu-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+        }
+
+        .seiyuu-name {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            margin-top: 10px;
+            color: var(--text-sec);
+        }
+
+        .lives {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 1.5rem;
+            color: var(--error);
+        }
+
+        /* Options Grid */
+        .char-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .char-card {
+            background: var(--surface);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .char-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-neo);
+        }
+
+        .char-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .char-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .char-name {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .anime-name {
+            font-size: 0.8rem;
+            color: var(--text-sec);
+        }
+
+        /* Feedback States */
+        .char-card.correct {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .char-card.wrong {
+            border-color: var(--error);
+            background: rgba(207, 102, 121, 0.2);
+            opacity: 0.5;
+        }
+
+        .feedback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 4rem;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .char-card.correct .feedback-overlay {
+            opacity: 1;
+            color: var(--success);
+        }
+
+        .char-card.wrong .feedback-overlay {
+            opacity: 1;
+            color: var(--error);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version" style="background: var(--secondary); color: black;">ARCADE</span>
+            </a>
+            <div class="user-area">
+                <span id="date-badge" class="level-badge">📅 Hoje</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-gamepad"></i> <span>Arcade Home</span></a>
+        <div class="nav-divider"></div>
+        <a href="music_quiz.html" class="nav-item"><i class="fas fa-music"></i> <span>Music Quiz</span></a>
+        <a href="char_dle.html" class="nav-item"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
+        <a href="pixel_cover.html" class="nav-item"><i class="fas fa-image"></i> <span>Pixel Cover</span></a>
+        <a href="higher_lower.html" class="nav-item"><i class="fas fa-balance-scale"></i> <span>Higher or
+                Lower</span></a>
+        <a href="seiyuu_quiz.html" class="nav-item active"><i class="fas fa-microphone"></i> <span>Seiyuu
+                Quiz</span></a>
+        <a href="synopsis_game.html" class="nav-item"><i class="fas fa-file-alt"></i> <span>Sinopse Censurada</span></a>
+        <a href="timeline.html" class="nav-item"><i class="fas fa-clock"></i> <span>Timeline Challenge</span></a>
+        <div class="nav-divider"></div>
+        <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
+    </nav>
+
+    <div class="quiz-header">
+        <div class="seiyuu-card">
+            <img id="seiyuu-img" class="seiyuu-img" src="" alt="Seiyuu">
+            <div>
+                <div id="seiyuu-name" class="seiyuu-name">Loading...</div>
+                <div class="question-text">Qual personagem <b>NÃO</b> foi dobrado por este Seiyuu?</div>
+                <div id="lives-container" class="lives">
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-heart"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="char-grid" id="char-grid">
+        <!-- Cards injected by JS -->
+    </div>
+
+    <div id="game-actions" class="game-actions" style="display:none; text-align:center; padding:20px;">
+        <h2 id="result-text">Game Over</h2>
+        <button onclick="location.reload()">🔄 Tentar Novamente</button>
+        <button class="action-btn-secondary" onclick="window.location.href='index.html'">🏠 Voltar</button>
+    </div>
+
+    <script src="js/api_wrapper.js"></script>
+    <script src="js/seiyuu_quiz.js"></script>
+</body>
+
+</html>

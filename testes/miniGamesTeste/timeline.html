@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Infinito - Arcade</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* --- SCOPED RESET --- */
+        body,
+        .container,
+        .container * {
+            box-sizing: border-box;
+        }
+
+        /* --- ENDLESS MODE STYLES --- */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .stats-lives {
+            color: var(--danger);
+        }
+
+        .stats-score {
+            color: var(--secondary);
+        }
+
+        /* Timeline Scroll Area */
+        .timeline-scroll-area {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 20px;
+            background: var(--surface);
+            border: 2px solid var(--border-color);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 280px;
+            /* Scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--bg);
+        }
+
+        .timeline-scroll-area::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .timeline-scroll-area::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Timeline Card (Smaller, fixed) */
+        .t-card {
+            display: inline-block;
+            width: 160px;
+            flex-shrink: 0;
+            background: var(--bg);
+            border: 2px solid var(--border-color);
+            position: relative;
+            vertical-align: top;
+            white-space: normal;
+            /* Allow text wrap inside */
+        }
+
+        .t-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .t-info {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .t-date {
+            display: block;
+            margin-top: 5px;
+            font-weight: bold;
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+
+        /* The "Gap" Button */
+        .gap-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px dashed var(--text-sec);
+            color: var(--text-sec);
+            font-size: 1.5rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .gap-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-style: solid;
+            border-color: black;
+            transform: scale(1.1);
+        }
+
+        /* Current Card (The one to place) */
+        .current-stage {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .stage-card {
+            width: 200px;
+            margin: 0 auto;
+            background: var(--bg);
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
+        }
+
+        .stage-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        /* Animations */
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .new-card {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <span class="logo-text">ANIME.ENGINE</span>
+                <span class="logo-version" style="background: var(--secondary); color: black;">ARCADE</span>
+            </a>
+            <div class="user-area">
+                <div class="level-badge"><span class="level-icon">🎮</span> <span class="level-text">Player</span></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <a href="index.html" class="nav-item"><i class="fas fa-gamepad"></i> <span>Arcade Home</span></a>
+        <div class="nav-divider"></div>
+        <a href="music_quiz.html" class="nav-item"><i class="fas fa-music"></i> <span>Music Quiz</span></a>
+        <a href="char_dle.html" class="nav-item"><i class="fas fa-user-secret"></i> <span>CharacterDle</span></a>
+        <a href="pixel_cover.html" class="nav-item"><i class="fas fa-image"></i> <span>Pixel Cover</span></a>
+        <a href="higher_lower.html" class="nav-item"><i class="fas fa-balance-scale"></i> <span>Higher or
+                Lower</span></a>
+        <a href="seiyuu_quiz.html" class="nav-item"><i class="fas fa-microphone"></i> <span>Seiyuu Quiz</span></a>
+        <a href="synopsis_game.html" class="nav-item"><i class="fas fa-file-alt"></i> <span>Sinopse Censurada</span></a>
+        <a href="timeline.html" class="nav-item active"><i class="fas fa-clock"></i> <span>Timeline Infinito</span></a>
+        <div class="nav-divider"></div>
+        <a href="../sitev6/index.html" class="nav-item"><i class="fas fa-home"></i> <span>Voltar ao Site</span></a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="container" style="max-width: 900px;">
+            <h1>♾️ Timeline Infinito</h1>
+
+            <div class="game-area">
+
+                <!-- HUD -->
+                <div class="game-header">
+                    <div class="stats-lives">Vidas: <span id="lives-display">❤️❤️❤️</span></div>
+                    <div><i class="fas fa-arrows-alt-h"></i> Onde encaixa?</div>
+                    <div class="stats-score">Streak: <span id="score-display">0</span> 🔥</div>
+                </div>
+
+                <!-- TIMELINE (Placed Cards + Slots) -->
+                <div class="timeline-scroll-area" id="timeline-container">
+                    <!-- Cards will be injected here -->
+                </div>
+
+                <!-- CURRENT CARD (To Place) -->
+                <div class="current-stage" id="stage-area">
+                    <h3 style="margin-bottom:10px; color:var(--text-sec);">Carta Atual</h3>
+                    <div class="t-card stage-card" id="current-card">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- FEEDBACK / GAME OVER -->
+                <div id="feedback"
+                    style="text-align:center; min-height:30px; margin-top:10px; font-weight:bold; font-size:1.2rem;">
+                </div>
+
+                <div id="game-over-modal" style="display:none; text-align:center; margin-top:20px;">
+                    <h2 style="color:var(--danger)">GAME OVER</h2>
+                    <p style="font-size:1.2rem">Fizeste uma Streak de <span id="final-score"
+                            style="color:var(--primary)">0</span>!</p>
+                    <button class="neo-btn" onclick="location.reload()"
+                        style="margin-top:15px; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">
+                        🔄 Tentar Novamente
+                    </button>
+                    <!-- Previous Day for Consistency is not needed here as it is endless mode -->
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api_wrapper.js"></script>
+    <script src="js/timeline.js"></script>
+</body>
+
+</html>
