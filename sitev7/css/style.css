@@ -11471,8 +11471,8 @@ body.trailer-focus-mode .trailer-focus-close {
 }
 
 .airing-card:hover {
- transform: translateX(5px);
- box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.1);
+    transform: translateX(5px);
+    box-shadow: var(--shadow-neo-hover);
 }
 
 .airing-card:hover::before {
@@ -11529,13 +11529,14 @@ body.trailer-focus-mode .trailer-focus-close {
 }
 
 .timer-unit {
- background: var(--color-black);
- color: var(--color-white);
- padding: 2px 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--border-color);
+    padding: 2px 8px;
     font-family: 'JetBrains Mono', monospace;
- font-size: 0.8rem;
- font-weight: 700;
- border-radius: 2px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 2px;
 }
 
 .timer-now {
@@ -11604,12 +11605,12 @@ body.trailer-focus-mode .trailer-focus-close {
     --color-purple: #9966ff;
 
     --color-text: #ffffff;
-    --color-text-muted: #e0e0e0;
-    --color-text-light: #b0b0b0;
+    --color-text-muted: #ffcc00; /* Yellow for muted on deep blue */
+    --color-text-light: #ffeb99;
 
     --border-color: #FFCC00;
-    --shadow-neo: 4px 4px 0 #CF142B;
-    --shadow-neo-hover: 6px 6px 0 #FFCC00;
+    --shadow-neo: 4px 4px 0 #000000;
+    --shadow-neo-hover: 6px 6px 0 #CF142B;
 }
 
 /* Moby Mode (Dark Oceanic Theme) */
@@ -11629,10 +11630,10 @@ body.trailer-focus-mode .trailer-focus-close {
     --color-green: #0a9396;
     --color-purple: #94d2bd;
     --color-text: #e0faff;
-    --color-text-muted: #94d2bd;
-    --color-text-light: #0a9396;
+    --color-text-muted: #00aaff;
+    --color-text-light: #94d2bd;
     --border-color: #00aaff;
-    --shadow-neo: 4px 4px 0 #005f73;
-    --shadow-neo-hover: 6px 6px 0 #00aaff;
+    --shadow-neo: 4px 4px 0 #000000;
+    --shadow-neo-hover: 6px 6px 0 #006994;
 }
 
