@@ -35,6 +35,7 @@ Thumbs.db
 # Banco de dados e Cache
 *.sqlite
 *.db
+.agents/
 .phpunit.result.cache
 
 # Outros

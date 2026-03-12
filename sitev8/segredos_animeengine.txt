@@ -1,0 +1,47 @@
+=========================================
+          ANIMEENGINE V7 SECRETS
+        GUIAS & CAÇADOR DE EASTER EGGS
+=========================================
+
+Esta não é apenas uma lista de senhas, mas um guia
+para destravar o verdadeiro potencial da v7.
+
+-----------------------------------------
+1. SENHAS DA CALCULADORA (DIGITE E BUSQUE)
+-----------------------------------------
+CÓDIGO          | NOME DO TEMA
+-----------------------------------------
+benevaMode      | Beneva (Escuro Laranja)
+blueprintMode   | Blueprint (Arquitetura)
+bonfinMode      | Bonfin (Roxo Vívido)
+cyberHacker     | Cyber Hacker (Moderno)
+goldMode        | Gold (Ouro Metálico)
+hollowMode      | Hollow (Mundo Espiritual)
+johnMode        | John (Café & Terra)
+kauaMode        | Kauã (Rainbow Supremo)
+migueliMode     | Migueli (Magenta Deep)
+parafaMode      | ParaFfal (Pink Neon)
+ruanMode        | Ruan (Royal Blue)
+sakuraMode      | Sakura (Cerejeira)
+vaporwaveMode   | Vaporwave (Synthwave)
+vestaMode       | Vesta (Magma)
+xpMode          | Windows XP (Luna Style)
+zenMode         | Zen (Minimalista)
+
+
+-----------------------------------------
+2. CONQUISTAS GAMIFICADAS (AÇÕES SECRETAS)
+-----------------------------------------
+AÇÃO NECESSÁRIA                   | TEMA DESBLOQUEADO
+----------------------------------|---------------------
+Fazer o Konami Code no teclado    | Arcade Mode (🕹️)
+Clicar 10x no Logo da Navbar      | Glitch Mode (👾)
+Acessar o site às 03:00 da manhã  | Blood Moon (🩸)
+Alcançar o Nível 30 (XP Base)     | OLED Pitch Black (🔋)
+Desativar o filtro "Família SFW"  | Yandere Mode (🔪)
+Clicar 5x no Copyright do Rodapé  | Developer Mode (👨‍💻)
+
+
+=========================================
+      EXPLORE TODOS OS MISTÉRIOS! �🚀
+=========================================

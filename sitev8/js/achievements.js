@@ -120,15 +120,15 @@ const Achievements = {
         const allAnimes = [...lists.watching, ...lists.planToWatch, ...lists.completed, ...lists.paused, ...lists.dropped];
         const uniqueAnimes = [...new Map(allAnimes.map(a => [a.id, a])).values()];
         
-        // Episódios assistidos
+        // Episódios assistidos (v6 support + v7 progress)
         let totalEpisodes = 0;
-        lists.watching.forEach(a => totalEpisodes += (a.currentEp || 0));
-        lists.completed.forEach(a => totalEpisodes += (a.episodes || 0));
+        lists.watching.forEach(a => totalEpisodes += (parseInt(a.progress) || 0));
+        lists.completed.forEach(a => totalEpisodes += (parseInt(a.total_episodes) || parseInt(a.episodes) || 0));
         
         // Shounen check
         const shounenTitles = ['naruto', 'one piece', 'bleach', 'dragon ball', 'my hero'];
         const hasShounen = uniqueAnimes.some(a => 
-            shounenTitles.some(t => a.title.toLowerCase().includes(t))
+            a.title && shounenTitles.some(t => a.title.toLowerCase().includes(t))
         );
 
         return {
@@ -159,14 +159,22 @@ const Achievements = {
                 newUnlocks.push(badge);
                 user.achievements.push(badge.id);
                 user.xp += badge.xp;
+
+                // Sync with Backend
+                this.syncUnlock(badge.id, badge.xp);
             }
         }
         
         // Atualizar nível
         user.level = this.getLevel(user.xp).level;
         
-        // Salvar
+        // Salvar localmente
         Storage.updateUser(user);
+        
+        // Atualizar UI se existir o badge no header
+        if (typeof Common !== 'undefined' && Common.updateLevelBadge) {
+            Common.updateLevelBadge();
+        }
         
         // Mostrar notificações
         newUnlocks.forEach((badge, i) => {
@@ -174,6 +182,52 @@ const Achievements = {
         });
         
         return newUnlocks;
+    },
+
+    /**
+     * Sincroniza desbloqueio com o banco
+     */
+    async syncUnlock(badgeId, xp) {
+        try {
+            await fetch('api/achievements/unlock.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ badge_id: badgeId, xp: xp })
+            });
+        } catch (e) {
+            console.error('Erro ao sincronizar conquista:', e);
+        }
+    },
+
+    /**
+     * Sincroniza conquistas salvas no banco para o LocalStorage
+     */
+    async syncFromServer() {
+        try {
+            const response = await fetch('api/achievements/get.php');
+            const data = await response.json();
+            
+            if (data.unlocked) {
+                const user = Storage.getUser();
+                let changed = false;
+                
+                Object.keys(data.unlocked).forEach(badgeId => {
+                    if (!user.achievements.includes(badgeId)) {
+                        user.achievements.push(badgeId);
+                        changed = true;
+                    }
+                });
+                
+                if (changed) {
+                    Storage.updateUser(user);
+                    if (typeof Common !== 'undefined' && Common.updateLevelBadge) {
+                        Common.updateLevelBadge();
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao baixar conquistas:', e);
+        }
     },
 
     /**

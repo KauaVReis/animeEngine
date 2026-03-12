@@ -50,8 +50,28 @@ if ($xp > 0) {
     $user = mysqli_fetch_assoc($result);
     $newXp = $user['xp'];
     
-    // Calcular nível (cada 100 XP = 1 nível, máximo 10)
-    $newLevel = min(10, floor($newXp / 100) + 1);
+    // Calcular nível com base na tabela progressiva (mesma do JS)
+    $levels = [
+        ['level' => 1, 'xpRequired' => 0],
+        ['level' => 2, 'xpRequired' => 50],
+        ['level' => 3, 'xpRequired' => 150],
+        ['level' => 4, 'xpRequired' => 300],
+        ['level' => 5, 'xpRequired' => 500],
+        ['level' => 6, 'xpRequired' => 800],
+        ['level' => 7, 'xpRequired' => 1200],
+        ['level' => 8, 'xpRequired' => 1800],
+        ['level' => 9, 'xpRequired' => 2500],
+        ['level' => 10, 'xpRequired' => 3500]
+    ];
+
+    $newLevel = 1;
+    foreach ($levels as $l) {
+        if ($newXp >= $l['xpRequired']) {
+            $newLevel = $l['level'];
+        } else {
+            break;
+        }
+    }
     
     $sql = "UPDATE usuarios SET nivel = $newLevel WHERE id = $usuario_id";
     mysqli_query($conn, $sql);
