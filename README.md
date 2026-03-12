@@ -16,7 +16,7 @@ O repositório foi organizado para preservar o histórico de evolução enquanto
 - **`sitev7/`**: Versão oficial estável. Backend PHP, sistema de perfil, conquistas e segurança ativa.
 - **`versoesPassadas/`**: Arquivo histórico contendo as builds da v1 até a v6.
 - **`testes/`**: Área experimental para subprojetos como *MangaEngine*, minijogos e protótipos.
-- **`planov8.md`**: Roadmap detalhado para a próxima revolução do sistema (Arquitetura SPA).
+- **`docs/planov8.md`**: Roadmap detalhado para a próxima revolução do sistema (Arquitetura SPA).
 
 ---
 
