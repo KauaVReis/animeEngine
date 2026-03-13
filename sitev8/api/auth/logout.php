@@ -1,17 +1,16 @@
 <?php
 /**
- * AnimeEngine v7 - Logout API
- * POST: Fazer logout
+ * AnimeEngine v8 - Logout API
+ * Fazer logout (Seguro)
  */
 
 require_once '../../includes/auth.php';
 
 // Headers
-// header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Methods: POST, GET');
 
 fazerLogout();
 
-// jsonSuccess('Logout realizado com sucesso!');
-header('Location: ../../login.php');
+// Redirecionar para login
+header('Location: ../../?page=login');

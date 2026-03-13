@@ -1,0 +1,36 @@
+/**
+ * AnimeEngine v8 — Explorar Page CSS
+ * Estilos exclusivos da página de exploração
+ */
+
+/* Filtros - animação de entrada */
+.filters-section {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Grid de resultados - stagger */
+.explore-grid .anime-card {
+    animation: cardFadeIn 0.4s ease backwards;
+}
+
+.explore-grid .anime-card:nth-child(2) { animation-delay: 0.03s; }
+.explore-grid .anime-card:nth-child(3) { animation-delay: 0.06s; }
+.explore-grid .anime-card:nth-child(4) { animation-delay: 0.09s; }
+.explore-grid .anime-card:nth-child(5) { animation-delay: 0.12s; }
+.explore-grid .anime-card:nth-child(6) { animation-delay: 0.15s; }
+
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}

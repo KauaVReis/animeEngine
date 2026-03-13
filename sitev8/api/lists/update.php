@@ -1,11 +1,12 @@
 <?php
 /**
- * AnimeEngine v7 - Update Progress API
+ * AnimeEngine v8 - Update Progress API (Seguro)
  * PUT: Atualizar progresso e nota do anime
  */
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 
@@ -13,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'PUT' && $_SERVER['REQUEST_METHOD'] !== 'POST
     jsonError('Método não permitido', 405);
 }
 
-// Verificar login
+verificar_rate_limit();
 requerLoginAPI();
 
 // Receber dados
@@ -31,28 +32,43 @@ if ($anime_id <= 0) {
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-// Construir UPDATE dinâmico
-$updates = [];
+// Construir UPDATE dinâmico com prepared statements
+$sets = [];
+$types = '';
+$params = [];
+
 if ($progresso !== null) {
-    $updates[] = "progresso = $progresso";
+    $sets[] = "progresso = ?";
+    $types .= "i";
+    $params[] = $progresso;
 }
 if ($nota !== null) {
-    $updates[] = "nota = $nota";
+    $sets[] = "nota = ?";
+    $types .= "i";
+    $params[] = $nota;
 }
 if ($favorito !== null) {
-    $updates[] = "favorito = $favorito";
+    $sets[] = "favorito = ?";
+    $types .= "i";
+    $params[] = $favorito;
 }
 
-if (empty($updates)) {
+if (empty($sets)) {
     mysqli_close($conn);
     jsonError('Nenhum campo para atualizar');
 }
 
-$sql = "UPDATE listas_anime SET " . implode(', ', $updates) . " 
-        WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+// Adicionar WHERE params
+$types .= "ii";
+$params[] = $usuario_id;
+$params[] = $anime_id;
 
-if (mysqli_query($conn, $sql)) {
-    if (mysqli_affected_rows($conn) > 0) {
+$sql = "UPDATE listas_anime SET " . implode(', ', $sets) . " WHERE usuario_id = ? AND anime_id = ?";
+$stmt = secure_query($conn, $sql, $types, ...$params);
+
+if ($stmt) {
+    $affected = ($stmt instanceof mysqli_stmt) ? mysqli_stmt_affected_rows($stmt) : mysqli_affected_rows($conn);
+    if ($affected > 0) {
         mysqli_close($conn);
         jsonSuccess('Atualizado com sucesso!');
     } else {

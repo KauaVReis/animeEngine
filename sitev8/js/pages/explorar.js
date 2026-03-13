@@ -515,4 +515,9 @@ const ExplorePage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => ExplorePage.init());
+// Inicializar
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    ExplorePage.init();
+} else {
+    document.addEventListener('DOMContentLoaded', () => ExplorePage.init());
+}

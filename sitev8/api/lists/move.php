@@ -1,11 +1,12 @@
 <?php
 /**
- * AnimeEngine v7 - Move Between Lists API
+ * AnimeEngine v8 - Move Between Lists API (Seguro)
  * PUT: Mover anime entre listas
  */
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 
@@ -13,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'PUT' && $_SERVER['REQUEST_METHOD'] !== 'POST
     jsonError('Método não permitido', 405);
 }
 
-// Verificar login
+verificar_rate_limit();
 requerLoginAPI();
 
 // Receber dados
@@ -34,20 +35,41 @@ if (!in_array($tipo_lista, $tipos_validos)) {
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-// Se for para 'completed', atualizar o progresso para o total de episódios
+// Se for para 'completed', atualizar progresso para o total — PREPARED STATEMENT
 if ($tipo_lista === 'completed') {
-    $sql = "UPDATE listas_anime la 
-            JOIN animes_cache ac ON la.anime_id = ac.anime_id 
-            SET la.tipo_lista = '$tipo_lista', 
-                la.progresso = ac.episodios 
-            WHERE la.usuario_id = $usuario_id AND la.anime_id = $anime_id";
+    // Buscar total de episódios do cache
+    $result = secure_query(
+        $conn,
+        "SELECT ac.episodios FROM animes_cache ac 
+         JOIN listas_anime la ON la.anime_id = ac.anime_id 
+         WHERE la.usuario_id = ? AND la.anime_id = ?",
+        "ii",
+        $usuario_id, $anime_id
+    );
+    
+    $eps = 0;
+    if ($result && $row = mysqli_fetch_assoc($result)) {
+        $eps = intval($row['episodios']);
+    }
+    
+    $stmt = secure_query(
+        $conn,
+        "UPDATE listas_anime SET tipo_lista = ?, progresso = ? WHERE usuario_id = ? AND anime_id = ?",
+        "siii",
+        $tipo_lista, $eps, $usuario_id, $anime_id
+    );
 } else {
-    $sql = "UPDATE listas_anime SET tipo_lista = '$tipo_lista' 
-            WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+    $stmt = secure_query(
+        $conn,
+        "UPDATE listas_anime SET tipo_lista = ? WHERE usuario_id = ? AND anime_id = ?",
+        "sii",
+        $tipo_lista, $usuario_id, $anime_id
+    );
 }
 
-if (mysqli_query($conn, $sql)) {
-    if (mysqli_affected_rows($conn) > 0) {
+if ($stmt) {
+    $affected = ($stmt instanceof mysqli_stmt) ? mysqli_stmt_affected_rows($stmt) : mysqli_affected_rows($conn);
+    if ($affected > 0) {
         mysqli_close($conn);
         jsonSuccess('Movido com sucesso!', ['tipo_lista' => $tipo_lista]);
     } else {

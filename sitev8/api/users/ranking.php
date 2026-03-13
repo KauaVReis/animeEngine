@@ -1,6 +1,6 @@
 <?php
 /**
- * AnimeEngine v7 - Ranking Global API
+ * AnimeEngine v8 - Ranking Global API (Seguro)
  * GET: Top usuários por XP
  */
 
@@ -16,15 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $conn = conectar();
 $limite = min(intval($_GET['limit'] ?? 100), 100);
 
-// Top usuários por XP
-$sql = "SELECT id, username, xp, nivel, 
-        (SELECT COUNT(*) FROM listas_anime WHERE usuario_id = u.id AND tipo_lista = 'completed') as completos
-        FROM usuarios u
-        WHERE perfil_publico = 1
-        ORDER BY xp DESC
-        LIMIT $limite";
+// Top usuários por XP — PREPARED (limite é validado como int, seguro)
+$result = secure_query(
+    $conn,
+    "SELECT id, username, xp, nivel, 
+    (SELECT COUNT(*) FROM listas_anime WHERE usuario_id = u.id AND tipo_lista = 'completed') as completos
+    FROM usuarios u
+    WHERE perfil_publico = 1
+    ORDER BY xp DESC
+    LIMIT ?",
+    "i",
+    $limite
+);
 
-$result = mysqli_query($conn, $sql);
 $ranking = [];
 $posicao = 1;
 
@@ -33,12 +37,16 @@ while ($row = mysqli_fetch_assoc($result)) {
     $ranking[] = $row;
 }
 
-// Posição do usuário logado
+// Posição do usuário logado — PREPARED
 $minha_posicao = null;
 if (estaLogado()) {
     $usuario_id = getUsuarioId();
-    $sql = "SELECT COUNT(*) + 1 as posicao FROM usuarios WHERE xp > (SELECT xp FROM usuarios WHERE id = $usuario_id)";
-    $result = mysqli_query($conn, $sql);
+    $result = secure_query(
+        $conn,
+        "SELECT COUNT(*) + 1 as posicao FROM usuarios WHERE xp > (SELECT xp FROM usuarios WHERE id = ?)",
+        "i",
+        $usuario_id
+    );
     $minha_posicao = mysqli_fetch_assoc($result)['posicao'];
 }
 

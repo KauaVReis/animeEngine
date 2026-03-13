@@ -1,0 +1,34 @@
+/**
+ * AnimeEngine v8 — Detalhes Page CSS
+ * Estilos exclusivos da página de detalhes do anime
+ */
+
+/* Banner de detalhes - efeito parallax sutil */
+.detail-banner {
+    animation: bannerReveal 0.6s ease;
+}
+
+@keyframes bannerReveal {
+    from {
+        opacity: 0;
+        transform: scale(1.02);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Info cards - stagger */
+.detail-info-card {
+    animation: infoSlide 0.4s ease backwards;
+}
+
+.detail-info-card:nth-child(2) { animation-delay: 0.1s; }
+.detail-info-card:nth-child(3) { animation-delay: 0.2s; }
+.detail-info-card:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes infoSlide {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}

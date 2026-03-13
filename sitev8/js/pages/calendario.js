@@ -373,4 +373,9 @@ const CalendarioPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => CalendarioPage.init());
+// Inicializar
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    CalendarioPage.init();
+} else {
+    document.addEventListener('DOMContentLoaded', () => CalendarioPage.init());
+}

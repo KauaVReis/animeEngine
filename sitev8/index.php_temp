@@ -1,0 +1,63 @@
+<?php
+/**
+ * AnimeEngine v8 - Front Controller (Router PHP)
+ * Único ponto de entrada da aplicação.
+ * 
+ * - Requisição normal: retorna header + view + footer (página completa)
+ * - Requisição AJAX (?ajax=true): retorna apenas o "miolo" da view
+ */
+
+// 1. CARREGAR DEPENDÊNCIAS CORE
+// ============================================================
+require_once __DIR__ . '/includes/database.php';
+require_once __DIR__ . '/includes/auth.php';
+
+// 2. DETECTAR PÁGINA (Pela URL ou parâmetro ?page=)
+// ============================================================
+$page = $_GET['page'] ?? null;
+
+if (!$page) {
+    // Tenta detectar via REQUEST_URI (URLs amigáveis)
+    $script_dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    
+    // Remove a pasta do script da URI para sobrar apenas a rota
+    if (strpos($request_uri, $script_dir) === 0) {
+        $path = substr($request_uri, strlen($script_dir));
+    } else {
+        $path = $request_uri;
+    }
+    
+    $path = trim($path, '/');
+    $page = !empty($path) ? $path : 'home';
+} else {
+    // Mesmo com ?page=, precisamos do script_dir para o <base>
+    $script_dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+}
+
+// Garante que a base path termine com /
+$base_path = rtrim($script_dir, '/') . '/';
+
+// Sanitização básica do nome da página
+$page = preg_replace('/[^a-z0-9_]/', '', strtolower($page));
+
+// 3. MAPEAR ROTAS E METADADOS
+// ===================================
+$rotas = [
+    'home'          => 'views/home.php',
+    'explorar'      => 'views/explorar.php',
+    'calculadora'   => 'views/calculadora.php',
+    'perfil'        => 'views/perfil.php',
+    'calendario'    => 'views/calendario.php',
+    'detalhes'      => 'views/detalhes.php',
+    'ranking'       => 'views/ranking.php',
+    'login'         => 'views/login.php',
+    'register'      => 'views/register.php',
+    'assistindo'    => 'views/assistindo.php',
+    'favoritos'     => 'views/favoritos.php',
+    'lista'         => 'views/lista.php',
+    'tierlist'      => 'views/tierlist.php',
+    'titulos'       => 'views/titulos.php',
+    'editar_perfil' => 'views/editar_perfil.php',
+    'estatisticas'  => 'views/estatisticas.php',
+];

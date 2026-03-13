@@ -1,11 +1,12 @@
 <?php
 /**
- * AnimeEngine v7 - Unlock Achievement API
+ * AnimeEngine v8 - Unlock Achievement API (Seguro)
  * POST: Desbloquear conquista
  */
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 
@@ -13,10 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido', 405);
 }
 
+verificar_rate_limit();
 requerLoginAPI();
 
 $data = json_decode(file_get_contents('php://input'), true);
-$badge_id = escape(conectar(), $data['badge_id'] ?? '');
+$badge_id = trim($data['badge_id'] ?? '');
 $xp = intval($data['xp'] ?? 0);
 
 if (empty($badge_id)) {
@@ -26,31 +28,26 @@ if (empty($badge_id)) {
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-// Verificar se já desbloqueou
-$sql = "SELECT id FROM conquistas WHERE usuario_id = $usuario_id AND badge_id = '$badge_id'";
-$result = mysqli_query($conn, $sql);
+// Verificar se já desbloqueou — PREPARED
+$result = secure_query($conn, "SELECT id FROM conquistas WHERE usuario_id = ? AND badge_id = ?", "is", $usuario_id, $badge_id);
 
 if (mysqli_num_rows($result) > 0) {
     mysqli_close($conn);
     jsonResponse(['already_unlocked' => true]);
 }
 
-// Desbloquear
-$sql = "INSERT INTO conquistas (usuario_id, badge_id) VALUES ($usuario_id, '$badge_id')";
-mysqli_query($conn, $sql);
+// Desbloquear — PREPARED
+secure_query($conn, "INSERT INTO conquistas (usuario_id, badge_id) VALUES (?, ?)", "is", $usuario_id, $badge_id);
 
 // Adicionar XP ao usuário
 if ($xp > 0) {
-    $sql = "UPDATE usuarios SET xp = xp + $xp WHERE id = $usuario_id";
-    mysqli_query($conn, $sql);
+    secure_query($conn, "UPDATE usuarios SET xp = xp + ? WHERE id = ?", "ii", $xp, $usuario_id);
     
-    // Verificar se subiu de nível
-    $sql = "SELECT xp FROM usuarios WHERE id = $usuario_id";
-    $result = mysqli_query($conn, $sql);
+    // Verificar se subiu de nível — PREPARED
+    $result = secure_query($conn, "SELECT xp FROM usuarios WHERE id = ?", "i", $usuario_id);
     $user = mysqli_fetch_assoc($result);
     $newXp = $user['xp'];
     
-    // Calcular nível com base na tabela progressiva (mesma do JS)
     $levels = [
         ['level' => 1, 'xpRequired' => 0],
         ['level' => 2, 'xpRequired' => 50],
@@ -73,8 +70,7 @@ if ($xp > 0) {
         }
     }
     
-    $sql = "UPDATE usuarios SET nivel = $newLevel WHERE id = $usuario_id";
-    mysqli_query($conn, $sql);
+    secure_query($conn, "UPDATE usuarios SET nivel = ? WHERE id = ?", "ii", $newLevel, $usuario_id);
 }
 
 mysqli_close($conn);

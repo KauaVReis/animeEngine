@@ -1,6 +1,6 @@
 <?php
 /**
- * AnimeEngine v7 - Get Achievements API
+ * AnimeEngine v8 - Get Achievements API (Seguro)
  * GET: Obter conquistas do usuário
  */
 
@@ -18,9 +18,8 @@ requerLoginAPI();
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-// Buscar badges desbloqueados
-$sql = "SELECT badge_id, desbloqueado_em FROM conquistas WHERE usuario_id = $usuario_id";
-$result = mysqli_query($conn, $sql);
+// Buscar badges desbloqueados — PREPARED
+$result = secure_query($conn, "SELECT badge_id, desbloqueado_em FROM conquistas WHERE usuario_id = ?", "i", $usuario_id);
 
 $unlocked = [];
 while ($row = mysqli_fetch_assoc($result)) {

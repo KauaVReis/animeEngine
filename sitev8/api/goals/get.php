@@ -1,6 +1,6 @@
 <?php
 /**
- * AnimeEngine v7 - Get Goals API
+ * AnimeEngine v8 - Get Goals API (Seguro)
  * GET: Obter metas da semana atual
  */
 
@@ -17,18 +17,14 @@ requerLoginAPI();
 
 $conn = conectar();
 $usuario_id = getUsuarioId();
-
-// Semana atual (formato: 2024-W50)
 $semana = date('Y-\WW');
 
-// Buscar ou criar meta
-$sql = "SELECT * FROM metas_semanais WHERE usuario_id = $usuario_id AND semana_ano = '$semana'";
-$result = mysqli_query($conn, $sql);
+// Buscar meta — PREPARED
+$result = secure_query($conn, "SELECT * FROM metas_semanais WHERE usuario_id = ? AND semana_ano = ?", "is", $usuario_id, $semana);
 
 if (mysqli_num_rows($result) === 0) {
-    // Criar meta padrão
-    $sql = "INSERT INTO metas_semanais (usuario_id, semana_ano) VALUES ($usuario_id, '$semana')";
-    mysqli_query($conn, $sql);
+    // Criar meta padrão — PREPARED
+    secure_query($conn, "INSERT INTO metas_semanais (usuario_id, semana_ano) VALUES (?, ?)", "is", $usuario_id, $semana);
     
     $goals = [
         'semana' => $semana,

@@ -1,10 +1,11 @@
 <?php
 /**
- * AnimeEngine v7 - Register API
- * POST: Registrar novo usuário
+ * AnimeEngine v8 - Register API
+ * POST: Registrar novo usuário (Seguro)
  */
 
 require_once '../../includes/database.php';
+require_once '../../includes/rate_limiter.php';
 
 // Headers
 header('Content-Type: application/json');
@@ -14,6 +15,9 @@ header('Access-Control-Allow-Methods: POST');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido', 405);
 }
+
+// Rate limiting restrito para auth (10 req/min)
+verificar_rate_limit_auth();
 
 // Receber dados
 $data = json_decode(file_get_contents('php://input'), true);
@@ -54,20 +58,16 @@ if (strlen($senha) < 6) {
 // Conectar
 $conn = conectar();
 
-// Verificar se username já existe
-$username_escaped = escape($conn, $username);
-$sql = "SELECT id FROM usuarios WHERE username = '$username_escaped'";
-$result = mysqli_query($conn, $sql);
+// Verificar se username já existe — PREPARED STATEMENT
+$result = secure_query($conn, "SELECT id FROM usuarios WHERE username = ?", "s", $username);
 
 if (mysqli_num_rows($result) > 0) {
     mysqli_close($conn);
     jsonError('Este nome de usuário já está em uso');
 }
 
-// Verificar se email já existe
-$email_escaped = escape($conn, $email);
-$sql = "SELECT id FROM usuarios WHERE email = '$email_escaped'";
-$result = mysqli_query($conn, $sql);
+// Verificar se email já existe — PREPARED STATEMENT
+$result = secure_query($conn, "SELECT id FROM usuarios WHERE email = ?", "s", $email);
 
 if (mysqli_num_rows($result) > 0) {
     mysqli_close($conn);
@@ -77,11 +77,18 @@ if (mysqli_num_rows($result) > 0) {
 // Hash da senha
 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
-// Inserir usuário
-$sql = "INSERT INTO usuarios (username, email, senha_hash) VALUES ('$username_escaped', '$email_escaped', '$senha_hash')";
+// Inserir usuário — PREPARED STATEMENT
+$stmt = secure_query(
+    $conn,
+    "INSERT INTO usuarios (username, email, senha_hash) VALUES (?, ?, ?)",
+    "sss",
+    $username,
+    $email,
+    $senha_hash
+);
 
-if (mysqli_query($conn, $sql)) {
-    $usuario_id = mysqli_insert_id($conn);
+if ($stmt) {
+    $usuario_id = last_insert_id($conn);
     mysqli_close($conn);
     
     jsonSuccess('Conta criada com sucesso!', [

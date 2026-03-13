@@ -1,10 +1,10 @@
 <?php
 /**
- * AnimeEngine v7 - Navigation Include
- * Sidebar e Bottom Nav
+ * AnimeEngine v8 - Navigation Include
+ * Sidebar e Bottom Nav — links atualizados para Front Controller
  */
 
-$pagina_atual = $pagina_atual ?? basename($_SERVER['PHP_SELF'], '.php');
+$pagina_atual = $pagina_atual ?? 'home';
 
 function navActive($pagina, $atual)
 {
@@ -14,31 +14,31 @@ function navActive($pagina, $atual)
 
 <!-- SIDEBAR -->
 <nav class="sidebar">
-    <a href="index.php" class="nav-item <?= navActive('index', $pagina_atual) ?>">
+    <a href="home" class="nav-item <?= navActive('home', $pagina_atual) ?>">
         <i class="fas fa-home"></i><span>Home</span>
     </a>
-    <a href="explorar.php" class="nav-item <?= navActive('explorar', $pagina_atual) ?>">
+    <a href="explorar" class="nav-item <?= navActive('explorar', $pagina_atual) ?>">
         <i class="fas fa-search"></i><span>Explorar</span>
     </a>
-    <a href="lista.php" class="nav-item <?= navActive('lista', $pagina_atual) ?>">
+    <a href="lista" class="nav-item <?= navActive('lista', $pagina_atual) ?>">
         <i class="fas fa-list"></i><span>Minha Lista</span>
     </a>
-    <a href="assistindo.php" class="nav-item <?= navActive('assistindo', $pagina_atual) ?>">
+    <a href="assistindo" class="nav-item <?= navActive('assistindo', $pagina_atual) ?>">
         <i class="fas fa-play-circle"></i><span>Assistindo</span>
     </a>
-    <a href="favoritos.php" class="nav-item <?= navActive('favoritos', $pagina_atual) ?>">
+    <a href="favoritos" class="nav-item <?= navActive('favoritos', $pagina_atual) ?>">
         <i class="fas fa-star"></i><span>Favoritos</span>
     </a>
-    <a href="calendario.php" class="nav-item <?= navActive('calendario', $pagina_atual) ?>">
+    <a href="calendario" class="nav-item <?= navActive('calendario', $pagina_atual) ?>">
         <i class="fas fa-calendar-alt"></i><span>Calendário</span>
     </a>
-    <a href="calculadora.php" class="nav-item <?= navActive('calculadora', $pagina_atual) ?>">
+    <a href="calculadora" class="nav-item <?= navActive('calculadora', $pagina_atual) ?>">
         <i class="fas fa-calculator"></i><span>Calculadora</span>
     </a>
-    <a href="estatisticas.php" class="nav-item <?= navActive('estatisticas', $pagina_atual) ?>">
+    <a href="estatisticas" class="nav-item <?= navActive('estatisticas', $pagina_atual) ?>">
         <i class="fas fa-chart-bar"></i><span>Estatísticas</span>
     </a>
-    <a href="titulos.php" class="nav-item <?= navActive('titulos', $pagina_atual) ?>">
+    <a href="titulos" class="nav-item <?= navActive('titulos', $pagina_atual) ?>">
         <i class="fas fa-crown"></i><span>Títulos</span>
     </a>
     <a href="#" class="nav-item" onclick="goToRandomAnime(); return false;">
@@ -52,27 +52,26 @@ function navActive($pagina, $atual)
 
 <!-- BOTTOM NAV MOBILE -->
 <nav class="bottom-nav">
-    <a href="index.php" class="bottom-nav-item <?= navActive('index', $pagina_atual) ?>">
+    <a href="home" class="bottom-nav-item <?= navActive('home', $pagina_atual) ?>">
         <i class="fas fa-home"></i>
     </a>
-    <a href="explorar.php" class="bottom-nav-item <?= navActive('explorar', $pagina_atual) ?>">
+    <a href="explorar" class="bottom-nav-item <?= navActive('explorar', $pagina_atual) ?>">
         <i class="fas fa-search"></i>
     </a>
-    <a href="lista.php" class="bottom-nav-item <?= navActive('lista', $pagina_atual) ?>">
+    <a href="lista" class="bottom-nav-item <?= navActive('lista', $pagina_atual) ?>">
         <i class="fas fa-list"></i>
     </a>
-    <a href="calendario.php" class="bottom-nav-item <?= navActive('calendario', $pagina_atual) ?>">
+    <a href="calendario" class="bottom-nav-item <?= navActive('calendario', $pagina_atual) ?>">
         <i class="fas fa-calendar-alt"></i>
     </a>
     <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
         <i class="fas fa-ellipsis-h"></i>
         <div class="bottom-nav-popup" id="bottom-nav-popup">
-            <a href="favoritos.php"><i class="fas fa-star"></i> Favoritos</a>
-            <a href="assistindo.php"><i class="fas fa-play-circle"></i> Assistindo</a>
-            <a href="calculadora.php"><i class="fas fa-calculator"></i> Calculadora</a>
-            <a href="calculadora.php"><i class="fas fa-calculator"></i> Calculadora</a>
-            <a href="estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
-            <a href="titulos.php"><i class="fas fa-crown"></i> Títulos</a>
+            <a href="favoritos"><i class="fas fa-star"></i> Favoritos</a>
+            <a href="assistindo"><i class="fas fa-play-circle"></i> Assistindo</a>
+            <a href="calculadora"><i class="fas fa-calculator"></i> Calculadora</a>
+            <a href="estatisticas"><i class="fas fa-chart-bar"></i> Estatísticas</a>
+            <a href="titulos"><i class="fas fa-crown"></i> Títulos</a>
             <a href="#" onclick="goToRandomAnime(); return false;"><i class="fas fa-dice"></i> Aleatório</a>
             <hr style="margin: 5px 0; border: 0; border-top: 1px solid var(--border-color);">
             <?php if (isset($usuario) && $usuario): ?>

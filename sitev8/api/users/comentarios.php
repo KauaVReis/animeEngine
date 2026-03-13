@@ -1,37 +1,41 @@
 <?php
 /**
- * AnimeEngine v7 - Profile Comments API
+ * AnimeEngine v8 - Profile Comments API (Seguro)
  * GET: Listar comentários
  * POST: Adicionar comentário
  */
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 
 $conn = conectar();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Listar comentários de um perfil
+    // Listar comentários de um perfil — PREPARED STATEMENT
     $perfil_id = intval($_GET['perfil_id'] ?? 0);
 
     if ($perfil_id <= 0) {
         jsonError('ID de perfil inválido');
     }
 
-    $sql = "SELECT c.*, u.username as autor_username, u.avatar as autor_avatar, 
-                   t.icone as titulo_icone, t.nome as titulo_nome, t.cor as titulo_cor 
-            FROM comentarios_perfil c
-            JOIN usuarios u ON c.autor_id = u.id
-            LEFT JOIN titulos t ON u.titulo_ativo = t.id
-            WHERE c.perfil_id = $perfil_id
-            ORDER BY c.criado_em DESC
-            LIMIT 50";
+    $result = secure_query(
+        $conn,
+        "SELECT c.*, u.username as autor_username, u.avatar as autor_avatar, 
+                t.icone as titulo_icone, t.nome as titulo_nome, t.cor as titulo_cor 
+         FROM comentarios_perfil c
+         JOIN usuarios u ON c.autor_id = u.id
+         LEFT JOIN titulos t ON u.titulo_ativo = t.id
+         WHERE c.perfil_id = ?
+         ORDER BY c.criado_em DESC
+         LIMIT 50",
+        "i",
+        $perfil_id
+    );
 
-    $result = mysqli_query($conn, $sql);
     $comentarios = [];
-
     while ($row = mysqli_fetch_assoc($result)) {
         $comentarios[] = $row;
     }
@@ -41,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Adicionar comentário
+    verificar_rate_limit();
     requerLoginAPI();
 
     $data = json_decode(file_get_contents('php://input'), true);
@@ -60,11 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     $autor_id = getUsuarioId();
-    $conteudo_safe = escape($conn, $conteudo);
 
-    // Verificar se perfil existe e é público
-    $sql = "SELECT perfil_publico FROM usuarios WHERE id = $perfil_id";
-    $result = mysqli_query($conn, $sql);
+    // Verificar se perfil existe — PREPARED STATEMENT
+    $result = secure_query($conn, "SELECT perfil_publico FROM usuarios WHERE id = ?", "i", $perfil_id);
     $perfil = mysqli_fetch_assoc($result);
 
     if (!$perfil) {
@@ -72,20 +75,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         jsonError('Perfil não encontrado', 404);
     }
 
-    // Inserir comentário
-    $sql = "INSERT INTO comentarios_perfil (perfil_id, autor_id, conteudo) 
-            VALUES ($perfil_id, $autor_id, '$conteudo_safe')";
+    // Inserir comentário — PREPARED STATEMENT
+    $stmt = secure_query(
+        $conn,
+        "INSERT INTO comentarios_perfil (perfil_id, autor_id, conteudo) VALUES (?, ?, ?)",
+        "iis",
+        $perfil_id, $autor_id, $conteudo
+    );
 
-    if (mysqli_query($conn, $sql)) {
-        $id = mysqli_insert_id($conn);
+    if ($stmt) {
+        $id = last_insert_id($conn);
 
-        // Buscar dados do autor
-        // Buscar dados do autor e seu título
-        $sql = "SELECT u.username, u.avatar, t.icone as titulo_icone, t.nome as titulo_nome, t.cor as titulo_cor 
-                FROM usuarios u 
-                LEFT JOIN titulos t ON u.titulo_ativo = t.id 
-                WHERE u.id = $autor_id";
-        $result = mysqli_query($conn, $sql);
+        // Buscar dados do autor — PREPARED STATEMENT
+        $result = secure_query(
+            $conn,
+            "SELECT u.username, u.avatar, t.icone as titulo_icone, t.nome as titulo_nome, t.cor as titulo_cor 
+             FROM usuarios u 
+             LEFT JOIN titulos t ON u.titulo_ativo = t.id 
+             WHERE u.id = ?",
+            "i",
+            $autor_id
+        );
         $autor = mysqli_fetch_assoc($result);
 
         mysqli_close($conn);
@@ -96,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'titulo_icone' => $autor['titulo_icone'],
             'titulo_nome' => $autor['titulo_nome'],
             'titulo_cor' => $autor['titulo_cor'],
-            'conteudo' => $conteudo,
+            'conteudo' => htmlspecialchars($conteudo),
             'criado_em' => date('Y-m-d H:i:s')
         ]);
     } else {

@@ -1,0 +1,12 @@
+/**
+ * AnimeEngine v8 — Tierlist CSS
+ */
+
+.tier-container {
+    animation: tierFade 0.4s ease;
+}
+
+@keyframes tierFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

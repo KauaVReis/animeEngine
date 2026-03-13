@@ -1,0 +1,31 @@
+/**
+ * AnimeEngine v8 — Home Page CSS
+ * Estilos exclusivos da página inicial
+ */
+
+/* Hero Banner - aprimoramentos SPA */
+.hero-banner {
+    view-transition-name: hero;
+}
+
+/* Seção em alta - smooth entry */
+.trending-section .anime-card {
+    animation: cardFadeIn 0.4s ease backwards;
+}
+
+.trending-section .anime-card:nth-child(2) { animation-delay: 0.05s; }
+.trending-section .anime-card:nth-child(3) { animation-delay: 0.10s; }
+.trending-section .anime-card:nth-child(4) { animation-delay: 0.15s; }
+.trending-section .anime-card:nth-child(5) { animation-delay: 0.20s; }
+.trending-section .anime-card:nth-child(6) { animation-delay: 0.25s; }
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,21 @@
+/**
+ * AnimeEngine v8 — Estatísticas CSS
+ */
+
+.stats-container {
+    animation: statsFade 0.4s ease;
+}
+
+@keyframes statsFade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.chart-container {
+    animation: chartReveal 0.5s ease 0.2s backwards;
+}
+
+@keyframes chartReveal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

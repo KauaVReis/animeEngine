@@ -1,6 +1,6 @@
 <?php
 /**
- * AnimeEngine v7 - Get Títulos API
+ * AnimeEngine v8 - Get Títulos API (Seguro)
  * GET: Obter títulos do usuário
  */
 
@@ -18,21 +18,22 @@ requerLoginAPI();
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-// Buscar todos os títulos
-$sql = "SELECT t.*, 
-        CASE WHEN ut.usuario_id IS NOT NULL THEN 1 ELSE 0 END as desbloqueado,
-        ut.desbloqueado_em
-        FROM titulos t
-        LEFT JOIN usuarios_titulos ut ON t.id = ut.titulo_id AND ut.usuario_id = $usuario_id
-        ORDER BY t.tipo, t.id";
-$result = mysqli_query($conn, $sql);
+// Buscar todos os títulos — PREPARED
+$result = secure_query(
+    $conn,
+    "SELECT t.*, 
+    CASE WHEN ut.usuario_id IS NOT NULL THEN 1 ELSE 0 END as desbloqueado,
+    ut.desbloqueado_em
+    FROM titulos t
+    LEFT JOIN usuarios_titulos ut ON t.id = ut.titulo_id AND ut.usuario_id = ?
+    ORDER BY t.tipo, t.id",
+    "i",
+    $usuario_id
+);
 
 $titulos = [
-    'genero' => [],
-    'nivel' => [],
-    'sazonal' => [],
-    'secreto' => [],
-    'conquista' => []
+    'genero' => [], 'nivel' => [], 'sazonal' => [],
+    'secreto' => [], 'conquista' => []
 ];
 
 while ($row = mysqli_fetch_assoc($result)) {
@@ -41,9 +42,8 @@ while ($row = mysqli_fetch_assoc($result)) {
     $titulos[$row['tipo']][] = $row;
 }
 
-// Título ativo do usuário
-$sql = "SELECT titulo_ativo FROM usuarios WHERE id = $usuario_id";
-$result = mysqli_query($conn, $sql);
+// Título ativo — PREPARED
+$result = secure_query($conn, "SELECT titulo_ativo FROM usuarios WHERE id = ?", "i", $usuario_id);
 $user = mysqli_fetch_assoc($result);
 
 mysqli_close($conn);

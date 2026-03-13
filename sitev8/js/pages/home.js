@@ -365,6 +365,10 @@ const HomePage = {
     }
 };
 
-// Inicializar quando DOM pronto
-document.addEventListener('DOMContentLoaded', () => HomePage.init());
+// Inicializar
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    HomePage.init();
+} else {
+    document.addEventListener('DOMContentLoaded', () => HomePage.init());
+}
 

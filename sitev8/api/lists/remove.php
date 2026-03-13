@@ -1,11 +1,12 @@
 <?php
 /**
- * AnimeEngine v7 - Remove from List API
+ * AnimeEngine v8 - Remove from List API (Seguro)
  * DELETE: Remover anime da lista
  */
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 
@@ -13,12 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'DELETE' && $_SERVER['REQUEST_METHOD'] !== 'P
     jsonError('Método não permitido', 405);
 }
 
-// Verificar login
+verificar_rate_limit();
 requerLoginAPI();
 
 // Receber dados
 $data = json_decode(file_get_contents('php://input'), true);
-
 $anime_id = intval($data['anime_id'] ?? 0);
 
 if ($anime_id <= 0) {
@@ -28,10 +28,17 @@ if ($anime_id <= 0) {
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-$sql = "DELETE FROM listas_anime WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+// DELETE — PREPARED STATEMENT
+$stmt = secure_query(
+    $conn,
+    "DELETE FROM listas_anime WHERE usuario_id = ? AND anime_id = ?",
+    "ii",
+    $usuario_id, $anime_id
+);
 
-if (mysqli_query($conn, $sql)) {
-    if (mysqli_affected_rows($conn) > 0) {
+if ($stmt) {
+    $affected = ($stmt instanceof mysqli_stmt) ? mysqli_stmt_affected_rows($stmt) : mysqli_affected_rows($conn);
+    if ($affected > 0) {
         mysqli_close($conn);
         jsonSuccess('Anime removido da lista!');
     } else {

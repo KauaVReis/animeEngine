@@ -1,17 +1,18 @@
 <?php
 /**
- * AnimeEngine v7 - Login API
- * POST: Fazer login
+ * AnimeEngine v8 - Login API
+ * POST: Fazer login (Seguro)
  */
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
 require_once '../../includes/streak.php';
+require_once '../../includes/rate_limiter.php';
 
 // Headers
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 
 // Handle Preflight
@@ -23,6 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido', 405);
 }
+
+// Rate limiting restrito para auth (10 req/min)
+verificar_rate_limit_auth();
 
 // Receber dados
 $input = file_get_contents('php://input');
@@ -47,16 +51,18 @@ if (empty($senha)) {
 // Conectar
 $conn = conectar();
 
-// Buscar usuário por email
-$email_escaped = escape($conn, $email);
-$sql = "SELECT id, username, email, senha_hash, avatar, xp, nivel, tema, streak_atual, streak_max
-        FROM usuarios WHERE email = '$email_escaped'";
-$result = mysqli_query($conn, $sql);
+// Buscar usuário por email — PREPARED STATEMENT
+$result = secure_query(
+    $conn,
+    "SELECT id, username, email, senha_hash, avatar, xp, nivel, tema, streak_atual, streak_max
+     FROM usuarios WHERE email = ?",
+    "s",
+    $email
+);
 
 if (!$result) {
-    $error = mysqli_error($conn);
     mysqli_close($conn);
-    jsonError('Erro no banco de dados: ' . $error, 500);
+    jsonError('Erro no banco de dados', 500);
 }
 
 if (mysqli_num_rows($result) === 0) {
@@ -72,18 +78,16 @@ if (!password_verify($senha, $usuario['senha_hash'])) {
     jsonError('Email ou senha incorretos');
 }
 
-// Fazer login (Sessão + Update Ultimo Acesso)
+// Fazer login (Sessão segura + session_regenerate_id)
 fazerLogin($usuario['id']);
 
 mysqli_close($conn);
 
-// Verificar e atualizar streak (usa nova conexão internamente)
+// Verificar e atualizar streak
 $streak_result = [];
 try {
     $streak_result = verificarStreak($usuario['id']);
 } catch (Exception $e) {
-    // Se falhar o streak, não impede o login, mas registra erro se possível
-    // Por enquanto, retorna vazio ou erro controlado
     $streak_result = ['error' => 'Falha ao verificar streak'];
 }
 
@@ -100,4 +104,3 @@ jsonSuccess('Login realizado com sucesso!', [
     'usuario' => $usuario,
     'streak' => $streak_result
 ]);
-

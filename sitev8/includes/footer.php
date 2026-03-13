@@ -14,9 +14,10 @@
     <script src="js/quotes.js"></script>
     <script src="js/particles.js"></script>
     <script src="js/ost-player.js"></script>
+    <script src="js/core/spa-router.js"></script>
     <script src="js/common.js"></script>
     <script>
-        // Random anime function
+        // Random anime function (v8 - SPA navigation)
         async function goToRandomAnime() {
             const query = `
                 query {
@@ -40,7 +41,13 @@
                 
                 if (animes.length > 0) {
                     const random = animes[Math.floor(Math.random() * animes.length)];
-                    window.location.href = 'detalhes.php?id=' + random.id;
+                    const url = '?page=detalhes&id=' + random.id;
+                    // Usar SPA Router se disponível, senão fallback
+                    if (typeof SpaRouter !== 'undefined') {
+                        SpaRouter.navigateTo(url);
+                    } else {
+                        window.location.href = url;
+                    }
                 }
             } catch (e) {
                 console.error('Erro ao buscar anime aleatório:', e);

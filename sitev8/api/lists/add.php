@@ -1,12 +1,13 @@
 <?php
 /**
- * AnimeEngine v7 - Add to List API
+ * AnimeEngine v8 - Add to List API (Seguro)
  * POST: Adicionar anime à lista do usuário
  */
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
 require_once '../../includes/atividade.php';
+require_once '../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 
@@ -14,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido', 405);
 }
 
-// Verificar login
+verificar_rate_limit();
 requerLoginAPI();
 
 // Receber dados
@@ -37,42 +38,50 @@ if (!in_array($tipo_lista, $tipos_validos)) {
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-// Primeiro, salvar/atualizar cache do anime
-$titulo = escape($conn, $anime_data['title'] ?? 'Sem título');
-$titulo_en = escape($conn, $anime_data['titleEn'] ?? '');
-$imagem = escape($conn, $anime_data['image'] ?? '');
+// Salvar/atualizar cache do anime — PREPARED STATEMENT
+$titulo = $anime_data['title'] ?? 'Sem título';
+$titulo_en = $anime_data['titleEn'] ?? '';
+$imagem = $anime_data['image'] ?? '';
 $episodios = intval($anime_data['episodes'] ?? 0);
 $nota_anime = floatval($anime_data['score'] ?? 0);
-$status = escape($conn, $anime_data['status'] ?? '');
-$sinopse = escape($conn, $anime_data['synopsis'] ?? '');
-$generos = escape($conn, json_encode($anime_data['genres'] ?? []));
-$estudios = escape($conn, json_encode($anime_data['studios'] ?? []));
-$trailer = escape($conn, $anime_data['trailer'] ?? '');
+$status = $anime_data['status'] ?? '';
+$sinopse = $anime_data['synopsis'] ?? '';
+$generos = json_encode($anime_data['genres'] ?? []);
+$estudios = json_encode($anime_data['studios'] ?? []);
+$trailer = $anime_data['trailer'] ?? '';
 $ano = intval($anime_data['year'] ?? 0);
 
-$sql = "INSERT INTO animes_cache 
-        (anime_id, titulo, titulo_en, imagem, episodios, nota, status, sinopse, generos, estudios, trailer, ano)
-        VALUES ($anime_id, '$titulo', '$titulo_en', '$imagem', $episodios, $nota_anime, '$status', '$sinopse', '$generos', '$estudios', '$trailer', $ano)
-        ON DUPLICATE KEY UPDATE
-            titulo = VALUES(titulo),
-            imagem = VALUES(imagem),
-            episodios = VALUES(episodios),
-            nota = VALUES(nota)";
+secure_query(
+    $conn,
+    "INSERT INTO animes_cache 
+    (anime_id, titulo, titulo_en, imagem, episodios, nota, status, sinopse, generos, estudios, trailer, ano)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+        titulo = VALUES(titulo),
+        imagem = VALUES(imagem),
+        episodios = VALUES(episodios),
+        nota = VALUES(nota)",
+    "isssidssssis",
+    $anime_id, $titulo, $titulo_en, $imagem, $episodios, $nota_anime,
+    $status, $sinopse, $generos, $estudios, $trailer, $ano
+);
 
-mysqli_query($conn, $sql);
-
-// Adicionar à lista do usuário
+// Adicionar à lista do usuário — PREPARED STATEMENT
 $progresso_final = ($tipo_lista === 'completed') ? $episodios : 0;
 
-$sql = "INSERT INTO listas_anime (usuario_id, anime_id, tipo_lista, progresso)
-        VALUES ($usuario_id, $anime_id, '$tipo_lista', $progresso_final)
-        ON DUPLICATE KEY UPDATE
-            tipo_lista = VALUES(tipo_lista),
-            progresso = GREATEST(progresso, VALUES(progresso)),
-            atualizado_em = NOW()";
+$stmt = secure_query(
+    $conn,
+    "INSERT INTO listas_anime (usuario_id, anime_id, tipo_lista, progresso)
+    VALUES (?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+        tipo_lista = VALUES(tipo_lista),
+        progresso = GREATEST(progresso, VALUES(progresso)),
+        atualizado_em = NOW()",
+    "iisi",
+    $usuario_id, $anime_id, $tipo_lista, $progresso_final
+);
 
-if (mysqli_query($conn, $sql)) {
-    // Registrar atividade (antes de fechar conexão)
+if ($stmt) {
     $tipo_atividade = $tipo_lista === 'completed' ? 'complete' : 'add';
     registrarAtividade($usuario_id, $tipo_atividade, $anime_id, ['titulo' => $anime_data['title'] ?? '']);
 
@@ -86,4 +95,3 @@ if (mysqli_query($conn, $sql)) {
     mysqli_close($conn);
     jsonError('Erro ao adicionar anime');
 }
-

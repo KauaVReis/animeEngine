@@ -1,6 +1,6 @@
 <?php
 /**
- * AnimeEngine v7 - Get Atividade API
+ * AnimeEngine v8 - Get Atividade API (Seguro)
  * GET: Obter atividades recentes do usuário
  */
 
@@ -14,14 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     jsonError('Método não permitido', 405);
 }
 
-// Pode ver atividade de si mesmo ou de outro (se público)
 $target_user = intval($_GET['user_id'] ?? 0);
 
 if ($target_user) {
-    // Verificar se perfil é público
+    // Verificar se perfil é público — PREPARED
     $conn = conectar();
-    $sql = "SELECT perfil_publico FROM usuarios WHERE id = $target_user";
-    $result = mysqli_query($conn, $sql);
+    $result = secure_query($conn, "SELECT perfil_publico FROM usuarios WHERE id = ?", "i", $target_user);
     $user = mysqli_fetch_assoc($result);
     mysqli_close($conn);
     
@@ -58,7 +56,6 @@ $formatted = array_map(function($a) {
 
 jsonResponse($formatted);
 
-// Helper
 function tempoRelativo($datetime) {
     $now = new DateTime();
     $ago = new DateTime($datetime);
