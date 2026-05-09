@@ -1,7 +1,8 @@
-const CACHE_NAME = 'animeengine-v7-shell-v1';
+const CACHE_NAME = 'animeengine-v7-shell-v2';
 const APP_SHELL = [
   './',
   './index.php',
+  './changelog.php',
   './css/style.css',
   './css/v6_styles.css',
   './css/app-polish.css',

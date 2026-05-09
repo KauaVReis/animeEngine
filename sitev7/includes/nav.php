@@ -41,6 +41,9 @@ function navActive($pagina, $atual)
     <a href="titulos.php" class="nav-item <?= navActive('titulos', $pagina_atual) ?>">
         <i class="fas fa-crown"></i><span>Títulos</span>
     </a>
+    <a href="changelog.php" class="nav-item <?= navActive('changelog', $pagina_atual) ?>">
+        <i class="fas fa-code-branch"></i><span>Changelog</span>
+    </a>
     <?php if (isset($usuario) && $usuario && intval($usuario['id']) === 1): ?>
         <a href="admin.php" class="nav-item <?= navActive('admin', $pagina_atual) ?>">
             <i class="fas fa-gauge-high"></i><span>Admin</span>
@@ -77,6 +80,7 @@ function navActive($pagina, $atual)
             <a href="calculadora.php"><i class="fas fa-calculator"></i> Calculadora</a>
             <a href="estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
             <a href="titulos.php"><i class="fas fa-crown"></i> Títulos</a>
+            <a href="changelog.php"><i class="fas fa-code-branch"></i> Changelog</a>
             <?php if (isset($usuario) && $usuario && intval($usuario['id']) === 1): ?>
                 <a href="admin.php"><i class="fas fa-gauge-high"></i> Admin</a>
             <?php endif; ?>

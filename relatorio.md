@@ -1,880 +1,651 @@
-# 📋 Relatório de Análise - AnimeEngine v7
+# Relatorio Vivo - AnimeEngine v7
 
-**Data**: Maio 2026  
-**Versão Analisada**: v7  
-**Status**: Versão Estável com Oportunidades de Melhoria  
+**Data:** Maio de 2026  
+**Versao:** sitev7  
+**Status:** Base oficial em evolucao, com foco em polimento, experiencia e confiabilidade  
 
 ---
 
-## 🔍 Sumário Executivo
+## 1. Visao Geral
 
-O AnimeEngine v7 é uma plataforma robusta com arquitetura bem organizada, mas apresenta vulnerabilidades de segurança críticas, problemas estruturais de escala e oportunidades significativas de melhoria na experiência do usuário. Este relatório detalha **23 bugs/problemas críticos**, **15 melhorias estruturais** e **18 sugestões de UI/UX**.
+O AnimeEngine v7 deixou de ser apenas um catalogo de animes e passou a se comportar como um pequeno sistema pessoal para descobrir, organizar e acompanhar animes. A base atual ja tem uma identidade visual forte, navegacao multipagina, listas, calendario, exploracao, perfil, titulos, conquistas, estatisticas, player de OST, PWA e integracao com AniList.
 
+O objetivo daqui para frente deve ser transformar a v7 em uma experiencia mais coesa: menos telas isoladas e mais sensacao de produto. O usuario deve abrir o site e entender rapidamente:
+
+- o que assistir agora;
+- o que esta no ar hoje;
+- o que ele esta acompanhando;
+- o que vale descobrir;
+- quais conquistas/progresso ele desbloqueou;
+- quais funcoes tornam o AnimeEngine diferente de um catalogo comum.
+
+Este relatorio substitui a lista antiga de auditoria por um plano vivo de melhorias, ideias e prioridades.
+
 ---
+
+## 2. Estado Atual da v7
 
-## 🚨 BUGS CRÍTICOS E VULNERABILIDADES
+### Pontos fortes
 
-### 1. **SQL Injection via `escape()` (CRÍTICO)**
-**Severidade**: 🔴 CRÍTICO  
-**Arquivos Afetados**: `api/auth/login.php`, `api/auth/register.php`, `perfil.php`, múltiplos endpoints  
-**Problema**: Uso de `mysqli_real_escape_string()` não é suficiente contra SQL Injection. A concatenação direta em queries é vulnerável.
+- Identidade visual marcante com estilo neo-brutalist.
+- Estrutura PHP com includes reutilizaveis para header, nav e footer.
+- Paginas principais ja separadas: Home, Explorar, Lista, Assistindo, Favoritos, Calendario, Calculadora, Estatisticas, Titulos, Perfil, Admin e Changelog.
+- Integracao com AniList para dados de animes.
+- Sistema local de listas, favoritos, progresso, conquistas, notificacoes e temas.
+- Player de OST com integracao YouTube e fallback visual.
+- Melhorias recentes de seguranca: CSRF, rate limit, logs, prepared statements, health check, cache e headers.
+- Responsividade melhorada em Home, Calendario e Explorar.
+- PWA iniciado com manifest e service worker.
 
-**Exemplo Problemático**:
-```php
-$email_escaped = escape($conn, $email);
-$sql = "SELECT * FROM usuarios WHERE email = '$email_escaped'"; // VULNERÁVEL
-```
+### Pontos que ainda merecem cuidado
 
-**Solução**:
-```php
-$stmt = $conn->prepare("SELECT * FROM usuarios WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
-```
+- Algumas telas ainda possuem estilos antigos conflitantes.
+- Existem regras CSS repetidas e globais demais.
+- Alguns componentes ainda dependem de `onclick` inline.
+- A experiencia mobile esta melhor, mas ainda pode ficar mais fluida.
+- Falta uma linguagem unica para estados de loading, erro e vazio.
+- Algumas features existem, mas poderiam conversar mais entre si.
+- Falta uma camada mais clara de testes e verificacao automatica.
 
 ---
 
-### 2. **Falta de Session Regeneration após Login (CRÍTICO)**
-**Severidade**: 🔴 CRÍTICO  
-**Arquivo**: `includes/auth.php` - função `fazerLogin()`  
-**Problema**: Não há regeneração de `session_id()` após login, permitindo Session Fixation attacks.
+## 3. Direcao de Produto
 
-**Solução**:
-```php
-function fazerLogin($usuario_id) {
-    session_regenerate_id(true); // Adicionar esta linha
-    $_SESSION['usuario_id'] = $usuario_id;
-    $_SESSION['login_time'] = time();
-}
-```
+### Proposta central
 
----
+AnimeEngine v7 deve ser um painel pessoal de anime com personalidade: rapido para consultar, divertido para explorar e recompensador para manter uma lista viva.
 
-### 3. **CORS Aberto demais (CRÍTICO)**
-**Severidade**: 🔴 CRÍTICO  
-**Arquivos**: `api/auth/login.php`, `api/auth/register.php`  
-**Problema**: `Access-Control-Allow-Origin: *` permite requisições de qualquer origem.
+### Pilares da experiencia
 
-**Solução**:
-```php
-$allowed_origins = ['https://seu-dominio.com'];
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowed_origins)) {
-    header('Access-Control-Allow-Origin: ' . $origin);
-}
-```
+1. **Descoberta**
+   Explorar, aleatorio, OSTs, recomendacoes, animes em alta e calendario da temporada.
 
----
+2. **Organizacao**
+   Lista pessoal, assistindo, favoritos, concluidos, planejados e historico.
 
-### 4. **Credenciais de Banco de Dados Hardcoded (CRÍTICO)**
-**Severidade**: 🔴 CRÍTICO  
-**Arquivo**: `includes/database.php`  
-**Problema**: Credenciais expostas no código-fonte. Acessível se o repositório vazar.
+3. **Progresso**
+   Episodios, streaks, conquistas, titulos, estatisticas e metas semanais.
 
-**Solução**:
-```php
-// .env
-DB_HOST=localhost
-DB_USER=root
-DB_PASS=senhaSegura123!
-DB_NAME=animeengine_v7
+4. **Personalidade**
+   Temas, modo visual, player OST, frases, animacoes, roleta e microinteracoes.
 
-// database.php
-require_once __DIR__ . '/../.env';
-// ou usar getenv()
-```
+5. **Confiabilidade**
+   Seguranca, fallback de imagens, cache, logs, validacoes e boa performance.
 
 ---
 
-### 5. **Informações Sensíveis em Mensagens de Erro (ALTO)**
-**Severidade**: 🟠 ALTO  
-**Problema**: Mensagens de erro expõem detalhes do banco de dados ao cliente.
-
-**Exemplo**:
-```php
-jsonError('Erro no banco de dados: ' . mysqli_error($conn), 500);
-// Expõe estrutura do DB
-```
-
-**Solução**:
-```php
-if (!$result) {
-    error_log('SQL Error: ' . mysqli_error($conn)); // Log interno
-    jsonError('Erro ao processar solicitação', 500); // Mensagem genérica
-}
-```
-
----
-
-### 6. **Falta de CSRF Protection (ALTO)**
-**Severidade**: 🟠 ALTO  
-**Problema**: Nenhum token CSRF em formulários. APIs são vulneráveis a ataques forjados.
-
-**Solução**:
-```php
-// Gerar token
-session_start();
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// Validar em POST
-if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-    jsonError('Token inválido', 403);
-}
-```
-
----
-
-### 7. **N+1 Queries em getUsuarioLogado() (ALTO)**
-**Severidade**: 🟠 ALTO  
-**Arquivo**: `includes/auth.php`  
-**Problema**: Função chamada frequentemente sem cache, gerando múltiplas queries desnecessárias.
-
-**Solução**:
-```php
-static $user_cache = [];
-
-function getUsuarioLogado() {
-    global $user_cache;
-    
-    $id = $_SESSION['usuario_id'] ?? null;
-    if (!$id) return null;
-    
-    if (isset($user_cache[$id])) {
-        return $user_cache[$id];
-    }
-    
-    // ... buscar do DB e cachear
-    $user_cache[$id] = $usuario;
-    return $usuario;
-}
-```
-
----
-
-### 8. **Headers de Segurança Faltando (ALTO)**
-**Severidade**: 🟠 ALTO  
-**Problema**: Sem Content-Security-Policy, X-Frame-Options, etc.
-
-**Solução** (criar `includes/security-headers.php`):
-```php
-header('X-Frame-Options: DENY');
-header('X-Content-Type-Options: nosniff');
-header('X-XSS-Protection: 1; mode=block');
-header('Referrer-Policy: strict-origin-when-cross-origin');
-header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header('Content-Security-Policy: default-src \'self\'; script-src \'self\'; style-src \'self\' \'unsafe-inline\'');
-```
-
----
-
-### 9. **Rate Limiting Ausente (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: APIs de login/registro podem ser brute-forced. Sem limite de requisições.
-
-**Solução**:
-```php
-// Criar tabela: ip_attempts (ip, endpoint, count, expire_at)
-function checkRateLimit($endpoint, $limit = 5, $window = 300) {
-    $ip = $_SERVER['REMOTE_ADDR'];
-    $conn = conectar();
-    
-    // Limpar tentativas antigas
-    mysqli_query($conn, "DELETE FROM ip_attempts WHERE expire_at < NOW()");
-    
-    // Contar tentativas
-    $result = mysqli_query($conn, 
-        "SELECT COUNT(*) as count FROM ip_attempts WHERE ip='$ip' AND endpoint='$endpoint'");
-    $row = mysqli_fetch_assoc($result);
-    
-    if ($row['count'] >= $limit) {
-        http_response_code(429);
-        die('Muitas requisições. Tente novamente mais tarde.');
-    }
-    
-    // Registrar tentativa
-    mysqli_query($conn, 
-        "INSERT INTO ip_attempts (ip, endpoint, expire_at) VALUES ('$ip', '$endpoint', DATE_ADD(NOW(), INTERVAL $window SECOND))");
-    
-    mysqli_close($conn);
-}
-```
-
----
-
-### 10. **Falta de Logging de Eventos de Segurança (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Tentativas de login falhas, acessos suspeitos não são registrados.
-
-**Solução**:
-```php
-// Criar arquivo logs/security.log
-function logSecurityEvent($event_type, $user_id, $details = []) {
-    $timestamp = date('Y-m-d H:i:s');
-    $ip = $_SERVER['REMOTE_ADDR'];
-    $message = "$timestamp | $event_type | User: $user_id | IP: $ip | " . json_encode($details) . "\n";
-    error_log($message, 3, __DIR__ . '/../logs/security.log');
-}
-```
-
----
-
-### 11. **Sem Validação de Origem de Requisição (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: APIs aceitam requisições de qualquer fonte. Vulnerável a CSRF.
-
-**Solução**:
-```php
-function validateOrigin() {
-    $allowed = ['https://seu-dominio.com', 'http://localhost'];
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    
-    if (!in_array($origin, $allowed)) {
-        jsonError('Origem não autorizada', 403);
-    }
-}
-```
-
----
-
-### 12. **localStorage Armazenando Dados Sensíveis (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Arquivo**: `js/pages/home.js` e outros  
-**Problema**: localStorage é vulnerável a XSS. Dados de sessão não devem estar lá.
-
-**Exemplo Problemático**:
-```javascript
-localStorage.setItem('usuario_id', usuarioId); // VULNERÁVEL
-```
-
-**Solução**: Usar apenas sessionStorage ou cookies HttpOnly.
-
----
-
-### 13. **Falta de Input Sanitization em JS (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Usando `innerHTML` sem sanitizar dados da API.
-
-**Exemplo Problemático**:
-```javascript
-element.innerHTML = data.titulo; // XSS potencial
-```
-
-**Solução**:
-```javascript
-element.textContent = data.titulo; // Texto seguro
-// OU com DOMPurify para HTML confiável:
-element.innerHTML = DOMPurify.sanitize(data.titulo);
-```
+## 4. Ideias de Features para Deixar a v7 Mais Legal
 
----
+### 4.1 Central "Hoje no AnimeEngine"
+
+Criar uma area na Home que responda rapidamente: "o que eu faco agora?"
 
-### 14. **Session Timeout Não Implementado (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Sessões nunca expiram por inatividade.
+Sugestoes:
 
-**Solução** (em `includes/auth.php`):
-```php
-$timeout = 3600; // 1 hora
+- Proximo episodio da temporada.
+- Anime que o usuario esta assistindo e parou mais perto do fim.
+- Sugestao rapida de anime aleatorio com dado.
+- Meta semanal ativa.
+- Ultima conquista desbloqueada.
+- Botao "Continuar assistindo".
 
-if (isset($_SESSION['last_activity'])) {
-    if (time() - $_SESSION['last_activity'] > $timeout) {
-        session_destroy();
-        jsonError('Sessão expirada', 401);
-    }
-}
+Impacto esperado: a Home fica mais util e menos apenas vitrine.
 
-$_SESSION['last_activity'] = time();
-```
+Prioridade: alta.
 
 ---
 
-### 15. **Sem Proteção contra Clickjacking (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Site pode ser carregado em iframe por terceiros.
+### 4.2 Sistema de Missoes Semanais
 
-**Solução** (já mencionada em headers):
-```php
-header('X-Frame-Options: DENY');
-```
+Expandir as metas atuais para um sistema de missoes com recompensas.
 
----
+Exemplos:
+
+- Assistir 3 episodios.
+- Adicionar 2 animes na lista.
+- Favoritar 1 anime.
+- Explorar um anime de genero diferente.
+- Ouvir uma OST.
+- Abrir o calendario 3 vezes na semana.
 
-### 16. **Validação de Email Insuficiente (BAIXO)**
-**Severidade**: 🟢 BAIXO  
-**Problema**: `filter_var()` com FILTER_VALIDATE_EMAIL pode falhar para domínios RFC5321.
+Recompensas:
 
-**Solução**:
-```php
-// Adicionar validação DNS
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    jsonError('Email inválido');
-}
+- XP.
+- Titulos.
+- Badges.
+- Temas secretos.
+- Molduras de perfil.
 
-// Verificar se MX records existem (opcional)
-$domain = substr($email, strpos($email, '@') + 1);
-if (!checkdnsrr($domain, 'MX')) {
-    jsonError('Domínio de email inválido');
-}
-```
+Prioridade: alta.
 
 ---
 
-### 17. **Sem Validação de Tamanho de Arquivo (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Arquivo**: Upload de avatar, banner  
-**Problema**: Sem limite de tamanho para uploads. Pode causar DoS.
+### 4.3 Perfil Mais Vivo
 
----
+O perfil pode virar uma pagina de identidade do usuario.
+
+Ideias:
 
-### 18. **Falta de Password Strength Validation (BAIXO)**
-**Severidade**: 🟢 BAIXO  
-**Problema**: Aceita senhas simples de 6 caracteres. Sem requisitos de complexidade.
+- Banner customizavel.
+- Anime favorito em destaque.
+- Titulo equipado.
+- Badges raras.
+- Top generos.
+- Tempo estimado assistido.
+- Ultimas conquistas.
+- Linha do tempo de atividades.
+- Compartilhamento de perfil.
 
-**Solução**:
-```php
-function validatePasswordStrength($senha) {
-    $minLength = 8;
-    $hasUppercase = preg_match('/[A-Z]/', $senha);
-    $hasLowercase = preg_match('/[a-z]/', $senha);
-    $hasDigit = preg_match('/[0-9]/', $senha);
-    $hasSpecial = preg_match('/[!@#$%^&*]/', $senha);
-    
-    if (strlen($senha) < $minLength || !($hasUppercase && $hasLowercase && $hasDigit && $hasSpecial)) {
-        return false;
-    }
-    return true;
-}
-```
+Prioridade: alta.
 
 ---
 
-### 19. **Sem Two-Factor Authentication (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Contas de usuário vulneráveis a força bruta se senha vazar.
+### 4.4 Explorar 2.0
 
----
+O Explorar ja melhorou, mas pode virar uma experiencia de descoberta mais forte.
 
-### 20. **Sem Verificação de Email na Criação de Conta (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Qualquer email pode ser usado sem confirmação.
+Ideias:
 
----
+- Presets mais inteligentes: "curtos", "classicos", "hidden gems", "romance leve", "acao boa", "para maratonar".
+- Cards com razao da recomendacao: "alta nota", "curto", "em lancamento", "popular".
+- Comparador rapido entre dois animes.
+- Botao "nao quero ver isso" para esconder resultados temporariamente.
+- Filtro por humor: leve, intenso, triste, engracado, epico.
+- Secao "descoberta do dia".
 
-### 21. **Múltiplas Conexões ao BD sem Pool (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Cada função abre/fecha conexão. Ineficiente em alta concorrência.
+Prioridade: alta.
 
 ---
 
-### 22. **Sem Tratamento de Timeouts (BAIXO)**
-**Severidade**: 🟢 BAIXO  
-**Problema**: Queries longas podem congelar o servidor.
+### 4.5 Calendario da Temporada 2.0
 
----
+O Calendario deve funcionar como uma agenda real.
 
-### 23. **Sem Backup/Restore Automation (MÉDIO)**
-**Severidade**: 🟡 MÉDIO  
-**Problema**: Sem sistema automatizado de backup do banco de dados.
+Ideias:
 
----
+- Aba "Hoje" como primeira experiencia no mobile.
+- Cards com estado: no ar, em breve, ja exibido.
+- Lembrete visual para animes que o usuario segue.
+- Agrupamento por horario.
+- Botao "adicionar todos os que sigo".
+- Modo compacto e modo detalhado.
+- Destaque do proximo episodio no topo.
+- Integracao com notificacoes internas.
 
+Prioridade: alta.
+
 ---
+
+### 4.6 Roleta/Aleatorio Premium
 
-## 🏗️ MELHORIAS ESTRUTURAIS
+O aleatorio agora varia melhor, mas pode virar uma feature propria.
 
-### 1. **Implementar Prepared Statements em Todos os Endpoints**
-**Impacto**: Elimina SQL Injection  
-**Esforço**: Médio (2-3 dias)  
-**Prioridade**: 🔴 CRÍTICA
+Ideias:
 
-Refatorar `includes/database.php` com wrapper seguro:
-```php
-class Database {
-    private $conn;
-    
-    public function __construct() {
-        $this->conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    }
-    
-    public function query($sql, $params = [], $types = '') {
-        $stmt = $this->conn->prepare($sql);
-        if ($params) {
-            $stmt->bind_param($types, ...$params);
-        }
-        $stmt->execute();
-        return $stmt->get_result();
-    }
-}
-```
+- Tela de roleta com animacao de cartas.
+- Filtros antes do sorteio: genero, formato, nota minima, episodios.
+- Modo "surpreenda-me".
+- Modo "da minha lista".
+- Modo "anime curto".
+- Historico dos ultimos sorteados.
+- Botao "sortear de novo".
 
+Prioridade: media-alta.
+
 ---
 
-### 2. **Criar Sistema de Logging Centralizado**
-**Impacto**: Auditoria, debugging, segurança  
-**Esforço**: Baixo (1 dia)  
-**Prioridade**: 🟠 ALTA
+### 4.7 Radio OST Melhorada
 
-Estrutura:
-```
-logs/
-├── security.log (tentativas de login, acessos suspeitos)
-├── database.log (queries lentas)
-├── api.log (requisições e respostas)
-└── errors.log (erros da aplicação)
-```
+O player de OST tem potencial de ser uma assinatura do site.
 
----
+Ideias:
 
-### 3. **Usar Variáveis de Ambiente (.env)**
-**Impacto**: Segurança, portabilidade  
-**Esforço**: Baixo (1 dia)  
-**Prioridade**: 🔴 CRÍTICA
+- Mini player persistente mais bonito.
+- Lista de faixas recentes.
+- Favoritar OST.
+- Radio por anime/genero/clima.
+- Estado "tocando agora" nos cards.
+- Visualizer simples no player.
+- Fallback automatico quando o video falhar.
 
-Usar biblioteca `vlucas/phpdotenv` ou manual com `.env`:
-```
-DB_HOST=localhost
-DB_USER=root
-DB_PASS=senhaSegura
-JWT_SECRET=chaveSecretaParaTokens
-APP_ENV=production
-```
+Prioridade: media.
 
 ---
 
-### 4. **Implementar Rate Limiting Middleware**
-**Impacto**: Proteção contra brute force  
-**Esforço**: Médio (2 dias)  
-**Prioridade**: 🟠 ALTA
+### 4.8 Sistema de Titulos e Badges Mais Profundo
 
-Criar `includes/rate-limit.php` com cache Redis ou memcached.
+Titulos podem ser mais do que uma lista.
 
----
+Ideias:
 
-### 5. **Refatorar para Usar Connection Pool**
-**Impacto**: Performance em alta concorrência  
-**Esforço**: Médio (2 dias)  
-**Prioridade**: 🟡 MÉDIA
+- Titulos equipaveis.
+- Raridade: comum, raro, epico, lendario.
+- Badges por comportamento.
+- Titulos secretos por easter eggs.
+- Moldura de perfil vinculada ao titulo.
+- Pagina de colecao com progresso.
 
-Usar persistência de conexão ou MySQLi com pool externo.
+Prioridade: media.
 
 ---
 
-### 6. **Implementar API Versioning**
-**Impacto**: Compatibilidade futura, evitar quebra de código cliente  
-**Esforço**: Médio (2 dias)  
-**Prioridade**: 🟡 MÉDIA
+### 4.9 Estatisticas Mais Humanas
 
-Estrutura:
-```
-api/v1/auth/login.php
-api/v2/auth/login.php (nova versão)
-```
+Estatisticas devem contar uma historia, nao apenas mostrar numeros.
 
----
+Ideias:
 
-### 7. **Criar Sistema de Caching (Redis/Memcached)**
-**Impacto**: Performance em 80%  
-**Esforço**: Alto (3-4 dias)  
-**Prioridade**: 🟠 ALTA
+- "Seu genero dominante e..."
+- "Voce prefere animes curtos/longos."
+- "Seu mes mais ativo."
+- "Voce completou X% do que comecou."
+- Graficos de progresso.
+- Ranking dos animes melhor avaliados pelo usuario.
+- Comparacao com a media geral da AniList.
 
-Cache para:
-- Perfis de usuários
-- Listas de animes
-- Stats e streaks
-- Queries frequentes
+Prioridade: media.
 
 ---
 
-### 8. **Implementar Queue System (Jobs/Workers)**
-**Impacto**: Operações assíncronas, emails, relatórios  
-**Esforço**: Alto (3 dias)  
-**Prioridade**: 🟡 MÉDIA
+### 4.10 Changelog Integrado
 
-Usar `RabbitMQ`, `Redis Queues` ou `PHP RQ`.
+A pagina de changelog criada pode evoluir para um recurso de transparencia do projeto.
 
----
+Ideias:
 
-### 9. **Estruturar em Padrão MVC/Service Layer**
-**Impacto**: Manutenibilidade, testabilidade  
-**Esforço**: Alto (5-7 dias)  
-**Prioridade**: 🟡 MÉDIA
+- Separar por versao.
+- Mostrar "novo", "melhorado", "corrigido".
+- Mostrar screenshots pequenos de mudancas visuais.
+- Botao "ver commits recentes".
+- Filtro por categoria: UI, API, seguranca, performance, features.
 
-Organização sugerida:
-```
-src/
-├── Controllers/
-├── Services/
-├── Models/
-├── Repositories/
-├── Middleware/
-└── Utils/
-```
+Prioridade: baixa-media.
 
 ---
 
-### 10. **Implementar Dependency Injection**
-**Impacto**: Testabilidade, desacoplamento  
-**Esforço**: Médio (2-3 dias)  
-**Prioridade**: 🟡 MÉDIA
+## 5. Melhorias de UI/UX
 
-Usar container como `PHP-DI` ou implementar manual.
+### 5.1 Design System da v7
 
----
+O site precisa de uma camada clara de componentes para reduzir conflitos CSS.
 
-### 11. **Adicionar Testes Unitários e Integração**
-**Impacto**: Qualidade, confiança em mudanças  
-**Esforço**: Alto (4-5 dias)  
-**Prioridade**: 🟡 MÉDIA
+Componentes recomendados:
 
-Usar `PHPUnit`, `Pest` ou `Testify`.
+- Botao primario.
+- Botao secundario.
+- Botao icone.
+- Card padrao.
+- Card de anime.
+- Tag/chip.
+- Toast.
+- Modal.
+- Empty state.
+- Loading skeleton.
+- Toolbar.
+- Tabs.
+- Segmented control.
 
+Meta: parar de corrigir cada botao manualmente e fazer todos seguirem o mesmo sistema.
+
+Prioridade: alta.
+
 ---
 
-### 12. **Implementar API Documentation (OpenAPI/Swagger)**
-**Impacto**: Facilita uso de API, onboarding  
-**Esforço**: Médio (2 dias)  
-**Prioridade**: 🟡 MÉDIA
+### 5.2 Estados Padronizados
 
-```php
-/**
- * @OA\Post(
- *   path="/api/auth/login",
- *   @OA\Parameter(name="email", in="query"),
- *   @OA\Response(response=200, description="Login successful")
- * )
- */
-```
+Cada pagina deve ter estados previsiveis:
 
----
+- carregando;
+- vazio;
+- erro;
+- offline;
+- sem login;
+- sucesso;
+- confirmacao.
+
+Exemplo:
 
-### 13. **Criar Dashboard de Administração**
-**Impacto**: Gerenciamento mais fácil do sistema  
-**Esforço**: Alto (5-7 dias)  
-**Prioridade**: 🟡 MÉDIA
+- Explorar sem resultado: sugerir limpar filtros.
+- Calendario sem animes: sugerir outra temporada.
+- Lista vazia: sugerir explorar ou sortear.
 
-Funcionalidades:
-- Gerenciar usuários
-- Ver logs de segurança
-- Monitorar performance
-- Gerenciar conteúdo
+Prioridade: alta.
 
 ---
 
-### 14. **Implementar Monitoring e Analytics**
-**Impacto**: Visibilidade em saúde do sistema  
-**Esforço**: Médio (2-3 dias)  
-**Prioridade**: 🟡 MÉDIA
+### 5.3 Mobile First Real
 
-Usar `Sentry`, `New Relic` ou `DataDog`.
+O mobile ja esta melhor, mas a v7 deve tratar celular como experiencia principal.
 
----
+Melhorias:
 
-### 15. **Otimizar Queries com Índices e JOINs**
-**Impacto**: Performance do BD  
-**Esforço**: Médio (1-2 dias)  
-**Prioridade**: 🟠 ALTA
+- Filtros em bottom sheet.
+- Tabs horizontais sem barra grossa.
+- Cards compactos.
+- Menus com toque confortavel.
+- Header fixo leve.
+- Player OST sem cobrir conteudo.
+- Botao de acao principal por tela.
 
-Analisar queries lentas com `EXPLAIN` e adicionar índices.
+Prioridade: alta.
 
 ---
 
----
+### 5.4 Microinteracoes
 
-## 🎨 MELHORIAS DE UI/UX
+Pequenas animacoes deixam a interface mais viva.
 
-### 1. **Implementar Loading States Visuais**
-**Impacto**: UX, feedback do usuário  
-**Esforço**: Baixo (1 dia)
+Ideias:
 
-Adicionar spinners, skeleton screens:
-```html
-<div class="skeleton-loader">
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
-</div>
-```
+- Dado jogando no aleatorio.
+- Card abrindo com transicao para detalhes.
+- Botao de favoritar com pulso.
+- Conquista entrando com impacto.
+- Progresso de episodio com animacao.
+- Cards aparecendo com stagger leve.
 
+Prioridade: media.
+
 ---
+
+### 5.5 Acessibilidade
+
+Melhorias importantes:
 
-### 2. **Melhorar Sistema de Notificações (Toasts)**
-**Impacto**: UX, clareza de ações  
-**Esforço**: Baixo (1 dia)
+- Contraste consistente em todos os temas.
+- Foco visivel em teclado.
+- Labels em inputs e selects.
+- `aria-live` para toasts.
+- Botao com `aria-label` quando for apenas icone.
+- Respeitar `prefers-reduced-motion`.
+- Tamanhos minimos de toque no mobile.
 
-Adicionar positions, tipos (success, error, warning), auto-dismiss:
-```javascript
-Toast.success('Anime adicionado!', { duration: 3000, position: 'top-right' });
-```
+Prioridade: alta.
 
 ---
 
-### 3. **Adicionar Confirmação em Ações Destrutivas**
-**Impacto**: UX, reduz erros do usuário  
-**Esforço**: Baixo (1 dia)
+## 6. Melhorias Tecnicas
 
-```javascript
-if (confirm('Tem certeza que deseja deletar?')) {
-    // deletar
-}
-// Melhor: Modal customizado
-```
+### 6.1 Reduzir CSS Legado
 
----
+O CSS atual tem regras duplicadas e conflitos entre `style.css`, `v6_styles.css` e `app-polish.css`.
+
+Plano:
 
-### 4. **Melhorar Responsividade Mobile**
-**Impacto**: UX em dispositivos pequenos  
-**Esforço**: Médio (2-3 dias)
+1. Mapear classes duplicadas.
+2. Criar tokens e componentes finais.
+3. Migrar paginas aos poucos.
+4. Remover overrides antigos.
+5. Manter `app-polish.css` como camada temporaria ate consolidar.
 
-- Testar em iOS/Android
-- Melhorar touch targets (mínimo 48x48px)
-- Adicionar breakpoints adequados
+Prioridade: alta.
 
 ---
+
+### 6.2 Trocar `onclick` Inline por Event Listeners
+
+Muitos elementos ainda usam `onclick` direto no HTML. Isso dificulta manutencao.
 
-### 5. **Implementar Dark/Light Mode Toggle Acessível**
-**Impacto**: UX, acessibilidade  
-**Esforço**: Baixo (1 dia)
+Plano:
 
-Adicionar toggle de tema mais visível, salvar preferência:
-```javascript
-localStorage.setItem('theme-preference', 'dark');
-document.documentElement.setAttribute('data-theme', 'dark');
-```
+- Usar `data-action`.
+- Centralizar listeners em JS.
+- Evitar montar HTML com eventos inline.
+- Facilitar testes e acessibilidade.
 
+Prioridade: media-alta.
+
 ---
+
+### 6.3 Testes Basicos
 
-### 6. **Adicionar Animações de Transição entre Páginas**
-**Impacto**: UX premium, sentimento de fluidez  
-**Esforço**: Baixo (1 dia)
+Adicionar testes simples ja traria muito valor.
 
-Fade in/out suaves:
-```css
-.page-transition {
-    animation: fadeIn 0.3s ease-in-out;
-}
+Sugestoes:
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-```
+- `php -l` em todos os PHP.
+- `node --check` em todos os JS.
+- Teste HTTP das paginas principais.
+- Smoke test de login, explorar, calendario e lista.
+- Verificacao de manifest e service worker.
 
+Prioridade: alta.
+
 ---
+
+### 6.4 Performance
 
-### 7. **Melhorar Tratamento de Erros Visuais**
-**Impacto**: UX, compreensão de falhas  
-**Esforço**: Baixo (1 dia)
+Melhorias:
 
-Mostrar erros ao lado dos campos:
-```html
-<input type="email" id="email">
-<span class="error-message">Email inválido</span>
-```
+- Lazy load de imagens.
+- Cache de respostas AniList.
+- Placeholder local padrao.
+- Evitar traducao/sincronizacao pesada durante render.
+- Reduzir chamadas duplicadas.
+- Medir tamanho de JS/CSS.
 
+Prioridade: media.
+
 ---
+
+### 6.5 Observabilidade
 
-### 8. **Adicionar Busca com Autocomplete**
-**Impacto**: UX, descoberta de conteúdo  
-**Esforço**: Médio (2 dias)
+Ideias:
 
-Usar biblioteca como `fuse.js` ou `typeahead.js`.
+- Logs de erro no frontend.
+- Painel admin com ultimos erros.
+- Health check expandido.
+- Contador de falhas da AniList.
+- Status de cache.
+- Log de eventos importantes.
 
+Prioridade: media.
+
 ---
 
-### 9. **Melhorar Paginação/Infinite Scroll**
-**Impacto**: UX, performance  
-**Esforço**: Médio (2 dias)
+## 7. Roadmap Recomendado
 
-Implementar Intersection Observer para lazy loading.
+### Fase 1 - Consolidacao da v7
 
----
+Objetivo: deixar tudo consistente e confiavel.
 
-### 10. **Adicionar Histórico de Navegação/Breadcrumbs**
-**Impacto**: UX, navegação clara  
-**Esforço**: Baixo (1 dia)
+- Revisar contraste e botoes em todas as paginas.
+- Padronizar botao, card, chip, modal e toast.
+- Corrigir imagens quebradas restantes.
+- Validar mobile nas paginas principais.
+- Remover conflitos obvios de CSS.
+- Criar checklist de validacao.
 
-```html
-<nav aria-label="breadcrumb">
-    <ol>
-        <li><a href="/">Home</a></li>
-        <li><a href="/explorar">Explorar</a></li>
-        <li>Jujutsu Kaisen</li>
-    </ol>
-</nav>
-```
+Resultado esperado: v7 visualmente mais profissional e com menos bugs pequenos.
 
+Prioridade: imediata.
+
 ---
 
-### 11. **Melhorar Acessibilidade (WCAG 2.1 AA)**
-**Impacto**: Acessibilidade, inclusão  
-**Esforço**: Médio (3 dias)
+### Fase 2 - Home como Painel Principal
 
-- Adicionar aria-labels
-- Melhorar contraste
-- Testar com leitores de tela
-- Navegação por teclado
+Objetivo: transformar a Home em uma central de acao.
 
----
+- Continuar assistindo.
+- Proximo episodio.
+- Missao semanal.
+- Anime recomendado.
+- Ultima conquista.
+- Atalhos para Explorar, Calendario e Lista.
 
-### 12. **Implementar Shortcuts de Teclado**
-**Impacto**: UX power user  
-**Esforço**: Baixo (1 dia)
+Resultado esperado: usuario entende o valor do site nos primeiros segundos.
 
-```javascript
-// Teclar 's' para buscar, 'j' próximo, 'k' anterior
-document.addEventListener('keydown', (e) => {
-    if (e.key === 's') document.getElementById('search').focus();
-});
-```
+Prioridade: alta.
 
 ---
 
-### 13. **Melhorar Design do Formulário de Registro**
-**Impacto**: UX, conversão  
-**Esforço**: Médio (1-2 dias)
+### Fase 3 - Explorar e Calendario Premium
 
-- Adicionar password strength indicator
-- Real-time email validation
-- Progressive disclosure de campos
+Objetivo: melhorar descoberta e acompanhamento.
 
----
+- Filtros em bottom sheet no mobile.
+- Presets melhores no Explorar.
+- Estado vazio rico.
+- Calendario com modo compacto/detalhado.
+- Lembretes internos para animes seguidos.
+- Melhor integracao com lista "Assistindo".
 
-### 14. **Criar Onboarding Interativo**
-**Impacto**: UX, retenção de novos usuários  
-**Esforço**: Alto (3-4 dias)
+Resultado esperado: descoberta mais divertida e calendario mais util.
 
-Tutorial inicial mostrando funcionalidades principais.
+Prioridade: alta.
 
 ---
 
-### 15. **Implementar Sistema de Favoritos/Bookmarks Visual**
-**Impacto**: UX, personalização  
-**Esforço**: Baixo (1 dia)
+### Fase 4 - Perfil, Missoes e Gamificacao
 
-Coração animado, contador visual.
+Objetivo: aumentar retencao.
 
----
+- Perfil com badges e titulo equipado.
+- Missoes semanais.
+- XP melhor distribuido.
+- Conquistas por comportamento.
+- Molduras e raridades.
+- Pagina de colecao.
 
-### 16. **Melhorar Cards de Anime**
-**Impacto**: UX, estética  
-**Esforço**: Médio (1-2 dias)
+Resultado esperado: o usuario tem motivo para voltar.
 
-- Hover effects melhorados
-- Mostrar mais info no hover
-- Lazy load de imagens
+Prioridade: media-alta.
 
 ---
 
-### 17. **Adicionar Empty States**
-**Impacto**: UX, clareza  
-**Esforço**: Baixo (1 dia)
+### Fase 5 - Refatoracao Tecnica
 
-Mostrar mensagens amigáveis quando listas vazias:
-```html
-<div class="empty-state">
-    <p>📭 Nenhum anime na sua lista</p>
-    <a href="/explorar">Começar a explorar</a>
-</div>
-```
+Objetivo: preparar o projeto para crescer.
 
----
+- Reduzir CSS duplicado.
+- Tirar `onclick` inline.
+- Criar camada de componentes JS.
+- Escrever testes basicos.
+- Melhorar cache e logs.
+- Documentar endpoints.
 
-### 18. **Implementar PWA (Progressive Web App)**
-**Impacto**: UX, uso offline  
-**Esforço**: Alto (4-5 dias)
+Resultado esperado: manutencao mais rapida e menos regressao.
 
-- Service Worker
-- Manifest.json
-- Instalável no home screen
+Prioridade: media.
 
 ---
 
----
+## 8. Backlog Priorizado
+
+### Alta prioridade
+
+- Padronizar componentes visuais.
+- Revisar responsividade de todas as paginas.
+- Criar painel "Hoje no AnimeEngine".
+- Melhorar perfil.
+- Criar missoes semanais.
+- Adicionar testes/smoke checks.
+- Limpar conflitos CSS mais graves.
+
+### Media prioridade
 
-## 📊 MÉTRICAS DE PRIORIDADE E IMPACTO
+- Melhorar player OST.
+- Criar roleta premium.
+- Evoluir estatisticas.
+- Adicionar notificacoes internas por calendario.
+- Melhorar PWA/offline.
+- Adicionar filtros por humor.
 
-| Área | Crítico | Alto | Médio | Baixo |
-|------|---------|------|-------|-------|
-| **Segurança** | 5 | 4 | 6 | 2 |
-| **Estrutura** | 2 | 3 | 8 | 2 |
-| **UI/UX** | 0 | 2 | 10 | 6 |
+### Baixa prioridade
 
+- Tema builder.
+- Exportar lista.
+- Compartilhar cards de anime.
+- Ranking publico.
+- Comentarios/reviews.
+- Integracao com calendario externo.
+
 ---
 
-## 🎯 PLANO DE AÇÃO RECOMENDADO (Roadmap)
+## 9. Ideias de Telas Novas
 
-### **Fase 1: Segurança Crítica (Semana 1-2)**
-- [ ] Implementar Prepared Statements
-- [ ] Adicionar CSRF Protection
-- [ ] Usar .env para credenciais
-- [ ] Session Regeneration
-- [ ] Rate Limiting
+### 9.1 Dashboard
 
-### **Fase 2: Estrutura e Performance (Semana 3-4)**
-- [ ] Implementar Logging
-- [ ] Otimizar queries
-- [ ] Cache (Redis)
-- [ ] Headers de segurança
+Uma tela mais densa para usuario logado:
 
-### **Fase 3: Experiência do Usuário (Semana 5-6)**
-- [ ] Loading states
-- [ ] Toasts melhorados
-- [ ] Transições
-- [ ] Melhorias mobile
+- progresso semanal;
+- episodios pendentes;
+- lista de prioridades;
+- conquistas recentes;
+- estatisticas rapidas.
 
-### **Fase 4: Recursos Avançados (Semana 7+)**
-- [ ] Dashboard admin
-- [ ] Testes automatizados
-- [ ] PWA
-- [ ] Monitoring
+### 9.2 Central de Missoes
 
----
+Pagina dedicada a metas, XP, streak e recompensas.
+
+### 9.3 Colecao
+
+Pagina para badges, titulos, temas desbloqueados e raridades.
 
-## 🔧 CHECKLIST PARA MANUTENÇÃO CONTÍNUA
+### 9.4 Radio OST
 
-- [ ] Executar testes de segurança mensalmente (OWASP Top 10)
-- [ ] Revisar logs de segurança semanalmente
-- [ ] Atualizar dependências mensalmente
-- [ ] Fazer backup do BD diariamente
-- [ ] Monitorar performance com ferramentas (GTmetrix, Lighthouse)
-- [ ] Testar compatibilidade browser trimestral
-- [ ] Auditar códigos antes de deploy
-- [ ] Manter documentação atualizada
+Pagina dedicada para musicas, playlists e favoritos.
 
+### 9.5 Comparador de Animes
+
+Selecionar dois animes e comparar nota, episodios, status, generos, popularidade e sinopse.
+
+### 9.6 Modo Maratona
+
+Selecionar um anime e acompanhar sessoes de episodios com timer, pausas e progresso.
+
 ---
 
-## 📚 RECURSOS RECOMENDADOS
+## 10. Criterios de Qualidade para Cada Mudanca
 
-### Segurança
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [PHP Security Guide](https://www.php.net/manual/en/security.php)
-- [PortSwigger Web Security](https://portswigger.net/web-security)
+Antes de considerar uma feature pronta:
 
-### Performance
-- [Web Vitals](https://web.dev/vitals/)
-- [Database Optimization](https://use-the-index-luke.com/)
-- [Redis Caching](https://redis.io/)
+- Funciona em desktop.
+- Funciona em mobile.
+- Tem estado de loading.
+- Tem estado de erro.
+- Tem fallback de imagem.
+- Nao quebra tema claro/escuro.
+- Nao cria overflow horizontal.
+- Passa em `php -l` ou `node --check`.
+- Nao depende de dado externo sem tratamento de falha.
+- Mantem a identidade visual da v7.
 
-### Código
-- [PSR Standards](https://www.php-fig.org/)
-- [Clean Code Principles](https://www.oreilly.com/library/view/clean-code/9780136083238/)
+---
+
+## 11. Checklist Semanal
 
+- Revisar paginas principais no Chrome.
+- Testar mobile em 390px.
+- Rodar lint/sintaxe.
+- Abrir Console e verificar erros.
+- Testar imagens quebradas.
+- Testar aleatorio.
+- Testar player OST.
+- Testar filtros do Explorar.
+- Testar Calendario.
+- Testar login/logout.
+- Verificar `git status`.
+
 ---
 
-## 📝 CONCLUSÃO
+## 12. Conclusao
 
-O AnimeEngine v7 é uma base sólida com grande potencial. As principais prioridades são:
+O AnimeEngine v7 ja tem uma base muito boa: visual forte, varias paginas, dados reais, gamificacao e uma personalidade propria. O maior salto agora nao esta em adicionar dez telas soltas, mas em integrar melhor o que ja existe.
 
-1. **Eliminar vulnerabilidades de segurança** (Prepared Statements, CSRF)
-2. **Melhorar performance** (Caching, query optimization)
-3. **Aprimorar experiência do usuário** (Loading states, melhor feedback)
-4. **Preparar para escala** (Estrutura modular, logging, monitoring)
+A melhor direcao e transformar a v7 em uma experiencia diaria:
 
-Implementando o Roadmap proposto em 6-8 semanas, o AnimeEngine v7 estará pronto para produção robusta e escalável.
+- abrir;
+- ver o que assistir;
+- acompanhar progresso;
+- descobrir algo novo;
+- ganhar recompensas;
+- voltar no dia seguinte.
 
+Se a proxima etapa focar em consistencia visual, Home mais util, missoes semanais, perfil vivo e refatoracao gradual do CSS/JS, a v7 pode ficar com cara de produto completo, nao apenas projeto escolar ou catalogo experimental.
+
 ---
+
+## 13. Proxima Acao Recomendada
 
-**Relatório gerado em**: Maio 2026  
-**Próxima revisão recomendada**: Após implementação da Fase 1
+Comecar pela **Fase 1 - Consolidacao da v7** e, em seguida, fazer a **Home como Painel Principal**. Essas duas frentes melhoram a percepcao de qualidade do site inteiro sem exigir uma reescrita grande.
