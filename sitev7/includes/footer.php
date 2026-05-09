@@ -15,13 +15,22 @@
     <script src="js/particles.js"></script>
     <script src="js/ost-player.js"></script>
     <script src="js/common.js"></script>
+    <script src="js/pwa.js"></script>
     <script>
         // Random anime function
-        async function goToRandomAnime() {
+        async function goToRandomAnime(event = null) {
+            if (window.Common?.goToRandomAnime) {
+                Common.goToRandomAnime(event?.currentTarget || event?.target || document.activeElement);
+                return;
+            }
+
+            const page = Math.floor(Math.random() * 150) + 1;
+            const sorts = ['POPULARITY_DESC', 'TRENDING_DESC', 'SCORE_DESC', 'FAVOURITES_DESC'];
+            const sort = sorts[Math.floor(Math.random() * sorts.length)];
             const query = `
-                query {
-                    Page(page: 1, perPage: 50) {
-                        media(type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+                query ($page: Int, $sort: [MediaSort]) {
+                    Page(page: $page, perPage: 20) {
+                        media(type: ANIME, sort: $sort, isAdult: false) {
                             id
                         }
                     }
@@ -32,7 +41,7 @@
                 const response = await fetch('https://graphql.anilist.co', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query })
+                    body: JSON.stringify({ query, variables: { page, sort: [sort] } })
                 });
                 
                 const data = await response.json();

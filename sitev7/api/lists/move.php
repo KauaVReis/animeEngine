@@ -6,6 +6,7 @@
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/cache.php';
 
 header('Content-Type: application/json');
 
@@ -38,16 +39,19 @@ $usuario_id = getUsuarioId();
 if ($tipo_lista === 'completed') {
     $sql = "UPDATE listas_anime la 
             JOIN animes_cache ac ON la.anime_id = ac.anime_id 
-            SET la.tipo_lista = '$tipo_lista', 
+            SET la.tipo_lista = ?, 
                 la.progresso = ac.episodios 
-            WHERE la.usuario_id = $usuario_id AND la.anime_id = $anime_id";
+            WHERE la.usuario_id = ? AND la.anime_id = ?";
+    $stmt = dbStatement($conn, $sql, 'sii', [$tipo_lista, $usuario_id, $anime_id]);
 } else {
-    $sql = "UPDATE listas_anime SET tipo_lista = '$tipo_lista' 
-            WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+    $sql = "UPDATE listas_anime SET tipo_lista = ? 
+            WHERE usuario_id = ? AND anime_id = ?";
+    $stmt = dbStatement($conn, $sql, 'sii', [$tipo_lista, $usuario_id, $anime_id]);
 }
 
-if (mysqli_query($conn, $sql)) {
+if ($stmt) {
     if (mysqli_affected_rows($conn) > 0) {
+        clearUserCache($usuario_id);
         mysqli_close($conn);
         jsonSuccess('Movido com sucesso!', ['tipo_lista' => $tipo_lista]);
     } else {

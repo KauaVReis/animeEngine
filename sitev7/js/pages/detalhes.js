@@ -1228,17 +1228,27 @@ const DetalhesPage = {
      * Remover da lista
      */
     removeFromList() {
-        Storage.removeFromAllLists(this.anime.id);
+        Common.confirm({
+            title: 'Remover da lista',
+            message: `Remover "${this.anime.title.romaji || this.anime.title}" da sua lista?`,
+            confirmText: 'Remover',
+            onConfirm: async () => {
+                Storage.removeFromAllLists(this.anime.id);
 
-        // Sync with backend
-        fetch('api/lists/delete.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ anime_id: this.anime.id })
-        }).catch(e => console.error('Sync error:', e));
+                try {
+                    await Common.apiFetch('api/lists/delete.php', {
+                        method: 'POST',
+                        body: JSON.stringify({ anime_id: this.anime.id })
+                    });
+                    Common.showNotification(`"${this.anime.title.romaji || this.anime.title}" removido da lista`);
+                } catch (e) {
+                    console.error('Sync error:', e);
+                    Common.showNotification(e.message || 'Erro ao remover da lista', 'error');
+                }
 
-        Common.showNotification(`"${this.anime.title.romaji || this.anime.title}" removido da lista`);
-        this.render();
+                this.render();
+            }
+        });
     },
 
     /**

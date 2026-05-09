@@ -517,19 +517,50 @@ const API = {
      * Get Random Anime
      * Simulates random by picking a random page from top 5000 popular anime
      */
-    async getRandomAnime() {
-        // AniList doesn't have a native /random endpoint.
-        // Workaround: Pick a random page (1-500) from the most popular list with perPage: 10
-        // This gives us access to a pool of 5000 random but "valid" anime.
+    randomInt(min, max) {
+        const low = Math.ceil(min);
+        const high = Math.floor(max);
+        if (window.crypto?.getRandomValues) {
+            const array = new Uint32Array(1);
+            window.crypto.getRandomValues(array);
+            return low + (array[0] % (high - low + 1));
+        }
+        return Math.floor(Math.random() * (high - low + 1)) + low;
+    },
 
-        const randomPage = Math.floor(Math.random() * 500) + 1; // 1 to 500
+    getRecentRandomIds() {
+        try {
+            return JSON.parse(localStorage.getItem('animeengine_random_recent') || '[]');
+        } catch (e) {
+            return [];
+        }
+    },
+
+    rememberRandomId(id) {
+        try {
+            const recent = this.getRecentRandomIds().filter(item => item !== id);
+            recent.unshift(id);
+            localStorage.setItem('animeengine_random_recent', JSON.stringify(recent.slice(0, 12)));
+        } catch (e) {}
+    },
+
+    async getRandomAnime() {
+        const randomSorts = [
+            'POPULARITY_DESC',
+            'TRENDING_DESC',
+            'SCORE_DESC',
+            'FAVOURITES_DESC',
+            'START_DATE_DESC'
+        ];
+
         const query = `
-        query ($page: Int) {
-            Page (page: $page, perPage: 1) {
-                media (type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
+        query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
+            Page (page: $page, perPage: $perPage) {
+                media (type: ANIME, sort: $sort, isAdult: false) {
                     id
                     title { romaji english native }
                     coverImage { extraLarge large }
+                    bannerImage
                     averageScore
                     episodes
                     format
@@ -542,16 +573,35 @@ const API = {
         }`;
 
         try {
-            const data = await this.query(query, { page: randomPage });
-            if (data.Page.media.length > 0) {
-                return this.formatAnime(data.Page.media[0]);
+            const recent = this.getRecentRandomIds();
+
+            for (let attempt = 0; attempt < 4; attempt++) {
+                const sort = randomSorts[this.randomInt(0, randomSorts.length - 1)];
+                const page = this.randomInt(1, sort === 'START_DATE_DESC' ? 80 : 220);
+                const perPage = 20;
+                const data = await this.query(query, { page, perPage, sort: [sort] });
+                const media = data.Page.media || [];
+                const candidates = media.filter(anime => !recent.includes(anime.id));
+                const pool = candidates.length ? candidates : media;
+
+                if (pool.length > 0) {
+                    const picked = pool[this.randomInt(0, pool.length - 1)];
+                    this.rememberRandomId(picked.id);
+                    return this.formatAnime(picked);
+                }
             }
-            // Retry once if empty
-            return this.getTrending(1, 1).then(res => res[0]);
+
+            const fallbackPage = this.randomInt(1, 25);
+            const fallback = await this.getTrending(fallbackPage, 20);
+            const picked = fallback[this.randomInt(0, Math.max(fallback.length - 1, 0))];
+            if (picked?.id) this.rememberRandomId(picked.id);
+            return picked;
         } catch (e) {
             console.error('Random failed, fallback to trending', e);
-            const fallback = await this.getTrending(1, 1);
-            return fallback[0];
+            const fallback = await this.getTrending(this.randomInt(1, 25), 20);
+            const picked = fallback[this.randomInt(0, Math.max(fallback.length - 1, 0))];
+            if (picked?.id) this.rememberRandomId(picked.id);
+            return picked;
         }
     }
 };

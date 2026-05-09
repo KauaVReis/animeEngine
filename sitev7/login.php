@@ -1,9 +1,14 @@
+<?php
+require_once __DIR__ . '/includes/csrf.php';
+$csrf_token = htmlspecialchars(getCsrfToken(), ENT_QUOTES, 'UTF-8');
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= $csrf_token ?>">
     <title>Login - ANIME.ENGINE v7</title>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
@@ -132,7 +137,7 @@
     </style>
 </head>
 
-<body>
+<body class="page-ready">
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-logo">
@@ -171,6 +176,7 @@
 
             const btn = document.getElementById('submit-btn');
             const message = document.getElementById('message');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
@@ -181,7 +187,10 @@
             try {
                 const response = await fetch('api/auth/login.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
                     body: JSON.stringify({ email, senha })
                 });
 

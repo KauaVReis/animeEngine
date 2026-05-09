@@ -8,7 +8,7 @@ require_once 'includes/header.php';
 require_once 'includes/nav.php';
 ?>
 
-<main class="main-content">
+<main class="main-content home-page">
     <!-- HERO BANNER -->
     <section class="hero-banner" id="hero-banner">
         <div class="hero-overlay"></div>
@@ -40,7 +40,12 @@ endif; ?>
     </section>
 
     <!-- QUOTE OF THE DAY -->
-    <div id="quote-container"></div>
+    <div class="home-support-grid">
+        <div id="quote-container"></div>
+        <?php if ($usuario): ?>
+            <div id="goals-container"></div>
+        <?php endif; ?>
+    </div>
 
     <!-- SECTION: RADIO OST -->
     <section class="anime-section" id="section-radio">
@@ -48,11 +53,11 @@ endif; ?>
             <h2 class="section-title"><i class="fas fa-headphones-alt"></i> Rádio & Trilhas Sonoras</h2>
             <a href="explorar.php" class="section-link">Sintonizar →</a>
         </div>
-        <div class="carousel ost-carousel" style="display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: 20px;">
+        <div class="carousel ost-carousel">
             <!-- Cards de OST Premium -->
-            <div class="ost-card-premium" onclick="OSTPlayer.play('owS7fA2mIu0', 'Tokyo Ghoul', 'Unravel (Opening 1)', 'https://img.youtube.com/vi/owS7fA2mIu0/0.jpg')">
+            <div class="ost-card-premium" onclick="OSTPlayer.play('owS7fA2mIu0', 'Tokyo Ghoul', 'Unravel (Opening 1)', 'https://i.ytimg.com/vi/owS7fA2mIu0/hqdefault.jpg')">
                 <div class="card-image-wrapper">
-                    <img src="https://img.youtube.com/vi/owS7fA2mIu0/0.jpg" alt="Unravel" onerror="window.OSTPlayer.onCoverError(this, 'Tokyo Ghoul')">
+                    <img src="https://i.ytimg.com/vi/owS7fA2mIu0/hqdefault.jpg" alt="Unravel" onerror="window.OSTPlayer.onCoverError(this, 'Tokyo Ghoul')">
                     <div class="card-overlay"><i class="fas fa-play"></i></div>
                 </div>
                 <div class="card-info">
@@ -61,9 +66,9 @@ endif; ?>
                 </div>
             </div>
 
-            <div class="ost-card-premium" onclick="OSTPlayer.play('u3z89_P4Y_U', 'Naruto Shippuden', 'Blue Bird (Opening 3)', 'https://img.youtube.com/vi/u3z89_P4Y_U/0.jpg')">
+            <div class="ost-card-premium" onclick="OSTPlayer.play('u3z89_P4Y_U', 'Naruto Shippuden', 'Blue Bird (Opening 3)', 'https://i.ytimg.com/vi/u3z89_P4Y_U/hqdefault.jpg')">
                 <div class="card-image-wrapper">
-                    <img src="https://img.youtube.com/vi/u3z89_P4Y_U/0.jpg" alt="Blue Bird" onerror="window.OSTPlayer.onCoverError(this, 'Naruto Shippuden')">
+                    <img src="https://i.ytimg.com/vi/u3z89_P4Y_U/hqdefault.jpg" alt="Blue Bird" onerror="window.OSTPlayer.onCoverError(this, 'Naruto Shippuden')">
                     <div class="card-overlay"><i class="fas fa-play"></i></div>
                 </div>
                 <div class="card-info">
@@ -72,9 +77,9 @@ endif; ?>
                 </div>
             </div>
 
-            <div class="ost-card-premium" onclick="OSTPlayer.play('GwaRztMaoY0', 'Jujutsu Kaisen', 'Kaikai Kitan', 'https://img.youtube.com/vi/GwaRztMaoY0/0.jpg')">
+            <div class="ost-card-premium" onclick="OSTPlayer.play('GwaRztMaoY0', 'Jujutsu Kaisen', 'Kaikai Kitan', 'https://i.ytimg.com/vi/GwaRztMaoY0/hqdefault.jpg')">
                 <div class="card-image-wrapper">
-                    <img src="https://img.youtube.com/vi/GwaRztMaoY0/0.jpg" alt="Kaikai Kitan" onerror="window.OSTPlayer.onCoverError(this, 'Jujutsu Kaisen')">
+                    <img src="https://i.ytimg.com/vi/GwaRztMaoY0/hqdefault.jpg" alt="Kaikai Kitan" onerror="window.OSTPlayer.onCoverError(this, 'Jujutsu Kaisen')">
                     <div class="card-overlay"><i class="fas fa-play"></i></div>
                 </div>
                 <div class="card-info">
@@ -83,9 +88,9 @@ endif; ?>
                 </div>
             </div>
 
-            <div class="ost-card-premium" onclick="OSTPlayer.play('X9LwI6G2X74', 'Saint Seiya', 'Pegasus Fantasy', 'https://img.youtube.com/vi/X9LwI6G2X74/0.jpg')">
+            <div class="ost-card-premium" onclick="OSTPlayer.play('X9LwI6G2X74', 'Saint Seiya', 'Pegasus Fantasy', 'https://i.ytimg.com/vi/X9LwI6G2X74/hqdefault.jpg')">
                 <div class="card-image-wrapper">
-                    <img src="https://img.youtube.com/vi/X9LwI6G2X74/0.jpg" alt="Pegasus Fantasy" onerror="window.OSTPlayer.onCoverError(this, 'Saint Seiya')">
+                    <img src="https://i.ytimg.com/vi/X9LwI6G2X74/hqdefault.jpg" alt="Pegasus Fantasy" onerror="window.OSTPlayer.onCoverError(this, 'Saint Seiya')">
                     <div class="card-overlay"><i class="fas fa-play"></i></div>
                 </div>
                 <div class="card-info">
@@ -94,9 +99,9 @@ endif; ?>
                 </div>
             </div>
 
-            <div class="ost-card-premium" onclick="OSTPlayer.play('h0S8H0MNoM4', 'Hunter x Hunter', 'Departure!', 'https://img.youtube.com/vi/h0S8H0MNoM4/0.jpg')">
+            <div class="ost-card-premium" onclick="OSTPlayer.play('h0S8H0MNoM4', 'Hunter x Hunter', 'Departure!', 'https://i.ytimg.com/vi/h0S8H0MNoM4/hqdefault.jpg')">
                 <div class="card-image-wrapper">
-                    <img src="https://img.youtube.com/vi/h0S8H0MNoM4/0.jpg" alt="Departure!" onerror="window.OSTPlayer.onCoverError(this, 'Hunter x Hunter')">
+                    <img src="https://i.ytimg.com/vi/h0S8H0MNoM4/hqdefault.jpg" alt="Departure!" onerror="window.OSTPlayer.onCoverError(this, 'Hunter x Hunter')">
                     <div class="card-overlay"><i class="fas fa-play"></i></div>
                 </div>
                 <div class="card-info">

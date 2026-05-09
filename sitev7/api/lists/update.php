@@ -6,6 +6,7 @@
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/cache.php';
 
 header('Content-Type: application/json');
 
@@ -33,14 +34,22 @@ $usuario_id = getUsuarioId();
 
 // Construir UPDATE dinâmico
 $updates = [];
+$types = '';
+$params = [];
 if ($progresso !== null) {
-    $updates[] = "progresso = $progresso";
+    $updates[] = 'progresso = ?';
+    $types .= 'i';
+    $params[] = $progresso;
 }
 if ($nota !== null) {
-    $updates[] = "nota = $nota";
+    $updates[] = 'nota = ?';
+    $types .= 'i';
+    $params[] = $nota;
 }
 if ($favorito !== null) {
-    $updates[] = "favorito = $favorito";
+    $updates[] = 'favorito = ?';
+    $types .= 'i';
+    $params[] = $favorito;
 }
 
 if (empty($updates)) {
@@ -49,10 +58,14 @@ if (empty($updates)) {
 }
 
 $sql = "UPDATE listas_anime SET " . implode(', ', $updates) . " 
-        WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+        WHERE usuario_id = ? AND anime_id = ?";
+$types .= 'ii';
+$params[] = $usuario_id;
+$params[] = $anime_id;
 
-if (mysqli_query($conn, $sql)) {
+if (dbStatement($conn, $sql, $types, $params)) {
     if (mysqli_affected_rows($conn) > 0) {
+        clearUserCache($usuario_id);
         mysqli_close($conn);
         jsonSuccess('Atualizado com sucesso!');
     } else {

@@ -49,6 +49,12 @@ const OSTPlayer = {
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
             window.onYouTubeIframeAPIReady = () => this.onYTReady();
+        } else if (document.getElementById('yt-api-script') && !(window.YT && window.YT.Player)) {
+            const previousReady = window.onYouTubeIframeAPIReady;
+            window.onYouTubeIframeAPIReady = () => {
+                if (typeof previousReady === 'function') previousReady();
+                this.onYTReady();
+            };
         } else if (window.YT && window.YT.Player) {
             this.onYTReady();
         }
@@ -120,7 +126,7 @@ const OSTPlayer = {
             events: {
                 'onReady': (event) => this.onPlayerReady(event),
                 'onStateChange': (event) => this.onPlayerStateChange(event),
-                'onError': (event) => console.error("YT Player Error:", event.data)
+                'onError': (event) => this.onPlayerError(event)
             }
         });
     },
@@ -148,6 +154,17 @@ const OSTPlayer = {
         this.saveState();
     },
 
+    onPlayerError(event) {
+        console.error("YT Player Error:", event.data);
+        this.state.isPlaying = false;
+        this.stopInterval();
+        this.updatePlayButton();
+        if (typeof Common !== 'undefined') {
+            Common.showNotification('Não foi possível tocar esta música no YouTube.', 'error');
+        }
+        this.saveState();
+    },
+
     /**
      * Toca uma nova música do zero
      */
@@ -160,7 +177,7 @@ const OSTPlayer = {
             subtitle: subtitle || 'AnimeEngine',
             currentTime: 0,
             isPlaying: true,
-            cover: coverUrl || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+            cover: coverUrl || this.getYouTubeCover(videoId)
         };
 
         if (this.player) {
@@ -177,6 +194,10 @@ const OSTPlayer = {
         }
 
         this.saveState();
+    },
+
+    getYouTubeCover(videoId) {
+        return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
     },
 
     /**
@@ -196,6 +217,7 @@ const OSTPlayer = {
         const banner = await this.fetchAnimeBanner(title);
 
         if (banner) {
+            targetImg.onerror = null;
             targetImg.src = banner;
             // Se for a imagem do player global, atualiza o estado
             if (targetImg.id === 'ost-cover-img') {
@@ -204,7 +226,8 @@ const OSTPlayer = {
             }
         } else {
             // Último recurso: Placeholder
-            targetImg.src = 'https://i.ibb.co/LkhYvM8/anime-placeholder.jpg';
+            targetImg.onerror = null;
+            targetImg.src = 'assets/logo.png';
         }
 
         delete targetImg.dataset.fetching;
@@ -244,7 +267,15 @@ const OSTPlayer = {
     // Therefore, only the 'origin' parameter addition has been applied.
 
     togglePlay() {
-        if (!this.isReady || !this.ytPlayer || !this.state.videoId) return;
+        if (!this.state.videoId) return;
+
+        if (!this.isReady || !this.ytPlayer) {
+            this.state.isPlaying = true;
+            this.loadYTApi();
+            this.updatePlayButton();
+            this.saveState();
+            return;
+        }
 
         if (this.state.isPlaying) {
             this.ytPlayer.pauseVideo();

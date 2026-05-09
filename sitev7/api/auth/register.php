@@ -5,15 +5,25 @@
  */
 
 require_once '../../includes/database.php';
+require_once '../../includes/rate-limit.php';
+require_once '../../includes/security-log.php';
+require_once '../../includes/csrf.php';
 
 // Headers
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
+setCorsHeaders('POST, OPTIONS');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido', 405);
 }
+
+checkRateLimit('auth_register', 3, 600);
+validateCsrfToken();
 
 // Receber dados
 $data = json_decode(file_get_contents('php://input'), true);
@@ -55,9 +65,13 @@ if (strlen($senha) < 6) {
 $conn = conectar();
 
 // Verificar se username já existe
-$username_escaped = escape($conn, $username);
-$sql = "SELECT id FROM usuarios WHERE username = '$username_escaped'";
-$result = mysqli_query($conn, $sql);
+$sql = "SELECT id FROM usuarios WHERE username = ?";
+$result = dbSelect($conn, $sql, 's', [$username]);
+
+if (!$result) {
+    mysqli_close($conn);
+    jsonError('Erro ao processar solicitação', 500);
+}
 
 if (mysqli_num_rows($result) > 0) {
     mysqli_close($conn);
@@ -65,9 +79,13 @@ if (mysqli_num_rows($result) > 0) {
 }
 
 // Verificar se email já existe
-$email_escaped = escape($conn, $email);
-$sql = "SELECT id FROM usuarios WHERE email = '$email_escaped'";
-$result = mysqli_query($conn, $sql);
+$sql = "SELECT id FROM usuarios WHERE email = ?";
+$result = dbSelect($conn, $sql, 's', [$email]);
+
+if (!$result) {
+    mysqli_close($conn);
+    jsonError('Erro ao processar solicitação', 500);
+}
 
 if (mysqli_num_rows($result) > 0) {
     mysqli_close($conn);
@@ -78,11 +96,13 @@ if (mysqli_num_rows($result) > 0) {
 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
 // Inserir usuário
-$sql = "INSERT INTO usuarios (username, email, senha_hash) VALUES ('$username_escaped', '$email_escaped', '$senha_hash')";
+$sql = "INSERT INTO usuarios (username, email, senha_hash) VALUES (?, ?, ?)";
+$stmt = dbStatement($conn, $sql, 'sss', [$username, $email, $senha_hash]);
 
-if (mysqli_query($conn, $sql)) {
+if ($stmt) {
     $usuario_id = mysqli_insert_id($conn);
     mysqli_close($conn);
+    logSecurityEvent('register_success', $usuario_id, ['username' => $username, 'email' => $email]);
     
     jsonSuccess('Conta criada com sucesso!', [
         'usuario_id' => $usuario_id,

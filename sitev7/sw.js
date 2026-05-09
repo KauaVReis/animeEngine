@@ -1,0 +1,49 @@
+const CACHE_NAME = 'animeengine-v7-shell-v1';
+const APP_SHELL = [
+  './',
+  './index.php',
+  './css/style.css',
+  './css/v6_styles.css',
+  './css/app-polish.css',
+  './js/common.js',
+  './js/api.js',
+  './js/storage.js',
+  './js/themes.js',
+  './js/notifications.js',
+  './assets/logo.png',
+  './manifest.json'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+
+  if (request.method !== 'GET') return;
+  if (url.pathname.includes('/api/')) return;
+
+  event.respondWith(
+    fetch(request)
+      .then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+        return response;
+      })
+      .catch(() => caches.match(request).then(cached => cached || caches.match('./index.php')))
+  );
+});

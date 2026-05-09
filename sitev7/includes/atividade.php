@@ -10,13 +10,14 @@
 function registrarAtividade($usuario_id, $tipo, $anime_id = null, $detalhes = []) {
     $conn = conectar();
     
-    $detalhes_json = escape($conn, json_encode($detalhes));
-    $anime_id_sql = $anime_id ? intval($anime_id) : 'NULL';
+    $usuario_id = intval($usuario_id);
+    $anime_id = $anime_id ? intval($anime_id) : null;
+    $detalhes_json = json_encode($detalhes);
     
     $sql = "INSERT INTO atividades (usuario_id, tipo, anime_id, detalhes) 
-            VALUES ($usuario_id, '$tipo', $anime_id_sql, '$detalhes_json')";
+            VALUES (?, ?, ?, ?)";
     
-    mysqli_query($conn, $sql);
+    dbStatement($conn, $sql, 'isis', [$usuario_id, $tipo, $anime_id, $detalhes_json]);
     mysqli_close($conn);
 }
 
@@ -25,15 +26,17 @@ function registrarAtividade($usuario_id, $tipo, $anime_id = null, $detalhes = []
  */
 function getAtividades($usuario_id, $limite = 20) {
     $conn = conectar();
+    $usuario_id = intval($usuario_id);
+    $limite = max(1, min(100, intval($limite)));
     
     $sql = "SELECT a.*, ac.titulo as anime_titulo, ac.imagem as anime_imagem
             FROM atividades a
             LEFT JOIN animes_cache ac ON a.anime_id = ac.anime_id
-            WHERE a.usuario_id = $usuario_id
+            WHERE a.usuario_id = ?
             ORDER BY a.criado_em DESC
-            LIMIT $limite";
+            LIMIT ?";
     
-    $result = mysqli_query($conn, $sql);
+    $result = dbSelect($conn, $sql, 'ii', [$usuario_id, $limite]);
     $atividades = [];
     
     while ($row = mysqli_fetch_assoc($result)) {

@@ -111,7 +111,7 @@ const HomePage = {
                 </div>
                 <div class="anime-of-day-content" onclick="window.location='detalhes.php?id=${anime.id}'">
                     <div class="anime-of-day-image">
-                        <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                        <img src="${anime.image || 'assets/logo.png'}" alt="${anime.title}" loading="lazy" onerror="this.onerror=null;this.src='assets/logo.png';">
                     </div>
                     <div class="anime-of-day-info">
                         <h3 class="anime-of-day-title">${anime.title}</h3>
@@ -187,7 +187,8 @@ const HomePage = {
         const favBtn = document.getElementById('hero-fav-btn');
 
         if (banner) {
-            banner.style.backgroundImage = `url(${anime.banner})`;
+            const imageUrl = anime.banner || anime.image || 'assets/logo.png';
+            banner.style.backgroundImage = `url("${imageUrl}")`;
         }
         if (title) title.textContent = anime.title;
         if (synopsis) synopsis.innerHTML = anime.synopsis || '';
@@ -250,7 +251,7 @@ const HomePage = {
 
         card.innerHTML = `
             <div class="anime-card-image">
-                <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                <img src="${anime.image || 'assets/logo.png'}" alt="${anime.title}" loading="lazy" onerror="this.onerror=null;this.src='assets/logo.png';">
                 <div class="watching-progress">
                     <div class="watching-progress-bar" style="width: ${percent}%"></div>
                 </div>
@@ -268,7 +269,11 @@ const HomePage = {
 
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
-                window.location.href = `detalhes.php?id=${anime.id}`;
+                if (window.Common?.goToAnimeDetails) {
+                    Common.goToAnimeDetails(anime.id, card);
+                } else {
+                    window.location.href = `detalhes.php?id=${anime.id}`;
+                }
             }
         });
 

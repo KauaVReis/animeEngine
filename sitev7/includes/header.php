@@ -5,9 +5,11 @@
  */
 
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/csrf.php';
 
 $usuario = getUsuarioLogado();
 $pagina_atual = basename($_SERVER['PHP_SELF'], '.php');
+$csrf_token = htmlspecialchars(getCsrfToken(), ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -15,12 +17,16 @@ $pagina_atual = basename($_SERVER['PHP_SELF'], '.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= $csrf_token ?>">
     <title><?= $titulo_pagina ?? 'ANIME.ENGINE v7' ?></title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff3366">
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/v6_styles.css">
+    <link rel="stylesheet" href="css/app-polish.css">
 </head>
 
 <body>

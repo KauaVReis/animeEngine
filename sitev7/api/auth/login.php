@@ -7,12 +7,13 @@
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
 require_once '../../includes/streak.php';
+require_once '../../includes/rate-limit.php';
+require_once '../../includes/security-log.php';
+require_once '../../includes/csrf.php';
 
 // Headers
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+setCorsHeaders('POST, OPTIONS');
 
 // Handle Preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -23,6 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido', 405);
 }
+
+checkRateLimit('auth_login', 5, 300);
+validateCsrfToken();
 
 // Receber dados
 $input = file_get_contents('php://input');
@@ -48,19 +52,18 @@ if (empty($senha)) {
 $conn = conectar();
 
 // Buscar usuário por email
-$email_escaped = escape($conn, $email);
 $sql = "SELECT id, username, email, senha_hash, avatar, xp, nivel, tema, streak_atual, streak_max
-        FROM usuarios WHERE email = '$email_escaped'";
-$result = mysqli_query($conn, $sql);
+        FROM usuarios WHERE email = ?";
+$result = dbSelect($conn, $sql, 's', [$email]);
 
 if (!$result) {
-    $error = mysqli_error($conn);
     mysqli_close($conn);
-    jsonError('Erro no banco de dados: ' . $error, 500);
+    jsonError('Erro ao processar solicitação', 500);
 }
 
 if (mysqli_num_rows($result) === 0) {
     mysqli_close($conn);
+    logSecurityEvent('login_failed_unknown_email', null, ['email' => $email]);
     jsonError('Email ou senha incorretos');
 }
 
@@ -69,11 +72,13 @@ $usuario = mysqli_fetch_assoc($result);
 // Verificar senha
 if (!password_verify($senha, $usuario['senha_hash'])) {
     mysqli_close($conn);
+    logSecurityEvent('login_failed_invalid_password', $usuario['id'], ['email' => $email]);
     jsonError('Email ou senha incorretos');
 }
 
 // Fazer login (Sessão + Update Ultimo Acesso)
 fazerLogin($usuario['id']);
+logSecurityEvent('login_success', $usuario['id']);
 
 mysqli_close($conn);
 

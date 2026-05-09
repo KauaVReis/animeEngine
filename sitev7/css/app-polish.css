@@ -1,0 +1,1096 @@
+/* AnimeEngine v7 - final visual polish loaded after legacy CSS */
+
+:root {
+    --header-height: 52px;
+}
+
+html {
+    scroll-padding-top: calc(var(--header-height) + 12px);
+    overflow-x: hidden;
+}
+
+body {
+    padding-top: 0 !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    overflow-x: hidden;
+}
+
+body.page-ready {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: var(--header-height) !important;
+    min-height: var(--header-height) !important;
+    background: var(--color-surface) !important;
+    border-bottom: 3px solid var(--border-color) !important;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08), 0 6px 18px rgba(0, 0, 0, 0.06) !important;
+    z-index: 5000 !important;
+}
+
+.header-content {
+    height: var(--header-height) !important;
+    max-width: 1680px !important;
+    padding: 0 28px !important;
+    display: grid !important;
+    grid-template-columns: minmax(190px, 1fr) minmax(320px, 500px) minmax(150px, 1fr) !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+
+.logo {
+    justify-self: start;
+    align-items: center !important;
+    min-width: 0;
+}
+
+.logo-text {
+    font-size: 1.42rem !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap !important;
+}
+
+.logo-version {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 20px !important;
+    min-width: 24px !important;
+    padding: 0 4px !important;
+    font-size: 0.68rem !important;
+    line-height: 1 !important;
+    transform: rotate(-5deg) !important;
+}
+
+.search-container {
+    justify-self: center !important;
+    width: 100% !important;
+    max-width: 500px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    border: 3px solid var(--border-color) !important;
+    background: var(--color-surface) !important;
+    box-shadow: 4px 4px 0 var(--border-color) !important;
+}
+
+.search-input {
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 0 14px !important;
+    font-size: 0.95rem !important;
+    text-transform: uppercase !important;
+}
+
+.search-btn {
+    width: 62px !important;
+    min-width: 62px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    border-left: 3px solid var(--border-color) !important;
+    background: var(--color-primary) !important;
+    color: var(--color-on-primary) !important;
+}
+
+.user-area {
+    justify-self: end !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.notifications-btn,
+.icon-btn,
+.header-btn,
+.search-toggle-mobile {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    border: 3px solid var(--border-color) !important;
+    border-radius: 50% !important;
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    box-shadow: none !important;
+}
+
+.btn-login {
+    background: var(--color-primary) !important;
+    color: var(--color-on-primary) !important;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.35) !important;
+}
+
+.level-badge {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 4px 10px !important;
+    border: 3px solid var(--border-color) !important;
+    box-shadow: none !important;
+}
+
+.main-content {
+    margin-top: var(--header-height) !important;
+    padding-top: var(--space-xl) !important;
+    min-height: calc(100vh - var(--header-height)) !important;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.page-header,
+.page-title,
+.page-subtitle {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.page-title {
+    overflow-wrap: anywhere;
+    line-height: 1.05;
+}
+
+.sidebar {
+    top: var(--header-height) !important;
+    height: calc(100vh - var(--header-height)) !important;
+}
+
+/* Home page refinement */
+.home-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+.home-page .hero-banner {
+    min-height: clamp(360px, 52vh, 520px);
+    height: auto;
+    display: flex;
+    align-items: flex-end;
+    border-width: 4px;
+    box-shadow: 8px 8px 0 var(--border-color);
+    background-color: #15151d;
+}
+
+.home-page .hero-overlay {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.84) 0%, rgba(0, 0, 0, 0.56) 42%, rgba(0, 0, 0, 0.08) 100%);
+}
+
+.home-page .hero-content {
+    width: min(680px, 100%);
+    padding: clamp(22px, 4vw, 52px);
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.home-page .hero-title {
+    font-size: clamp(2rem, 4vw, 3.75rem);
+    line-height: 0.95;
+    text-wrap: balance;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.home-page .hero-synopsis {
+    max-width: 620px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.home-support-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: var(--space-lg);
+    align-items: stretch;
+}
+
+.home-support-grid > *,
+.quote-widget,
+.goals-widget {
+    min-width: 0;
+}
+
+.home-support-grid:has(> :only-child) {
+    grid-template-columns: 1fr;
+}
+
+.home-page .anime-section {
+    margin-bottom: 0;
+    padding: clamp(18px, 2vw, 26px);
+    background: rgba(255, 255, 255, 0.42);
+    border: 3px solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.home-page .section-header {
+    margin-bottom: var(--space-md);
+}
+
+.home-page .carousel {
+    gap: var(--space-md);
+    padding: 4px 6px 18px;
+    scroll-snap-type: x proximity;
+}
+
+.home-page .anime-card,
+.home-page .ost-card-premium {
+    scroll-snap-align: start;
+}
+
+.ost-carousel {
+    display: flex;
+    overflow-x: auto;
+}
+
+.ost-card-premium {
+    flex-basis: 180px !important;
+    border-radius: 6px;
+}
+
+.ost-card-premium .card-image-wrapper {
+    height: 112px !important;
+}
+
+.ost-card-premium .card-image-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, 0.45));
+    pointer-events: none;
+}
+
+.ost-global-player {
+    left: var(--sidebar-width) !important;
+    right: 0 !important;
+    z-index: 4500 !important;
+    border-top-color: var(--color-primary) !important;
+}
+
+.ost-youtube-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.achievement-notification {
+    box-sizing: border-box !important;
+    width: min(300px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    overflow: hidden !important;
+}
+
+.achievement-notification.show {
+    transform: translateX(0) !important;
+}
+
+.achievement-info,
+.quote-text,
+.quote-author {
+    min-width: 0 !important;
+}
+
+.achievement-name,
+.quote-text {
+    overflow-wrap: anywhere;
+}
+
+.quote-anime {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Navigation feedback */
+.anime-card-opening,
+.calendar-anime.anime-card-opening,
+.search-result-item.anime-card-opening {
+    transform: translate(-2px, -2px) scale(0.985) !important;
+    filter: saturate(1.15) contrast(1.05);
+    box-shadow: 8px 8px 0 var(--color-primary) !important;
+}
+
+.anime-route-overlay,
+.random-roll-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s ease;
+}
+
+.anime-route-overlay.is-visible,
+.random-roll-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.anime-route-card,
+.random-roll-card {
+    min-width: min(360px, calc(100vw - 32px));
+    padding: 22px;
+    background: var(--color-surface);
+    border: 4px solid var(--border-color);
+    box-shadow: 8px 8px 0 var(--border-color);
+    color: var(--color-text);
+    text-align: center;
+    transform: translateY(12px) scale(0.96);
+    animation: routeCardIn 0.26s ease forwards;
+}
+
+.random-roll-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.random-roll-card::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    width: 96px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    animation: diceShadow 0.82s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.anime-route-icon {
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 12px;
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    animation: routePulse 0.7s ease infinite alternate;
+}
+
+.anime-route-title,
+.random-roll-title {
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 1.05rem;
+}
+
+.anime-route-line {
+    height: 6px;
+    margin-top: 16px;
+    overflow: hidden;
+    background: var(--color-bg);
+    border: 2px solid var(--border-color);
+}
+
+.anime-route-line::before {
+    content: "";
+    display: block;
+    width: 45%;
+    height: 100%;
+    background: var(--color-primary);
+    animation: routeLine 0.55s ease-in-out infinite alternate;
+}
+
+.random-roll-dice {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 14px;
+    display: grid;
+    place-items: center;
+    border: 4px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 2.25rem;
+    box-shadow: 5px 5px 0 var(--border-color);
+    transform-origin: 50% 70%;
+    animation: diceThrow 0.82s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    position: relative;
+    z-index: 1;
+}
+
+.random-roll-subtitle {
+    margin-top: 6px;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.nav-item.is-rolling i,
+.bottom-nav-item.is-rolling i,
+.random-btn-mobile.is-rolling i {
+    animation: diceRollSmall 0.55s ease infinite;
+}
+
+@keyframes routeCardIn {
+    to {
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes routePulse {
+    to {
+        transform: scale(1.08);
+    }
+}
+
+@keyframes routeLine {
+    from {
+        transform: translateX(-35%);
+    }
+    to {
+        transform: translateX(145%);
+    }
+}
+
+@keyframes diceThrow {
+    0% {
+        transform: translate(-72px, 18px) rotate(-35deg) scale(0.88);
+    }
+    32% {
+        transform: translate(-12px, -44px) rotate(150deg) scale(1.08);
+    }
+    62% {
+        transform: translate(42px, 4px) rotate(295deg) scale(1);
+    }
+    78% {
+        transform: translate(26px, -10px) rotate(340deg) scale(0.98);
+    }
+    100% {
+        transform: translate(0, 18px) rotate(390deg) scale(1.02);
+    }
+}
+
+@keyframes diceShadow {
+    0% {
+        transform: translateX(-82%) scale(0.58);
+        opacity: 0.12;
+    }
+    32% {
+        transform: translateX(-52%) scale(0.38);
+        opacity: 0.08;
+    }
+    62% {
+        transform: translateX(-25%) scale(0.88);
+        opacity: 0.18;
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 0.22;
+    }
+}
+
+@keyframes diceRollSmall {
+    to {
+        transform: rotate(360deg) scale(1.12);
+    }
+}
+
+/* Calendar UX */
+.calendar-overview,
+.explore-command {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    gap: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.calendar-next-card,
+.explore-command {
+    background: var(--color-surface);
+    border: 3px solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+}
+
+.calendar-next-card {
+    min-height: 112px;
+    padding: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    cursor: pointer;
+}
+
+.calendar-next-card:hover,
+.preset-chip:hover,
+.calendar-day-tab:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--border-color);
+}
+
+.calendar-next-card img {
+    width: 72px;
+    height: 96px;
+    object-fit: cover;
+    border: 3px solid var(--border-color);
+    flex: 0 0 auto;
+}
+
+.calendar-next-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--border-color);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 1.35rem;
+    flex: 0 0 auto;
+}
+
+.calendar-next-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.calendar-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--color-primary);
+}
+
+.calendar-next-info strong,
+.explore-command-copy strong {
+    font-family: var(--font-display);
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+
+.calendar-next-info small {
+    color: var(--color-text-muted);
+    font-weight: 700;
+}
+
+.calendar-stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
+}
+
+.calendar-stat {
+    padding: var(--space-md);
+    background: var(--color-surface);
+    border: 3px solid var(--border-color);
+    box-shadow: 4px 4px 0 var(--border-color);
+}
+
+.calendar-stat strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    line-height: 1;
+}
+
+.calendar-stat span {
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+.calendar-day-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 2px 12px;
+    margin-bottom: var(--space-md);
+    position: sticky;
+    top: calc(var(--header-height) + 8px);
+    z-index: 80;
+    background: var(--color-bg);
+}
+
+.calendar-week {
+    grid-template-columns: repeat(7, minmax(190px, 1fr)) !important;
+    overflow-x: auto;
+    scroll-padding-left: 16px;
+}
+
+.calendar-day-tab,
+.preset-chip {
+    border: 3px solid var(--border-color);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.calendar-day-tab {
+    min-width: 86px;
+    padding: 8px 10px;
+    text-transform: uppercase;
+}
+
+.calendar-day-tab span {
+    display: inline-flex;
+    min-width: 22px;
+    height: 22px;
+    margin-left: 5px;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    border: 2px solid var(--border-color);
+    font-size: 0.72rem;
+}
+
+.calendar-day-tab.active,
+.filter-btn.active,
+.preset-chip.active {
+    background: var(--color-primary) !important;
+    color: var(--color-on-primary) !important;
+    box-shadow: 4px 4px 0 var(--border-color);
+}
+
+.calendar-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 130px;
+    margin-bottom: var(--space-md);
+    background: var(--color-surface);
+    border: 3px solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.calendar-anime {
+    min-height: 84px;
+}
+
+.calendar-anime:hover {
+    transform: translateX(2px);
+}
+
+/* Explore UX */
+.explore-command {
+    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    padding: var(--space-md);
+}
+
+.explore-command-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.explore-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.preset-chip {
+    padding: 9px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-filter.ost-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 3px solid var(--border-color);
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.filter-status-area {
+    align-items: center;
+    display: flex;
+    gap: var(--space-md);
+    justify-content: space-between;
+}
+
+.active-chips {
+    min-height: 38px;
+    align-items: center;
+    flex: 1 1 auto;
+}
+
+.filters-empty {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.results-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.explore-clear-btn {
+    padding: 7px 10px !important;
+    min-width: 96px;
+    white-space: nowrap;
+}
+
+.explore-empty-state {
+    grid-column: 1 / -1;
+    min-height: 300px;
+    padding: var(--space-xl);
+    display: grid;
+    place-items: center;
+    gap: 10px;
+    text-align: center;
+    background: var(--color-surface);
+    border: 3px solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+}
+
+.explore-empty-state > i {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--color-secondary);
+    font-size: 1.35rem;
+}
+
+.explore-empty-state strong {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    font-size: 1.35rem;
+}
+
+.explore-empty-state span {
+    color: var(--color-text-muted);
+    font-weight: 700;
+}
+
+.explore-empty-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .anime-route-card,
+    .anime-route-icon,
+    .anime-route-line::before,
+    .random-roll-dice,
+    .random-roll-card::after,
+    .nav-item.is-rolling i,
+    .bottom-nav-item.is-rolling i,
+    .random-btn-mobile.is-rolling i {
+        animation: none !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .header-content {
+        grid-template-columns: auto 1fr auto !important;
+    }
+
+    .main-content {
+        padding-top: var(--space-lg) !important;
+    }
+
+    .ost-global-player {
+        left: 0 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --header-height: 54px;
+    }
+
+    .header {
+        position: fixed !important;
+    }
+
+    .header-content {
+        padding: 0 12px !important;
+        grid-template-columns: auto auto 1fr auto !important;
+        gap: 8px !important;
+    }
+
+    .logo-text {
+        font-size: 1rem !important;
+    }
+
+    .logo-version {
+        display: none !important;
+    }
+
+    .search-toggle-mobile {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        order: 2;
+    }
+
+    .search-container {
+        display: none !important;
+        position: fixed !important;
+        top: calc(var(--header-height) + 8px) !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: none !important;
+        z-index: 5100 !important;
+    }
+
+    .search-container.open {
+        display: flex !important;
+    }
+
+    .user-area {
+        gap: 8px !important;
+    }
+
+    .notifications-btn,
+    .icon-btn,
+    .header-btn,
+    .search-toggle-mobile {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+    }
+
+    .level-badge {
+        width: 36px !important;
+        padding: 0 !important;
+        justify-content: center;
+    }
+
+    .level-text {
+        display: none !important;
+    }
+
+    .home-support-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-overview,
+    .explore-command {
+        grid-template-columns: 1fr;
+    }
+
+    .explore-presets {
+        justify-content: flex-start;
+    }
+
+    .filter-status-area {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .calendar-day-tabs {
+        margin-left: -16px;
+        margin-right: -16px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .main-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .page-title {
+        font-size: clamp(1.55rem, 7vw, 2rem) !important;
+    }
+
+    .page-subtitle {
+        overflow-wrap: anywhere;
+        white-space: normal !important;
+    }
+
+    .calendar-controls {
+        gap: 14px;
+    }
+
+    .season-selector {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) 44px;
+        justify-content: stretch !important;
+        gap: 8px !important;
+    }
+
+    .season-selector .btn {
+        width: 44px;
+        min-width: 44px;
+        padding-left: 0;
+        padding-right: 0;
+        justify-content: center;
+    }
+
+    .season-display {
+        min-width: 0 !important;
+        width: auto !important;
+        box-sizing: border-box;
+    }
+
+    .calendar-filters,
+    .quick-filters,
+    .format-filters,
+    .genre-tags {
+        max-width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        padding-bottom: 6px;
+        scrollbar-width: none;
+    }
+
+    .calendar-filters::-webkit-scrollbar,
+    .quick-filters::-webkit-scrollbar,
+    .format-filters::-webkit-scrollbar,
+    .genre-tags::-webkit-scrollbar,
+    .calendar-day-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .calendar-filters .filter-btn,
+    .quick-filter,
+    .format-tag,
+    .genre-tag {
+        flex: 0 0 auto;
+    }
+
+    .achievement-notification {
+        top: calc(var(--header-height) + 12px) !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: calc(100vw - 24px) !important;
+        padding: var(--space-sm) var(--space-md) !important;
+        gap: var(--space-sm) !important;
+        transform: translateY(-130%) !important;
+    }
+
+    .achievement-notification.show {
+        transform: translateY(0) !important;
+    }
+
+    .achievement-icon {
+        font-size: 2rem !important;
+        flex: 0 0 auto;
+    }
+
+    .home-page .hero-banner {
+        min-height: 430px;
+        box-shadow: 5px 5px 0 var(--border-color);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .home-page .hero-overlay {
+        background: linear-gradient(0deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.25) 100%);
+    }
+
+    .home-page .anime-section {
+        padding: var(--space-md);
+    }
+
+    .quote-widget {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+
+    .quote-text {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .ost-card-premium {
+        flex-basis: 150px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-text {
+        font-size: 0.86rem !important;
+    }
+
+    .home-page .hero-title {
+        font-size: clamp(1.55rem, 8vw, 1.9rem);
+        line-height: 1;
+        -webkit-line-clamp: 4;
+    }
+
+    .home-page .hero-content {
+        padding: 22px;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .calendar-next-card {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .calendar-next-card .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .calendar-stats-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .preset-chip {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .results-info {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

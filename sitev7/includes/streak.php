@@ -10,11 +10,17 @@
  */
 function verificarStreak($usuario_id) {
     $conn = conectar();
+    $usuario_id = intval($usuario_id);
     
     // Buscar dados atuais
-    $sql = "SELECT streak_atual, streak_max, ultimo_acesso_streak FROM usuarios WHERE id = $usuario_id";
-    $result = mysqli_query($conn, $sql);
+    $sql = "SELECT streak_atual, streak_max, ultimo_acesso_streak FROM usuarios WHERE id = ?";
+    $result = dbSelect($conn, $sql, 'i', [$usuario_id]);
     $user = mysqli_fetch_assoc($result);
+
+    if (!$user) {
+        mysqli_close($conn);
+        return ['streak' => 0, 'max' => 0, 'new' => false];
+    }
     
     $hoje = date('Y-m-d');
     $ultimo = $user['ultimo_acesso_streak'];
@@ -54,16 +60,21 @@ function verificarStreak($usuario_id) {
     
     // Atualizar banco
     $sql = "UPDATE usuarios SET 
-            streak_atual = $streak_atual, 
-            streak_max = $streak_max, 
-            ultimo_acesso_streak = '$hoje'";
+            streak_atual = ?, 
+            streak_max = ?, 
+            ultimo_acesso_streak = ?";
     
     if ($xp_bonus > 0) {
-        $sql .= ", xp = xp + $xp_bonus";
+        $sql .= ", xp = xp + ?";
     }
     
-    $sql .= " WHERE id = $usuario_id";
-    mysqli_query($conn, $sql);
+    $sql .= " WHERE id = ?";
+
+    if ($xp_bonus > 0) {
+        dbStatement($conn, $sql, 'iisii', [$streak_atual, $streak_max, $hoje, $xp_bonus, $usuario_id]);
+    } else {
+        dbStatement($conn, $sql, 'iisi', [$streak_atual, $streak_max, $hoje, $usuario_id]);
+    }
     
     mysqli_close($conn);
     
@@ -80,10 +91,19 @@ function verificarStreak($usuario_id) {
  */
 function getStreak($usuario_id) {
     $conn = conectar();
-    $sql = "SELECT streak_atual, streak_max, ultimo_acesso_streak FROM usuarios WHERE id = $usuario_id";
-    $result = mysqli_query($conn, $sql);
+    $usuario_id = intval($usuario_id);
+    $sql = "SELECT streak_atual, streak_max, ultimo_acesso_streak FROM usuarios WHERE id = ?";
+    $result = dbSelect($conn, $sql, 'i', [$usuario_id]);
     $user = mysqli_fetch_assoc($result);
     mysqli_close($conn);
+
+    if (!$user) {
+        return [
+            'atual' => 0,
+            'max' => 0,
+            'ultimo' => null
+        ];
+    }
     
     return [
         'atual' => intval($user['streak_atual']),

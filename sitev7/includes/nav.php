@@ -41,7 +41,12 @@ function navActive($pagina, $atual)
     <a href="titulos.php" class="nav-item <?= navActive('titulos', $pagina_atual) ?>">
         <i class="fas fa-crown"></i><span>Títulos</span>
     </a>
-    <a href="#" class="nav-item" onclick="goToRandomAnime(); return false;">
+    <?php if (isset($usuario) && $usuario && intval($usuario['id']) === 1): ?>
+        <a href="admin.php" class="nav-item <?= navActive('admin', $pagina_atual) ?>">
+            <i class="fas fa-gauge-high"></i><span>Admin</span>
+        </a>
+    <?php endif; ?>
+    <a href="#" class="nav-item" onclick="goToRandomAnime(event); return false;">
         <i class="fas fa-dice"></i><span>Aleatório</span>
     </a>
 
@@ -70,10 +75,12 @@ function navActive($pagina, $atual)
             <a href="favoritos.php"><i class="fas fa-star"></i> Favoritos</a>
             <a href="assistindo.php"><i class="fas fa-play-circle"></i> Assistindo</a>
             <a href="calculadora.php"><i class="fas fa-calculator"></i> Calculadora</a>
-            <a href="calculadora.php"><i class="fas fa-calculator"></i> Calculadora</a>
             <a href="estatisticas.php"><i class="fas fa-chart-bar"></i> Estatísticas</a>
             <a href="titulos.php"><i class="fas fa-crown"></i> Títulos</a>
-            <a href="#" onclick="goToRandomAnime(); return false;"><i class="fas fa-dice"></i> Aleatório</a>
+            <?php if (isset($usuario) && $usuario && intval($usuario['id']) === 1): ?>
+                <a href="admin.php"><i class="fas fa-gauge-high"></i> Admin</a>
+            <?php endif; ?>
+            <a href="#" onclick="goToRandomAnime(event); return false;"><i class="fas fa-dice"></i> Aleatório</a>
             <hr style="margin: 5px 0; border: 0; border-top: 1px solid var(--border-color);">
             <?php if (isset($usuario) && $usuario): ?>
                 <a href="api/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Sair</a>

@@ -10,6 +10,7 @@ const CalendarioPage = {
     animes: [],
     filter: 'all',
     countdownInterval: null,
+    animesByDay: {},
 
     // Mapping de temporadas
     seasons: ['winter', 'spring', 'summer', 'fall'],
@@ -167,14 +168,12 @@ const CalendarioPage = {
             anime.isFollowing = following.includes(parseInt(anime.id));
 
             // Aplicar filtros
-            if (this.filter === 'following' && !anime.isFollowing) return;
-            if (this.filter === 'today') {
-                const todayIdx = new Date().getDay();
-                if (day !== days[todayIdx]) return;
-            }
-
             if (day !== 'unknown') animesByDay[day].push(anime);
         });
+
+        this.animesByDay = animesByDay;
+        this.updateOverview(animesByDay);
+        this.updateDayTabs(animesByDay);
 
         // Ordenar por horário de exibição
         days.forEach(day => {
@@ -182,13 +181,17 @@ const CalendarioPage = {
 
             const container = document.getElementById(`animes-${day}`);
             const countEl = document.getElementById(`count-${day}`);
-            const animes = animesByDay[day];
+            const dayEl = document.querySelector(`.calendar-day[data-day="${day}"]`);
+            const visible = this.shouldShowDay(day);
+            const animes = visible ? animesByDay[day].filter(anime => this.shouldShowAnime(anime, day)) : [];
+
+            if (dayEl) dayEl.style.display = visible ? '' : 'none';
 
             if (countEl) countEl.textContent = animes.length;
 
             if (container) {
                 if (animes.length === 0) {
-                    container.innerHTML = '<div class="day-empty">Nenhum anime</div>';
+                    container.innerHTML = '<div class="day-empty">Nenhum anime neste filtro</div>';
                 } else {
                     container.innerHTML = animes.map(anime => this.createAnimeCard(anime)).join('');
                 }
@@ -196,6 +199,88 @@ const CalendarioPage = {
         });
 
         this.highlightToday();
+        this.updateFilterState();
+    },
+
+    shouldShowDay(day) {
+        const dayFilters = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        return !dayFilters.includes(this.filter) || this.filter === day;
+    },
+
+    shouldShowAnime(anime, day) {
+        const today = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date().getDay()];
+        if (this.filter === 'following') return anime.isFollowing;
+        if (this.filter === 'today') return day === today;
+        if (this.filter === 'live') return anime.isLive;
+        if (this.filter === 'upcoming') return anime.isFuture;
+        if (this.filter === 'past') return anime.isPast;
+        return true;
+    },
+
+    updateOverview(animesByDay) {
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const all = days.flatMap(day => animesByDay[day] || []);
+        const today = days[new Date().getDay()];
+        const todayCount = (animesByDay[today] || []).length;
+        const liveCount = all.filter(anime => anime.isLive).length;
+        const followingCount = all.filter(anime => anime.isFollowing).length;
+        const next = all
+            .filter(anime => anime.airingAt && anime.isFuture)
+            .sort((a, b) => a.airingAt - b.airingAt)[0];
+
+        const stats = document.getElementById('calendar-season-stats');
+        if (stats) {
+            stats.innerHTML = `
+                <div class="calendar-stat"><strong>${all.length}</strong><span>Total</span></div>
+                <div class="calendar-stat"><strong>${todayCount}</strong><span>Hoje</span></div>
+                <div class="calendar-stat"><strong>${liveCount}</strong><span>No ar</span></div>
+                <div class="calendar-stat"><strong>${followingCount}</strong><span>Seguindo</span></div>
+            `;
+        }
+
+        const nextCard = document.getElementById('calendar-next-card');
+        if (!nextCard) return;
+
+        if (!next) {
+            nextCard.onclick = null;
+            nextCard.innerHTML = `
+                <div class="calendar-next-icon"><i class="fas fa-moon"></i></div>
+                <div class="calendar-next-info">
+                    <span class="calendar-eyebrow">Agenda tranquila</span>
+                    <strong>Nenhum próximo episódio encontrado</strong>
+                    <small>Tente outra temporada ou veja os episódios já exibidos.</small>
+                </div>
+            `;
+            return;
+        }
+
+        const date = new Date(next.airingAt * 1000);
+        nextCard.innerHTML = `
+            <img src="${next.image || 'assets/logo.png'}" alt="${next.title}" onerror="this.onerror=null;this.src='assets/logo.png';">
+            <div class="calendar-next-info">
+                <span class="calendar-eyebrow">Próximo episódio</span>
+                <strong>${next.title}</strong>
+                <small>${date.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'short' })} às ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • ${next.nextAiringEpisode ? `Ep. ${next.nextAiringEpisode.episode}` : 'Novo episódio'}</small>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); Common.goToAnimeDetails(${next.id}, document.getElementById('calendar-next-card'))">
+                <i class="fas fa-play"></i> Ver
+            </button>
+        `;
+        nextCard.onclick = () => Common.goToAnimeDetails(next.id, nextCard);
+    },
+
+    updateDayTabs(animesByDay) {
+        document.querySelectorAll('.calendar-day-tab').forEach(tab => {
+            const filter = tab.dataset.filter;
+            const count = tab.querySelector('span');
+            if (count && animesByDay[filter]) count.textContent = animesByDay[filter].length;
+        });
+    },
+
+    updateFilterState() {
+        document.querySelectorAll('.filter-btn, .calendar-day-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === this.filter);
+        });
     },
 
     /**
@@ -220,13 +305,13 @@ const CalendarioPage = {
         }
 
         const episodes = anime.episodes || '?';
-        const image = anime.image || 'img/placeholder.jpg';
+        const image = anime.image || 'assets/logo.png';
         const nextEp = anime.nextAiringEpisode ? `Ep. ${anime.nextAiringEpisode.episode}` : '';
 
         return `
             <div class="calendar-anime ${anime.isFollowing ? 'following' : ''} ${anime.isLive ? 'is-live' : ''}"
                  onclick="window.location='detalhes.php?id=${anime.id}'">
-                <img src="${image}" alt="${anime.title}" loading="lazy" onerror="this.src='img/placeholder.jpg'">
+                <img src="${image}" alt="${anime.title}" loading="lazy" onerror="this.onerror=null;this.src='assets/logo.png';">
                 <div class="calendar-anime-info">
                     ${badgeHtml}
                     <div class="calendar-anime-title">${anime.title}</div>
@@ -299,8 +384,14 @@ const CalendarioPage = {
 
         // Scroll automático para o dia de hoje
         const todayEl = document.querySelector(`.calendar-day[data-day="${today}"]`);
-        if (todayEl) {
-            setTimeout(() => todayEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 300);
+        const week = document.getElementById('calendar-week');
+        if (todayEl && week && this.filter === 'all') {
+            setTimeout(() => {
+                week.scrollTo({
+                    left: Math.max(todayEl.offsetLeft - week.offsetLeft - 16, 0),
+                    behavior: 'smooth'
+                });
+            }, 300);
         }
     },
 
@@ -309,9 +400,6 @@ const CalendarioPage = {
      */
     filterDay(filter) {
         this.filter = filter;
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.filter === filter);
-        });
         this.renderCalendar();
     },
 
@@ -324,18 +412,26 @@ const CalendarioPage = {
             : null;
 
         if (status === 'watching') {
-            // Remover de "watching"
-            if (typeof Storage !== 'undefined' && Storage.removeFromAllLists) {
-                Storage.removeFromAllLists(animeId);
+            Common.confirm({
+                title: 'Remover de Assistindo',
+                message: `Remover "${title}" da lista Assistindo?`,
+                confirmText: 'Remover',
+                onConfirm: async () => {
+                    if (typeof Storage !== 'undefined' && Storage.removeFromAllLists) {
+                        Storage.removeFromAllLists(animeId);
 
-                // Sync com backend
-                fetch('api/lists/delete.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ anime_id: animeId })
-                }).catch(() => {});
-            }
-            Common.showNotification('Removido de Assistindo');
+                        try {
+                            await Common.apiFetch('api/lists/delete.php', {
+                                method: 'POST',
+                                body: JSON.stringify({ anime_id: animeId })
+                            });
+                            Common.showNotification('Removido de Assistindo');
+                        } catch (e) {
+                            Common.showNotification(e.message || 'Erro ao remover', 'error');
+                        }
+                    }
+                }
+            });
         } else {
             // Adicionar a "watching"
             if (typeof Storage !== 'undefined' && Storage.addToList) {

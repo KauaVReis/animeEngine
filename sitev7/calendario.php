@@ -295,6 +295,23 @@ require_once 'includes/nav.php';
         <p class="page-subtitle">Animes que estão no ar esta temporada</p>
     </div>
 
+    <section class="calendar-overview">
+        <div class="calendar-next-card" id="calendar-next-card">
+            <div class="calendar-next-icon"><i class="fas fa-broadcast-tower"></i></div>
+            <div class="calendar-next-info">
+                <span class="calendar-eyebrow">Próximo episódio</span>
+                <strong>Carregando agenda...</strong>
+                <small>Vamos encontrar o próximo lançamento da temporada.</small>
+            </div>
+        </div>
+        <div class="calendar-stats-row" id="calendar-season-stats">
+            <div class="calendar-stat"><strong>0</strong><span>Total</span></div>
+            <div class="calendar-stat"><strong>0</strong><span>Hoje</span></div>
+            <div class="calendar-stat"><strong>0</strong><span>No ar</span></div>
+            <div class="calendar-stat"><strong>0</strong><span>Seguindo</span></div>
+        </div>
+    </section>
+
     <!-- Season Selector -->
     <div class="calendar-controls">
         <div class="season-selector">
@@ -315,10 +332,35 @@ require_once 'includes/nav.php';
         <div class="calendar-filters">
             <button class="filter-btn active" data-filter="all" onclick="CalendarioPage.filterDay('all')">Todos</button>
             <button class="filter-btn" data-filter="today" onclick="CalendarioPage.filterDay('today')">Hoje</button>
+            <button class="filter-btn" data-filter="live" onclick="CalendarioPage.filterDay('live')">
+                <i class="fas fa-signal"></i> No ar
+            </button>
+            <button class="filter-btn" data-filter="upcoming" onclick="CalendarioPage.filterDay('upcoming')">
+                <i class="fas fa-hourglass-half"></i> Próximos
+            </button>
+            <button class="filter-btn" data-filter="past" onclick="CalendarioPage.filterDay('past')">
+                <i class="fas fa-check"></i> Já exibidos
+            </button>
             <button class="filter-btn" data-filter="following" onclick="CalendarioPage.filterDay('following')">
                 <i class="fas fa-bell"></i> Seguindo
             </button>
         </div>
+    </div>
+
+    <div class="calendar-day-tabs" id="calendar-day-tabs">
+        <button class="calendar-day-tab active" data-filter="all" onclick="CalendarioPage.filterDay('all')">Semana</button>
+        <button class="calendar-day-tab" data-filter="sunday" onclick="CalendarioPage.filterDay('sunday')">Dom <span>0</span></button>
+        <button class="calendar-day-tab" data-filter="monday" onclick="CalendarioPage.filterDay('monday')">Seg <span>0</span></button>
+        <button class="calendar-day-tab" data-filter="tuesday" onclick="CalendarioPage.filterDay('tuesday')">Ter <span>0</span></button>
+        <button class="calendar-day-tab" data-filter="wednesday" onclick="CalendarioPage.filterDay('wednesday')">Qua <span>0</span></button>
+        <button class="calendar-day-tab" data-filter="thursday" onclick="CalendarioPage.filterDay('thursday')">Qui <span>0</span></button>
+        <button class="calendar-day-tab" data-filter="friday" onclick="CalendarioPage.filterDay('friday')">Sex <span>0</span></button>
+        <button class="calendar-day-tab" data-filter="saturday" onclick="CalendarioPage.filterDay('saturday')">Sáb <span>0</span></button>
+    </div>
+
+    <div class="calendar-loading" id="calendar-loading">
+        <div class="loader"></div>
+        <span>Montando agenda da temporada...</span>
     </div>
 
     <!-- Weekly Grid -->

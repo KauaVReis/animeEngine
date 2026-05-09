@@ -6,6 +6,7 @@
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/cache.php';
 
 header('Content-Type: application/json');
 
@@ -27,9 +28,10 @@ if ($anime_id <= 0) {
 $conn = conectar();
 $usuario_id = getUsuarioId();
 
-$sql = "DELETE FROM listas_anime WHERE usuario_id = $usuario_id AND anime_id = $anime_id";
+$sql = "DELETE FROM listas_anime WHERE usuario_id = ? AND anime_id = ?";
 
-if (mysqli_query($conn, $sql)) {
+if (dbStatement($conn, $sql, 'ii', [$usuario_id, $anime_id])) {
+    clearUserCache($usuario_id);
     mysqli_close($conn);
     jsonSuccess('Anime removido da lista!', ['anime_id' => $anime_id]);
 } else {

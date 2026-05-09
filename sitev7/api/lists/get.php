@@ -6,6 +6,7 @@
 
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/cache.php';
 
 header('Content-Type: application/json');
 
@@ -18,6 +19,13 @@ requerLoginAPI();
 
 $conn = conectar();
 $usuario_id = getUsuarioId();
+
+$cacheKey = 'user_lists:' . $usuario_id;
+$cachedLists = cacheGet($cacheKey);
+if ($cachedLists !== null) {
+    mysqli_close($conn);
+    jsonSuccess('Listas recuperadas', ['lists' => $cachedLists, 'cached' => true]);
+}
 
 // Buscar todos os animes do usuário com dados do cache
 $sql = "SELECT 
@@ -38,10 +46,14 @@ $sql = "SELECT
             ac.ano
         FROM listas_anime la
         JOIN animes_cache ac ON la.anime_id = ac.anime_id
-        WHERE la.usuario_id = $usuario_id
+        WHERE la.usuario_id = ?
         ORDER BY la.atualizado_em DESC";
 
-$result = mysqli_query($conn, $sql);
+$result = dbSelect($conn, $sql, 'i', [$usuario_id]);
+if (!$result) {
+    mysqli_close($conn);
+    jsonError('Erro ao carregar listas', 500);
+}
 
 // Organizar por tipo de lista
 $lists = [
@@ -80,6 +92,8 @@ while ($row = mysqli_fetch_assoc($result)) {
 }
 
 mysqli_close($conn);
+
+cacheSet($cacheKey, $lists, 60);
 
 jsonSuccess('Listas recuperadas', ['lists' => $lists]);
 

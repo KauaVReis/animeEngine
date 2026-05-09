@@ -11,7 +11,21 @@ require_once 'includes/nav.php';
 <main class="main-content">
     <div class="page-header">
         <h1 class="page-title"><i class="fas fa-search"></i> Explorar</h1>
+        <p class="page-subtitle">Descubra animes por clima, formato, nota, temporada e gênero.</p>
     </div>
+
+    <section class="explore-command">
+        <div class="explore-command-copy">
+            <span class="calendar-eyebrow">Exploração guiada</span>
+            <strong>Encontre algo para assistir sem brigar com filtros.</strong>
+        </div>
+        <div class="explore-presets" id="explore-presets">
+            <button class="preset-chip" data-preset="season-new"><i class="fas fa-wand-magic-sparkles"></i> Novos da temporada</button>
+            <button class="preset-chip" data-preset="high-score"><i class="fas fa-star"></i> Bem avaliados</button>
+            <button class="preset-chip" data-preset="short"><i class="fas fa-stopwatch"></i> Curtos</button>
+            <button class="preset-chip" data-preset="marathon"><i class="fas fa-layer-group"></i> Para maratonar</button>
+        </div>
+    </section>
 
     <!-- ADVANCED FILTERS ROW -->
     <div class="filter-controls-row">
@@ -21,7 +35,7 @@ require_once 'includes/nav.php';
             <button class="quick-filter" data-filter="seasonal">❄️ Temporada</button>
             <button class="quick-filter" data-filter="top">🏆 Top Avaliados</button>
             <button class="quick-filter" data-filter="upcoming">📅 Em Breve</button>
-            <button class="quick-filter" onclick="toggleOstView(true)">🎶 OSTs</button>
+            <button class="quick-filter ost-btn" onclick="toggleOstView(true)">🎶 OSTs</button>
         </div>
 
         <!-- SORT CONTROLS -->
@@ -124,6 +138,9 @@ require_once 'includes/nav.php';
         </div>
         <div class="results-info">
             <span id="results-count">Buscando animes...</span>
+            <button class="btn btn-secondary btn-sm explore-clear-btn" onclick="ExplorePage.clearFilters()">
+                <i class="fas fa-eraser"></i> Limpar
+            </button>
         </div>
     </div>
 

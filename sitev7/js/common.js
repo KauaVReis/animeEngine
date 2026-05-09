@@ -15,6 +15,9 @@ const Common = {
         this.createNotificationsButton();
         // this.createMobileRandomButton(); // Disabled on user request
         this.createSidebarRandomButton(); // Desktop Sidebar
+        this.setupAnimeNavigationAnimations();
+        this.setupPageReadyState();
+        this.setupKeyboardShortcuts();
         this.initNotifications();
         this.setupEasterEggs();
         this.checkAchievements();
@@ -228,7 +231,7 @@ const Common = {
 
         dropdown.innerHTML = results.map(anime => `
             <a href="detalhes.php?id=${anime.id}" class="search-result-item">
-                <img src="${anime.coverImage.medium}" alt="${anime.title.romaji}">
+                <img src="${anime.coverImage?.medium || 'assets/logo.png'}" alt="${anime.title.romaji}" onerror="this.onerror=null;this.src='assets/logo.png';">
                 <div class="search-result-info">
                     <div class="search-result-title">${anime.title.romaji}</div>
                     <div class="search-result-meta">
@@ -300,7 +303,7 @@ const Common = {
             headerContent.insertBefore(randomBtn, document.querySelector('.user-area'));
 
             randomBtn.addEventListener('click', () => {
-                this.goToRandomAnime();
+                this.goToRandomAnime(randomBtn);
             });
         }
     },
@@ -325,7 +328,7 @@ const Common = {
                 link.innerHTML = '<i class="fas fa-dice"></i><span>Aleatório</span>';
                 link.onclick = (e) => {
                     e.preventDefault();
-                    this.goToRandomAnime();
+                    this.goToRandomAnime(link);
                 };
 
                 // Insert before divider if exists, else append
@@ -393,7 +396,7 @@ const Common = {
 
         card.innerHTML = `
             <div class="anime-card-image">
-                <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                <img src="${anime.image || 'assets/logo.png'}" alt="${anime.title}" loading="lazy" onerror="this.onerror=null;this.src='assets/logo.png';">
                 <div class="anime-card-overlay">
                     <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); Common.openListModal({id: ${anime.id}})">
                         <i class="fas fa-plus"></i> Lista
@@ -416,7 +419,7 @@ const Common = {
         // Click para detalhes
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
-                window.location.href = `detalhes.php?id=${anime.id}`;
+                this.goToAnimeDetails(anime.id, card);
             }
         });
 
@@ -481,6 +484,77 @@ const Common = {
                 <span class="loader-text">${text}</span>
             </div>
         `;
+    },
+
+    /**
+     * Renderizar estado vazio padronizado
+     */
+    renderEmptyState(containerId, options = {}) {
+        const container = typeof containerId === 'string' ? document.getElementById(containerId) : containerId;
+        if (!container) return;
+
+        const icon = options.icon || 'fas fa-inbox';
+        const title = options.title || 'Nada por aqui';
+        const message = options.message || '';
+        const action = options.action || null;
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="${icon}"></i></div>
+                <div class="empty-state-title">${title}</div>
+                ${message ? `<div class="empty-state-message">${message}</div>` : ''}
+                ${action ? `<a class="btn btn-primary empty-state-action" href="${action.href}">${action.label}</a>` : ''}
+            </div>
+        `;
+    },
+
+    /**
+     * Fetch JSON com headers padrao e CSRF quando disponivel
+     */
+    async apiFetch(url, options = {}) {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        };
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (csrfToken) {
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+
+        const response = await fetch(url, {
+            credentials: 'include',
+            ...options,
+            headers
+        });
+
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : {};
+
+        if (!response.ok || data.error) {
+            throw new Error(data.message || 'Erro ao processar solicitacao');
+        }
+
+        return data;
+    },
+
+    /**
+     * Estado de carregamento para botoes
+     */
+    setButtonLoading(button, isLoading, loadingText = 'Aguarde...') {
+        if (!button) return;
+        if (isLoading) {
+            button.dataset.originalHtml = button.innerHTML;
+            button.disabled = true;
+            button.classList.add('is-loading');
+            button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+        } else {
+            button.disabled = false;
+            button.classList.remove('is-loading');
+            if (button.dataset.originalHtml) {
+                button.innerHTML = button.dataset.originalHtml;
+                delete button.dataset.originalHtml;
+            }
+        }
     },
 
     // ========================================
@@ -582,14 +656,19 @@ const Common = {
     /**
      * Ir para Anime Aleatório
      */
-    async goToRandomAnime() {
+    async goToRandomAnime(trigger = null) {
+        this.showRandomRoll(trigger || document.activeElement);
+
         try {
             const anime = await API.getRandomAnime();
             if (anime) {
-                window.location.href = `detalhes.php?id=${anime.id}`;
+                setTimeout(() => {
+                    this.goToAnimeDetails(anime.id, trigger || document.activeElement, { skipOverlay: true });
+                }, 620);
             }
         } catch (error) {
             console.error('Erro random:', error);
+            this.hideRandomRoll(trigger || document.activeElement);
             this.showToast('Erro ao buscar anime aleatório', 'error');
         }
     },
@@ -634,6 +713,49 @@ const Common = {
     // ========================================
     // MODAL
     // ========================================
+
+    /**
+     * Mostrar notificacao toast com fila, tipos e dismiss manual
+     */
+    showNotification(message, type = 'success', options = {}) {
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            container.setAttribute('aria-live', 'polite');
+            container.setAttribute('aria-atomic', 'false');
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `notification-toast notification-${type}`;
+        toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        const icons = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-circle-exclamation',
+            warning: 'fas fa-triangle-exclamation',
+            info: 'fas fa-circle-info'
+        };
+
+        toast.innerHTML = `
+            <i class="${icons[type] || icons.success}"></i>
+            <span>${message}</span>
+            <button class="toast-close" type="button" aria-label="Fechar">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        container.appendChild(toast);
+
+        const dismiss = () => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        };
+
+        toast.querySelector('.toast-close')?.addEventListener('click', dismiss);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(dismiss, options.duration || 3200);
+    },
 
     /**
      * Abrir modal genérico
@@ -821,6 +943,142 @@ const Common = {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    },
+
+    /**
+     * Suavizar entrada de pagina
+     */
+    setupPageReadyState() {
+        requestAnimationFrame(() => {
+            document.body.classList.add('page-ready');
+        });
+    },
+
+    /**
+     * Anima a abertura de qualquer card/link de detalhes
+     */
+    setupAnimeNavigationAnimations() {
+        document.addEventListener('click', (e) => {
+            if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+            const target = e.target;
+            if (!target || target.closest('[data-no-route-animation]')) return;
+
+            const detailsLink = target.closest('a[href*="detalhes.php?id="]');
+            const inlineDetails = target.closest('[onclick*="detalhes.php?id="]');
+            const routeTarget = detailsLink || inlineDetails;
+            if (!routeTarget) return;
+
+            const url = detailsLink?.getAttribute('href') || this.extractDetailsUrl(routeTarget.getAttribute('onclick') || '');
+            if (!url) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            this.animateAnimeNavigation(url, routeTarget);
+        }, true);
+    },
+
+    extractDetailsUrl(value) {
+        const match = value.match(/detalhes\.php\?id=['"`+\s]*([0-9]+)/);
+        return match ? `detalhes.php?id=${match[1]}` : null;
+    },
+
+    goToAnimeDetails(animeId, sourceElement = null, options = {}) {
+        const url = `detalhes.php?id=${animeId}`;
+        if (options.skipOverlay) {
+            window.location.href = url;
+            return;
+        }
+
+        this.animateAnimeNavigation(url, sourceElement);
+    },
+
+    animateAnimeNavigation(url, sourceElement = null) {
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+            window.location.href = url;
+            return;
+        }
+
+        const highlight = sourceElement?.closest?.('.anime-card, .calendar-anime, .search-result-item, .relation-card, .fav-card, .watching-card, .kanban-card, .top-rated-item, .shared-anime-card, .vip-favorite-card, .completed-anime-card') || sourceElement;
+        highlight?.classList?.add('anime-card-opening');
+
+        let overlay = document.querySelector('.anime-route-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'anime-route-overlay';
+            overlay.innerHTML = `
+                <div class="anime-route-card" role="status" aria-live="polite">
+                    <div class="anime-route-icon"><i class="fas fa-play"></i></div>
+                    <div class="anime-route-title">Abrindo anime</div>
+                    <div class="anime-route-line"></div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        requestAnimationFrame(() => overlay.classList.add('is-visible'));
+        setTimeout(() => {
+            window.location.href = url;
+        }, 430);
+    },
+
+    showRandomRoll(trigger = null) {
+        trigger?.classList?.add('is-rolling');
+        if (this.randomRollTimer) clearInterval(this.randomRollTimer);
+
+        let overlay = document.querySelector('.random-roll-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'random-roll-overlay';
+            overlay.innerHTML = `
+                <div class="random-roll-card" role="status" aria-live="polite">
+                    <div class="random-roll-dice"><i class="fas fa-dice"></i></div>
+                    <div class="random-roll-title">Sorteando anime</div>
+                    <div class="random-roll-subtitle">O dado esta rolando...</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        requestAnimationFrame(() => overlay.classList.add('is-visible'));
+
+        const faces = ['fa-dice-one', 'fa-dice-two', 'fa-dice-three', 'fa-dice-four', 'fa-dice-five', 'fa-dice-six'];
+        const icon = overlay.querySelector('.random-roll-dice i');
+        this.randomRollTimer = setInterval(() => {
+            if (!icon) return;
+            icon.className = `fas ${faces[Math.floor(Math.random() * faces.length)]}`;
+        }, 120);
+    },
+
+    hideRandomRoll(trigger = null) {
+        trigger?.classList?.remove('is-rolling');
+        if (this.randomRollTimer) {
+            clearInterval(this.randomRollTimer);
+            this.randomRollTimer = null;
+        }
+        const overlay = document.querySelector('.random-roll-overlay');
+        overlay?.classList.remove('is-visible');
+        setTimeout(() => overlay?.remove(), 180);
+    },
+
+    /**
+     * Atalhos de teclado globais
+     */
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            const target = e.target;
+            const typing = target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+            if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+
+            if (e.key === '/') {
+                e.preventDefault();
+                document.getElementById('search-input')?.focus();
+            }
+
+            if (e.key.toLowerCase() === 'g') {
+                document.querySelector('.settings-btn')?.click();
+            }
+        });
     },
 
     /**

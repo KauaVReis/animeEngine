@@ -8,8 +8,12 @@ require_once '../../includes/auth.php';
 
 // Headers
 // header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
+setCorsHeaders('POST, GET, OPTIONS');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 fazerLogout();
 

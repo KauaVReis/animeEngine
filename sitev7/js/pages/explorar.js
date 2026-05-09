@@ -18,6 +18,8 @@ const ExplorePage = {
     selectedStatus: '',
     selectedSource: '',
     minScore: 0,
+    maxEpisodes: null,
+    minEpisodes: null,
     isAdult: false,
 
     async init() {
@@ -29,6 +31,10 @@ const ExplorePage = {
                 if (btn.classList.contains('ost-btn')) return;
                 this.setFilter(btn.dataset.filter);
             });
+        });
+
+        document.querySelectorAll('.preset-chip').forEach(btn => {
+            btn.addEventListener('click', () => this.applyPreset(btn.dataset.preset));
         });
 
         // Setup format filters
@@ -45,8 +51,10 @@ const ExplorePage = {
         const sortSelect = document.getElementById('sort-select');
         if (sortSelect) {
             sortSelect.addEventListener('change', (e) => {
+                this.clearPresetActive();
                 this.currentSort = e.target.value;
                 this.currentPage = 1;
+                this.renderChips();
                 this.loadAnimes();
             });
         }
@@ -59,6 +67,7 @@ const ExplorePage = {
 
         // Check SFW/Adult Setting
         this.checkAdultSetting();
+        this.renderChips();
 
         // Check for search query
         const urlParams = new URLSearchParams(window.location.search);
@@ -131,6 +140,7 @@ const ExplorePage = {
 
     resetAndLoad() {
         this.currentPage = 1;
+        this.syncFilterControls();
         this.renderChips();
         this.loadAnimes();
     },
@@ -140,6 +150,8 @@ const ExplorePage = {
         this.searchQuery = query;
         this.selectedGenres = [];
         this.selectedFormat = null;
+        this.maxEpisodes = null;
+        this.minEpisodes = null;
         this.currentPage = 1;
 
         // Update UI
@@ -149,7 +161,103 @@ const ExplorePage = {
         this.loadAnimes();
     },
 
+    clearFilters() {
+        this.currentPage = 1;
+        this.currentFilter = 'trending';
+        this.selectedGenres = [];
+        this.selectedFormat = null;
+        this.selectedSeason = '';
+        this.selectedYear = '';
+        this.selectedStatus = '';
+        this.selectedSource = '';
+        this.minScore = 0;
+        this.maxEpisodes = null;
+        this.minEpisodes = null;
+        this.searchQuery = null;
+        this.currentSort = 'POPULARITY_DESC';
+        this.clearPresetActive();
+        this.updateTitle();
+        this.resetAndLoad();
+    },
+
+    applyPreset(preset) {
+        this.clearPresetState();
+
+        if (preset === 'season-new') {
+            this.currentFilter = 'seasonal';
+            this.currentSort = 'TRENDING_DESC';
+        } else if (preset === 'high-score') {
+            this.currentFilter = 'top';
+            this.currentSort = 'SCORE_DESC';
+            this.minScore = 80;
+        } else if (preset === 'short') {
+            this.currentFilter = 'trending';
+            this.currentSort = 'POPULARITY_DESC';
+            this.selectedFormat = 'TV';
+            this.maxEpisodes = 13;
+        } else if (preset === 'marathon') {
+            this.currentFilter = 'top';
+            this.currentSort = 'SCORE_DESC';
+            this.selectedStatus = 'FINISHED';
+            this.minEpisodes = 24;
+        }
+
+        document.querySelectorAll('.preset-chip').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.preset === preset);
+        });
+
+        this.updateTitle();
+        this.resetAndLoad();
+    },
+
+    clearPresetState() {
+        this.currentPage = 1;
+        this.currentFilter = 'trending';
+        this.selectedGenres = [];
+        this.selectedFormat = null;
+        this.selectedSeason = '';
+        this.selectedYear = '';
+        this.selectedStatus = '';
+        this.selectedSource = '';
+        this.minScore = 0;
+        this.maxEpisodes = null;
+        this.minEpisodes = null;
+        this.searchQuery = null;
+    },
+
+    clearPresetActive() {
+        document.querySelectorAll('.preset-chip').forEach(btn => btn.classList.remove('active'));
+    },
+
+    syncFilterControls() {
+        document.querySelectorAll('.quick-filter').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === this.currentFilter);
+        });
+        document.querySelectorAll('.format-tag').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.format === this.selectedFormat);
+        });
+        document.querySelectorAll('.genre-tag').forEach(btn => {
+            btn.classList.toggle('active', this.selectedGenres.includes(btn.dataset.genre));
+        });
+
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) sortSelect.value = this.currentSort;
+        const seasonSelect = document.getElementById('season-select');
+        if (seasonSelect) seasonSelect.value = this.selectedSeason;
+        const yearInput = document.getElementById('year-input');
+        if (yearInput) yearInput.value = this.selectedYear;
+        const statusSelect = document.getElementById('status-select');
+        if (statusSelect) statusSelect.value = this.selectedStatus;
+        const sourceSelect = document.getElementById('source-select');
+        if (sourceSelect) sourceSelect.value = this.selectedSource;
+        const scoreSlider = document.getElementById('score-slider');
+        const scoreValue = document.getElementById('score-value');
+        if (scoreSlider) scoreSlider.value = this.minScore;
+        if (scoreValue) scoreValue.textContent = this.minScore ? (this.minScore / 10).toFixed(1) : '0';
+    },
+
     async setFilter(filter) {
+        this.clearPresetActive();
         this.currentFilter = filter;
         this.currentPage = 1;
         this.searchQuery = null;
@@ -164,6 +272,7 @@ const ExplorePage = {
     },
 
     setFormat(btn) {
+        this.clearPresetActive();
         const format = btn.dataset.format;
         if (this.selectedFormat === format) {
             this.selectedFormat = null;
@@ -181,6 +290,7 @@ const ExplorePage = {
     },
 
     toggleGenre(btn) {
+        this.clearPresetActive();
         const genreId = btn.dataset.genre;
         const index = this.selectedGenres.indexOf(genreId);
 
@@ -199,6 +309,7 @@ const ExplorePage = {
     },
 
     removeFilter(type, value) {
+        this.clearPresetActive();
         if (type === 'genre') {
             this.selectedGenres = this.selectedGenres.filter(g => g !== value);
             document.querySelector(`.genre-tag[data-genre="${value}"]`)?.classList.remove('active');
@@ -221,6 +332,9 @@ const ExplorePage = {
             this.minScore = 0;
             document.getElementById('score-slider').value = 0;
             document.getElementById('score-value').textContent = '0';
+        } else if (type === 'episodes') {
+            this.maxEpisodes = null;
+            this.minEpisodes = null;
         }
 
         this.resetAndLoad();
@@ -304,6 +418,24 @@ const ExplorePage = {
             `;
         }
 
+        if (this.maxEpisodes) {
+            chipsHtml += `
+                <div class="filter-chip">
+                    Até ${this.maxEpisodes} eps
+                    <i class="fas fa-times" onclick="ExplorePage.removeFilter('episodes')"></i>
+                </div>
+            `;
+        }
+
+        if (this.minEpisodes) {
+            chipsHtml += `
+                <div class="filter-chip">
+                    ${this.minEpisodes}+ eps
+                    <i class="fas fa-times" onclick="ExplorePage.removeFilter('episodes')"></i>
+                </div>
+            `;
+        }
+
         this.selectedGenres.forEach(id => {
             chipsHtml += `
                 <div class="filter-chip">
@@ -313,7 +445,7 @@ const ExplorePage = {
             `;
         });
 
-        container.innerHTML = chipsHtml;
+        container.innerHTML = chipsHtml || '<span class="filters-empty">Sem filtros ativos</span>';
     },
 
     updateTitle() {
@@ -396,6 +528,8 @@ const ExplorePage = {
         if (this.selectedStatus) variables.status = this.selectedStatus;
         if (this.selectedSource) variables.source = this.selectedSource;
         if (this.minScore > 0) variables.averageScore_greater = this.minScore;
+        if (this.maxEpisodes) variables.episodes_lesser = this.maxEpisodes + 1;
+        if (this.minEpisodes) variables.episodes_greater = this.minEpisodes - 1;
 
         // Use local isAdult or fall back to SFW setting
         const settings = Storage.getSettings();
@@ -417,7 +551,7 @@ const ExplorePage = {
         }
 
         const query = `
-            query ($page: Int, $perPage: Int, $search: String, $sort: [MediaSort], $season: MediaSeason, $seasonYear: Int, $status: MediaStatus, $genre_in: [String], $format: MediaFormat, $source: MediaSource, $averageScore_greater: Int, $isAdult: Boolean) {
+            query ($page: Int, $perPage: Int, $search: String, $sort: [MediaSort], $season: MediaSeason, $seasonYear: Int, $status: MediaStatus, $genre_in: [String], $format: MediaFormat, $source: MediaSource, $averageScore_greater: Int, $episodes_lesser: Int, $episodes_greater: Int, $isAdult: Boolean) {
                 Page(page: $page, perPage: $perPage) {
                     media(
                         type: ANIME, 
@@ -430,6 +564,8 @@ const ExplorePage = {
                         format: $format,
                         source: $source,
                         averageScore_greater: $averageScore_greater,
+                        episodes_lesser: $episodes_lesser,
+                        episodes_greater: $episodes_greater,
                         isAdult: $isAdult
                     ) {
                         id
@@ -466,7 +602,21 @@ const ExplorePage = {
         if (!append) grid.innerHTML = '';
 
         if (animes.length === 0 && !append) {
-            grid.innerHTML = '<p class="empty-message">Nenhum anime encontrado</p>';
+            grid.innerHTML = `
+                <div class="explore-empty-state">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <strong>Nenhum anime encontrado</strong>
+                    <span>Esse conjunto de filtros ficou específico demais.</span>
+                    <div class="explore-empty-actions">
+                        <button class="btn btn-primary" onclick="ExplorePage.clearFilters()">
+                            <i class="fas fa-eraser"></i> Limpar filtros
+                        </button>
+                        <button class="btn btn-secondary" onclick="ExplorePage.applyPreset('high-score')">
+                            <i class="fas fa-star"></i> Ver bem avaliados
+                        </button>
+                    </div>
+                </div>
+            `;
             loadMoreContainer.style.display = 'none';
             return;
         }
@@ -474,11 +624,17 @@ const ExplorePage = {
         animes.forEach(anime => {
             const card = document.createElement('div');
             card.className = 'anime-card';
-            card.onclick = () => window.location = `detalhes.php?id=${anime.id}`;
+            card.onclick = () => {
+                if (window.Common?.goToAnimeDetails) {
+                    Common.goToAnimeDetails(anime.id, card);
+                } else {
+                    window.location = `detalhes.php?id=${anime.id}`;
+                }
+            };
 
             card.innerHTML = `
                 <div class="anime-card-image">
-                    <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" loading="lazy">
+                    <img src="${anime.coverImage?.large || 'assets/logo.png'}" alt="${anime.title.romaji}" loading="lazy" onerror="this.onerror=null;this.src='assets/logo.png';">
                     ${anime.averageScore ? `<div class="anime-card-score">★ ${(anime.averageScore / 10).toFixed(1)}</div>` : ''}
                 </div>
                 <div class="anime-card-info">

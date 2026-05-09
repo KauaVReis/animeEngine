@@ -7,6 +7,7 @@
 require_once '../../includes/database.php';
 require_once '../../includes/auth.php';
 require_once '../../includes/atividade.php';
+require_once '../../includes/cache.php';
 
 header('Content-Type: application/json');
 
@@ -38,43 +39,57 @@ $conn = conectar();
 $usuario_id = getUsuarioId();
 
 // Primeiro, salvar/atualizar cache do anime
-$titulo = escape($conn, $anime_data['title'] ?? 'Sem título');
-$titulo_en = escape($conn, $anime_data['titleEn'] ?? '');
-$imagem = escape($conn, $anime_data['image'] ?? '');
+$titulo = $anime_data['title'] ?? 'Sem título';
+$titulo_en = $anime_data['titleEn'] ?? '';
+$imagem = $anime_data['image'] ?? '';
 $episodios = intval($anime_data['episodes'] ?? 0);
 $nota_anime = floatval($anime_data['score'] ?? 0);
-$status = escape($conn, $anime_data['status'] ?? '');
-$sinopse = escape($conn, $anime_data['synopsis'] ?? '');
-$generos = escape($conn, json_encode($anime_data['genres'] ?? []));
-$estudios = escape($conn, json_encode($anime_data['studios'] ?? []));
-$trailer = escape($conn, $anime_data['trailer'] ?? '');
+$status = $anime_data['status'] ?? '';
+$sinopse = $anime_data['synopsis'] ?? '';
+$generos = json_encode($anime_data['genres'] ?? []);
+$estudios = json_encode($anime_data['studios'] ?? []);
+$trailer = $anime_data['trailer'] ?? '';
 $ano = intval($anime_data['year'] ?? 0);
 
 $sql = "INSERT INTO animes_cache 
         (anime_id, titulo, titulo_en, imagem, episodios, nota, status, sinopse, generos, estudios, trailer, ano)
-        VALUES ($anime_id, '$titulo', '$titulo_en', '$imagem', $episodios, $nota_anime, '$status', '$sinopse', '$generos', '$estudios', '$trailer', $ano)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             titulo = VALUES(titulo),
             imagem = VALUES(imagem),
             episodios = VALUES(episodios),
             nota = VALUES(nota)";
 
-mysqli_query($conn, $sql);
+dbStatement($conn, $sql, 'isssidsssssi', [
+    $anime_id,
+    $titulo,
+    $titulo_en,
+    $imagem,
+    $episodios,
+    $nota_anime,
+    $status,
+    $sinopse,
+    $generos,
+    $estudios,
+    $trailer,
+    $ano
+]);
 
 // Adicionar à lista do usuário
 $progresso_final = ($tipo_lista === 'completed') ? $episodios : 0;
 
 $sql = "INSERT INTO listas_anime (usuario_id, anime_id, tipo_lista, progresso)
-        VALUES ($usuario_id, $anime_id, '$tipo_lista', $progresso_final)
+        VALUES (?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
             tipo_lista = VALUES(tipo_lista),
             progresso = GREATEST(progresso, VALUES(progresso)),
             atualizado_em = NOW()";
 
-if (mysqli_query($conn, $sql)) {
+if (dbStatement($conn, $sql, 'iisi', [$usuario_id, $anime_id, $tipo_lista, $progresso_final])) {
     // Registrar atividade (antes de fechar conexão)
     $tipo_atividade = $tipo_lista === 'completed' ? 'complete' : 'add';
     registrarAtividade($usuario_id, $tipo_atividade, $anime_id, ['titulo' => $anime_data['title'] ?? '']);
+    clearUserCache($usuario_id);
 
     mysqli_close($conn);
 
