@@ -1,11 +1,134 @@
 /**
  * AnimeEngine v8 — Home Page CSS
- * Estilos exclusivos da página inicial
+ * Estilos exclusivos da página inicial + Command Strip Neo-Brutalista
  */
 
 /* Hero Banner - aprimoramentos SPA */
 .hero-banner {
     view-transition-name: hero;
+}
+
+/* Command Strip Neo-Brutalista (Painel de Controle do Dia) */
+.command-strip-section {
+    margin-bottom: var(--space-xl);
+}
+
+.command-strip-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+}
+
+.command-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    transition: var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.command-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-neo-hover);
+    border-color: var(--color-primary);
+}
+
+.command-card.urgent-highlight {
+    border-color: var(--color-primary);
+}
+
+.command-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.command-tag {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.command-tag i {
+    color: var(--color-primary);
+}
+
+.command-status-pill {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 2px 7px;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text);
+    border: 1.5px solid var(--border-color);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.command-status-pill.live-pill {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+}
+
+.command-status-pill.solved-pill {
+    background: var(--color-success, #22c55e);
+    color: #000;
+}
+
+.command-status-pill.fallback-pill {
+    background: #f59e0b;
+    color: #000;
+}
+
+.command-card-title {
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.command-card-sub {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.command-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+/* Row for Quote of the Day & Weekly Goals */
+.home-widgets-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
 }
 
 /* Seção em alta - smooth entry */
@@ -27,5 +150,17 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@media (max-width: 1150px) {
+    .command-strip-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .command-strip-grid {
+        grid-template-columns: 1fr;
     }
 }

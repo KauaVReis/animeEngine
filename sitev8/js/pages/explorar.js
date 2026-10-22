@@ -1,6 +1,7 @@
 /**
- * AnimeEngine v7 - Explorar Page
- * Usa AniList API diretamente
+ * AnimeEngine v8 - Explorar Page
+ * Integrado com a camada Tri-API (AniList GraphQL -> Jikan v4 REST -> AnimeThemes REST)
+ * + Descoberta Sonora (Roleta de Openings)
  */
 
 const ExplorePage = {
@@ -12,7 +13,6 @@ const ExplorePage = {
     searchQuery: null,
     hasMore: true,
 
-    // New Advanced Filters State
     selectedSeason: '',
     selectedYear: '',
     selectedStatus: '',
@@ -21,104 +21,121 @@ const ExplorePage = {
     isAdult: false,
 
     async init() {
-        console.log('🔍 Loading Explore Page Overhaul...');
+        console.log('🔍 Loading Explore Page v8...');
+
+        this.currentPage = 1;
+        this.selectedGenres = [];
+        this.selectedFormat = null;
+        this.selectedSeason = '';
+        this.selectedYear = '';
+        this.selectedStatus = '';
+        this.selectedSource = '';
+        this.minScore = 0;
 
         // Setup quick filters
-        document.querySelectorAll('.quick-filter').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (btn.classList.contains('ost-btn')) return;
-                this.setFilter(btn.dataset.filter);
-            });
+        document.querySelectorAll('.quick-filter[data-filter]').forEach(btn => {
+            btn.onclick = () => this.setFilter(btn.dataset.filter);
         });
 
         // Setup format filters
         document.querySelectorAll('.format-tag').forEach(btn => {
-            btn.addEventListener('click', () => this.setFormat(btn));
+            btn.onclick = () => this.setFormat(btn);
         });
 
         // Setup genre filters
         document.querySelectorAll('.genre-tag').forEach(btn => {
-            btn.addEventListener('click', () => this.toggleGenre(btn));
+            btn.onclick = () => this.toggleGenre(btn);
         });
 
         // Setup sort select
         const sortSelect = document.getElementById('sort-select');
         if (sortSelect) {
-            sortSelect.addEventListener('change', (e) => {
+            sortSelect.onchange = (e) => {
                 this.currentSort = e.target.value;
                 this.currentPage = 1;
                 this.loadAnimes();
-            });
+            };
         }
 
         // Load more button
-        document.getElementById('load-more-btn')?.addEventListener('click', () => this.loadMore());
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        if (loadMoreBtn) {
+            loadMoreBtn.onclick = () => this.loadMore();
+        }
 
-        // Setup Advanced Listeners
         this.setupAdvancedListeners();
-
-        // Check SFW/Adult Setting
         this.checkAdultSetting();
 
-        // Check for search query
         const urlParams = new URLSearchParams(window.location.search);
         const query = urlParams.get('q');
+        const filterParam = urlParams.get('filter');
 
         if (query) {
             this.search(query);
+        } else if (filterParam && ['trending', 'seasonal', 'top', 'upcoming'].includes(filterParam)) {
+            await this.setFilter(filterParam);
         } else {
-            await this.loadAnimes();
+            await this.setFilter('trending');
         }
 
-        console.log('✅ Explore Page Overhaul Ready!');
+        console.log('✅ Explore Page v8 Ready!');
     },
 
     setupAdvancedListeners() {
-        // Season
-        document.getElementById('season-select')?.addEventListener('change', (e) => {
-            this.selectedSeason = e.target.value;
-            this.resetAndLoad();
-        });
+        const seasonSelect = document.getElementById('season-select');
+        if (seasonSelect) {
+            seasonSelect.onchange = (e) => {
+                this.selectedSeason = e.target.value;
+                this.resetAndLoad();
+            };
+        }
 
-        // Year
-        document.getElementById('year-input')?.addEventListener('input', Common.debounce((e) => {
-            this.selectedYear = e.target.value;
-            this.resetAndLoad();
-        }, 500));
+        const yearInput = document.getElementById('year-input');
+        if (yearInput) {
+            yearInput.oninput = Common.debounce((e) => {
+                this.selectedYear = e.target.value;
+                this.resetAndLoad();
+            }, 500);
+        }
 
-        // Status
-        document.getElementById('status-select')?.addEventListener('change', (e) => {
-            this.selectedStatus = e.target.value;
-            this.resetAndLoad();
-        });
+        const statusSelect = document.getElementById('status-select');
+        if (statusSelect) {
+            statusSelect.onchange = (e) => {
+                this.selectedStatus = e.target.value;
+                this.resetAndLoad();
+            };
+        }
 
-        // Source
-        document.getElementById('source-select')?.addEventListener('change', (e) => {
-            this.selectedSource = e.target.value;
-            this.resetAndLoad();
-        });
+        const sourceSelect = document.getElementById('source-select');
+        if (sourceSelect) {
+            sourceSelect.onchange = (e) => {
+                this.selectedSource = e.target.value;
+                this.resetAndLoad();
+            };
+        }
 
-        // Score Slider
         const scoreSlider = document.getElementById('score-slider');
         const scoreValue = document.getElementById('score-value');
         if (scoreSlider) {
-            scoreSlider.addEventListener('input', (e) => {
+            scoreSlider.oninput = (e) => {
                 const val = e.target.value;
                 if (scoreValue) scoreValue.textContent = (val / 10).toFixed(1);
-            });
-            scoreSlider.addEventListener('change', (e) => {
-                this.minScore = parseInt(e.target.value);
+            };
+            scoreSlider.onchange = (e) => {
+                this.minScore = parseInt(e.target.value, 10) || 0;
                 this.resetAndLoad();
-            });
+            };
         }
 
-        // Adult Toggle
-        document.getElementById('adult-toggle')?.addEventListener('click', (e) => {
-            this.isAdult = !this.isAdult;
-            e.target.classList.toggle('active', this.isAdult);
-            e.target.innerHTML = this.isAdult ? '🔞 Adulto: ON' : '🔞 Adulto: OFF';
-            this.resetAndLoad();
-        });
+        const adultToggle = document.getElementById('adult-toggle');
+        if (adultToggle) {
+            adultToggle.onclick = (e) => {
+                this.isAdult = !this.isAdult;
+                e.target.classList.toggle('active', this.isAdult);
+                e.target.innerHTML = this.isAdult ? '🔞 Adulto: ON' : '🔞 Adulto: OFF';
+                this.resetAndLoad();
+            };
+        }
     },
 
     checkAdultSetting() {
@@ -142,8 +159,10 @@ const ExplorePage = {
         this.selectedFormat = null;
         this.currentPage = 1;
 
-        // Update UI
-        document.querySelector('.page-title').innerHTML = `<i class="fas fa-search"></i> Resultados para: "${query}"`;
+        const titleEl = document.querySelector('.page-title');
+        if (titleEl) {
+            titleEl.innerHTML = `<i class="fas fa-search"></i> Resultados para: "${query}"`;
+        }
         document.querySelectorAll('.quick-filter, .genre-tag, .format-tag').forEach(b => b.classList.remove('active'));
         this.renderChips();
         this.loadAnimes();
@@ -154,9 +173,22 @@ const ExplorePage = {
         this.currentPage = 1;
         this.searchQuery = null;
 
-        document.querySelectorAll('.quick-filter').forEach(btn => {
+        document.querySelectorAll('.quick-filter[data-filter]').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.filter === filter);
         });
+
+        // Sincronizar ordenação padrão com o filtro rápido
+        const sortSelect = document.getElementById('sort-select');
+        if (filter === 'top') {
+            this.currentSort = 'SCORE_DESC';
+            if (sortSelect) sortSelect.value = 'SCORE_DESC';
+        } else if (filter === 'trending') {
+            this.currentSort = 'TRENDING_DESC';
+            if (sortSelect) sortSelect.value = 'TRENDING_DESC';
+        } else {
+            this.currentSort = 'POPULARITY_DESC';
+            if (sortSelect) sortSelect.value = 'POPULARITY_DESC';
+        }
 
         this.updateTitle();
         this.renderChips();
@@ -207,20 +239,29 @@ const ExplorePage = {
             document.querySelectorAll('.format-tag').forEach(b => b.classList.remove('active'));
         } else if (type === 'season') {
             this.selectedSeason = '';
-            document.getElementById('season-select').value = '';
+            const el = document.getElementById('season-select');
+            if (el) el.value = '';
         } else if (type === 'year') {
             this.selectedYear = '';
-            document.getElementById('year-input').value = '';
+            const el = document.getElementById('year-input');
+            if (el) el.value = '';
         } else if (type === 'status') {
             this.selectedStatus = '';
-            document.getElementById('status-select').value = '';
+            const el = document.getElementById('status-select');
+            if (el) el.value = '';
         } else if (type === 'source') {
             this.selectedSource = '';
-            document.getElementById('source-select').value = '';
+            const el = document.getElementById('source-select');
+            if (el) el.value = '';
         } else if (type === 'score') {
             this.minScore = 0;
-            document.getElementById('score-slider').value = 0;
-            document.getElementById('score-value').textContent = '0';
+            const s = document.getElementById('score-slider');
+            const v = document.getElementById('score-value');
+            if (s) s.value = 0;
+            if (v) v.textContent = '0';
+        } else if (type === 'search') {
+            this.searchQuery = null;
+            this.currentFilter = 'trending';
         }
 
         this.resetAndLoad();
@@ -249,6 +290,15 @@ const ExplorePage = {
         };
 
         let chipsHtml = '';
+
+        if (this.searchQuery) {
+            chipsHtml += `
+                <div class="filter-chip">
+                    Busca: "${this.searchQuery}"
+                    <i class="fas fa-times" onclick="ExplorePage.removeFilter('search')"></i>
+                </div>
+            `;
+        }
 
         if (this.selectedFormat) {
             chipsHtml += `
@@ -319,17 +369,18 @@ const ExplorePage = {
     updateTitle() {
         const filterLabels = {
             'trending': 'Em Alta',
-            'seasonal': 'Temporada',
+            'seasonal': 'Temporada Atual',
             'top': 'Top Avaliados',
             'upcoming': 'Em Breve'
         };
 
-        let title = `<i class="fas fa-search"></i> Explorar`;
+        let title = `<i class="fas fa-compass"></i> Explorar`;
         if (filterLabels[this.currentFilter]) {
             title += `: ${filterLabels[this.currentFilter]}`;
         }
 
-        document.querySelector('.page-title').innerHTML = title;
+        const el = document.querySelector('.page-title');
+        if (el) el.innerHTML = title;
     },
 
     async loadAnimes() {
@@ -338,27 +389,38 @@ const ExplorePage = {
 
         if (this.currentPage === 1) {
             this.renderSkeletons();
-            loadMoreContainer.style.display = 'none';
+            if (loadMoreContainer) loadMoreContainer.style.display = 'none';
         }
 
         try {
             const result = await this.fetchAnimes();
-            this.renderAnimes(result.media, this.currentPage > 1);
+            this.renderAnimes(result.items, this.currentPage > 1);
 
-            // Update results count
             const countEl = document.getElementById('results-count');
-            if (countEl && result.pageInfo) {
-                const total = result.pageInfo.total || 0;
-                countEl.innerHTML = `${total.toLocaleString()} ENCONTRADOS`;
+            if (countEl) {
+                const shown = document.querySelectorAll('#anime-grid .anime-card').length;
+                countEl.innerHTML = `${shown} EXIBIDOS`;
+            }
+
+            const srcBadge = document.getElementById('explore-api-source');
+            if (srcBadge) {
+                if (result.source === 'anilist') {
+                    srcBadge.textContent = '🟢 FONTE: ANILIST';
+                } else if (result.source === 'jikan') {
+                    srcBadge.textContent = '⚡ FONTE: JIKAN v4 (MAL)';
+                } else {
+                    srcBadge.textContent = '🎵 FONTE: ANIMETHEMES';
+                }
             }
         } catch (e) {
-            console.error('Erro:', e);
-            grid.innerHTML = '<p class="empty-message">Erro ao carregar animes</p>';
+            console.error('Erro em ExplorePage.loadAnimes:', e);
+            if (grid) grid.innerHTML = '<p class="empty-message">Erro ao carregar animes. Tente ajustar os filtros.</p>';
         }
     },
 
     renderSkeletons(count = 12) {
         const grid = document.getElementById('anime-grid');
+        if (!grid) return;
         grid.innerHTML = Array(count).fill('').map(() => `
             <div class="skeleton-card">
                 <div class="skeleton-img skeleton"></div>
@@ -371,147 +433,212 @@ const ExplorePage = {
     },
 
     async fetchAnimes() {
-        let variables = {
-            page: this.currentPage,
-            perPage: 24,
-            sort: [this.currentSort]
-        };
-
         const genreMap = {
             '1': 'Action', '2': 'Adventure', '4': 'Comedy', '8': 'Drama',
             '10': 'Fantasy', '14': 'Horror', '22': 'Romance', '24': 'Sci-Fi',
             '36': 'Slice of Life', '30': 'Sports'
         };
 
-        if (this.selectedGenres.length > 0) {
-            variables.genre_in = this.selectedGenres.map(id => genreMap[id]);
+        const genres = this.selectedGenres.map(id => genreMap[id]).filter(Boolean);
+        let season = this.selectedSeason || null;
+        let year = this.selectedYear ? parseInt(this.selectedYear, 10) : null;
+        let status = this.selectedStatus || null;
+        let sort = this.currentSort || 'POPULARITY_DESC';
+        let search = this.searchQuery || null;
+
+        if (this.currentFilter === 'seasonal' && !season && !year) {
+            status = status || 'RELEASING';
+        } else if (this.currentFilter === 'upcoming' && !status) {
+            status = 'NOT_YET_RELEASED';
+        } else if (this.currentFilter === 'top' && sort === 'POPULARITY_DESC') {
+            sort = 'SCORE_DESC';
         }
 
-        if (this.selectedFormat) {
-            variables.format = this.selectedFormat;
-        }
-
-        if (this.selectedSeason) variables.season = this.selectedSeason;
-        if (this.selectedYear) variables.seasonYear = parseInt(this.selectedYear);
-        if (this.selectedStatus) variables.status = this.selectedStatus;
-        if (this.selectedSource) variables.source = this.selectedSource;
-        if (this.minScore > 0) variables.averageScore_greater = this.minScore;
-
-        // Use local isAdult or fall back to SFW setting
-        const settings = Storage.getSettings();
-        variables.isAdult = this.isAdult || (settings.sfw === false ? undefined : false);
-
-        switch (this.currentFilter) {
-            case 'search':
-                variables.search = this.searchQuery;
-                break;
-            case 'seasonal':
-                const now = new Date();
-                const month = now.getMonth();
-                variables.seasonYear = now.getFullYear();
-                variables.season = month < 3 ? 'WINTER' : month < 6 ? 'SPRING' : month < 9 ? 'SUMMER' : 'FALL';
-                break;
-            case 'upcoming':
-                variables.status = 'NOT_YET_RELEASED';
-                break;
-        }
-
-        const query = `
-            query ($page: Int, $perPage: Int, $search: String, $sort: [MediaSort], $season: MediaSeason, $seasonYear: Int, $status: MediaStatus, $genre_in: [String], $format: MediaFormat, $source: MediaSource, $averageScore_greater: Int, $isAdult: Boolean) {
-                Page(page: $page, perPage: $perPage) {
-                    media(
-                        type: ANIME, 
-                        search: $search, 
-                        sort: $sort, 
-                        season: $season, 
-                        seasonYear: $seasonYear, 
-                        status: $status, 
-                        genre_in: $genre_in,
-                        format: $format,
-                        source: $source,
-                        averageScore_greater: $averageScore_greater,
-                        isAdult: $isAdult
-                    ) {
-                        id
-                        title { romaji english }
-                        coverImage { large }
-                        averageScore
-                        episodes
-                        status
-                        genres
-                    }
-                    pageInfo { hasNextPage total }
-                }
-            }
-        `;
-
-        const response = await fetch('https://graphql.anilist.co', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query, variables })
+        const response = await API.exploreAnimes({
+            page: this.currentPage,
+            perPage: 24,
+            search,
+            genres,
+            year,
+            season,
+            format: this.selectedFormat || null,
+            status,
+            sort
         });
 
-        const data = await response.json();
-        this.hasMore = data.data?.Page?.pageInfo?.hasNextPage || false;
+        let items = response.items || [];
+        if (this.minScore > 0) {
+            const minVal = this.minScore / 10;
+            items = items.filter(a => {
+                const sc = parseFloat(a.score);
+                return !isNaN(sc) && sc >= minVal;
+            });
+        }
+
+        this.hasMore = Boolean(response.hasNextPage);
         return {
-            media: data.data?.Page?.media || [],
-            pageInfo: data.data?.Page?.pageInfo
+            items,
+            source: response.source || 'anilist'
         };
     },
 
     renderAnimes(animes, append = false) {
         const grid = document.getElementById('anime-grid');
         const loadMoreContainer = document.getElementById('load-more-container');
+        if (!grid) return;
 
         if (!append) grid.innerHTML = '';
 
-        if (animes.length === 0 && !append) {
-            grid.innerHTML = '<p class="empty-message">Nenhum anime encontrado</p>';
-            loadMoreContainer.style.display = 'none';
+        if ((!animes || animes.length === 0) && !append) {
+            grid.innerHTML = '<p class="empty-message">Nenhum anime encontrado para estes filtros.</p>';
+            if (loadMoreContainer) loadMoreContainer.style.display = 'none';
             return;
         }
 
         animes.forEach(anime => {
             const card = document.createElement('div');
             card.className = 'anime-card';
-            card.onclick = () => Common.navigate(`?page=detalhes&id=${anime.id}`);
+            const safeTitle = (anime.title || 'Anime').replace(/'/g, "\\'");
+            const safeImg = (anime.image || '').replace(/'/g, "\\'");
 
             card.innerHTML = `
                 <div class="anime-card-image">
-                    <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" loading="lazy">
-                    ${anime.averageScore ? `<div class="anime-card-score">★ ${(anime.averageScore / 10).toFixed(1)}</div>` : ''}
+                    <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                    ${anime.score && anime.score !== '?' ? `<div class="anime-card-score">★ ${anime.score}</div>` : ''}
+                    <div class="anime-card-overlay">
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); ExplorePage.playCardOST(${anime.id}, '${safeTitle}', '${safeImg}')" title="Ouvir Opening/Ending">
+                            <i class="fas fa-music"></i> OP/ED
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); Common.openListModal({id: ${anime.id}})" title="Salvar na Lista">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="anime-card-info">
-                    <h3 class="anime-card-title">${anime.title.romaji}</h3>
+                    <h3 class="anime-card-title" title="${anime.title}">${anime.title}</h3>
                     <div class="anime-card-meta">
                         <span>${anime.episodes || '?'} eps</span>
-                        <span>${anime.genres?.[0] || ''}</span>
+                        <span>${anime.genres?.[0] || anime.format || 'TV'}</span>
                     </div>
                 </div>
             `;
 
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    Common.navigate(`?page=detalhes&id=${anime.id}`);
+                }
+            });
+
             grid.appendChild(card);
         });
 
-        loadMoreContainer.style.display = this.hasMore ? 'flex' : 'none';
+        if (loadMoreContainer) {
+            loadMoreContainer.style.display = this.hasMore ? 'flex' : 'none';
+        }
+    },
+
+    async playCardOST(animeId, title, image) {
+        Common.showToast(`🎵 Buscando OP/ED de "${title}"...`);
+        try {
+            if (typeof MusicService === 'undefined' || typeof OSTPlayer === 'undefined') return;
+            let tracks = await MusicService.getThemesForAnime(animeId, { id: animeId, title, image, cover: image });
+            if (!tracks || tracks.length === 0) {
+                tracks = await MusicService.searchTracks(title, 'ALL');
+            }
+            if (tracks && tracks.length > 0) {
+                OSTPlayer.setQueue(tracks, 0, true);
+                Common.showToast(`▶ Tocando: ${tracks[0].songTitle} — ${tracks[0].animeTitle}`);
+            } else {
+                Common.showToast('Tema direto não encontrado; abrindo estação na Rádio FM!', 'info');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    },
+
+    /**
+     * Descoberta Sonora (Roleta de Openings no Explorar)
+     */
+    async spinSoundtrackRoulette() {
+        const banner = document.getElementById('soundtrack-roulette-banner');
+        const btn = document.getElementById('explore-roulette-btn');
+        if (!banner) return;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sorteando OP...';
+        }
+
+        try {
+            if (typeof MusicService !== 'undefined' && typeof OSTPlayer !== 'undefined') {
+                const tracks = await MusicService.getDiscoveryTracks({ type: 'OP', count: 12 });
+                if (tracks && tracks.length > 0) {
+                    const pick = tracks[Math.floor(Math.random() * tracks.length)];
+                    OSTPlayer.setQueue([pick, ...tracks.filter(t => t.id !== pick.id)], 0, true);
+
+                    banner.style.display = 'flex';
+                    banner.innerHTML = `
+                        <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:16px;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:14px;">
+                                <img src="${pick.cover}" alt="${pick.animeTitle}" style="width:56px;height:76px;object-fit:cover;border:2px solid var(--border-color);">
+                                <div>
+                                    <div style="font-size:0.72rem;font-weight:800;color:var(--color-primary);text-transform:uppercase;letter-spacing:0.06em;">
+                                        🎧 DESCOBERTA SONORA ATIVA • TOCANDO AGORA NO PLAYER
+                                    </div>
+                                    <h3 style="margin:2px 0;font-size:1.1rem;font-weight:800;">${pick.songTitle} (${pick.themeLabel || 'OP'})</h3>
+                                    <div style="font-size:0.85rem;color:var(--color-text-secondary);">
+                                        Anime: <strong>${pick.animeTitle}</strong> ${pick.artistName ? `• Artista: ${pick.artistName}` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                ${pick.animeId ? `<a href="?page=detalhes&id=${pick.animeId}" class="btn btn-primary btn-sm"><i class="fas fa-info-circle"></i> Ver Anime</a>` : ''}
+                                <button class="btn btn-secondary btn-sm" onclick="ExplorePage.spinSoundtrackRoulette()">
+                                    <i class="fas fa-random"></i> Outra OP
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('soundtrack-roulette-banner').style.display='none'">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        } catch (err) {
+            console.error('Erro na roleta sonora:', err);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-record-vinyl"></i> Descoberta Sonora (OP)';
+            }
+        }
     },
 
     async loadMore() {
         const btn = document.getElementById('load-more-btn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
-        btn.disabled = true;
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
+            btn.disabled = true;
+        }
 
         this.currentPage++;
 
         try {
             const result = await this.fetchAnimes();
-            this.renderAnimes(result.media, true);
+            this.renderAnimes(result.items, true);
+            const countEl = document.getElementById('results-count');
+            if (countEl) {
+                const shown = document.querySelectorAll('#anime-grid .anime-card').length;
+                countEl.innerHTML = `${shown} EXIBIDOS`;
+            }
         } catch (e) {
             console.error('Erro:', e);
         }
 
-        btn.innerHTML = '<i class="fas fa-plus"></i> Carregar Mais';
-        btn.disabled = false;
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-plus"></i> Carregar Mais';
+            btn.disabled = false;
+        }
     }
 };
 

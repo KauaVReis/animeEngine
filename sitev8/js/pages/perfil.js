@@ -43,7 +43,8 @@ async function loadStatsAndAchievements() {
             // Se primaryColor for hex puro ou var(), simplificamos usando uma cor base padrão pros gráficos
             const primaryRgb = '168, 85, 247'; // Fallback genérico, vamos usar borderColor com primaryColor puro
 
-            new Chart(ctx, {
+            if (window._perfilRadarChart) { try { window._perfilRadarChart.destroy(); } catch (_) {} }
+            window._perfilRadarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
                     labels: Object.keys(stats.genres),
@@ -393,9 +394,41 @@ function escapeHtml(str) {
 // Init social
 loadComments();
 
+function bindCommentForm() {
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm && !commentForm.dataset.bound) {
+        commentForm.dataset.bound = 'true';
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('comment-input');
+            const conteudo = input ? input.value.trim() : '';
+            if (!conteudo) return;
+            try {
+                const response = await fetch('api/users/comentarios.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ perfil_id: profileUserId, conteudo })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    input.value = '';
+                    await loadComments();
+                } else {
+                    alert(result.message || 'Erro ao adicionar comentário');
+                }
+            } catch (err) {
+                console.error('Erro:', err);
+            }
+        });
+    }
+}
+
 window.PerfilPage = {
     init() {
-        if (typeof loadProfileData === 'function') loadProfileData();
+        if (typeof loadStatsAndAchievements === 'function') loadStatsAndAchievements();
+        if (typeof loadAffinity === 'function') loadAffinity();
+        if (typeof setupLazyLoad === 'function') setupLazyLoad();
         if (typeof loadComments === 'function') loadComments();
+        bindCommentForm();
     }
 };

@@ -3,20 +3,20 @@
     <div id="modal-container"></div>
     
     <!-- SCRIPTS -->
-    <script src="js/api-client.js?v=9.0"></script>
-    <script src="js/translation.js?v=9.0"></script>
-    <script src="js/api.js?v=9.0"></script>
-    <script src="js/storage.js?v=9.0"></script>
-    <script src="js/themes.js?v=9.0"></script>
-    <script src="js/achievements.js?v=9.0"></script>
-    <script src="js/notifications.js?v=9.0"></script>
-    <script src="js/goals.js?v=9.0"></script>
-    <script src="js/quotes.js?v=9.0"></script>
-    <script src="js/particles.js?v=9.0"></script>
-    <script src="js/services/music-service.js?v=9.0"></script>
-    <script src="js/ost-player.js?v=9.0"></script>
-    <script src="js/core/spa-router.js?v=9.0"></script>
-    <script src="js/common.js?v=9.0"></script>
+    <script src="js/api-client.js?v=9.3"></script>
+    <script src="js/translation.js?v=9.3"></script>
+    <script src="js/api.js?v=9.3"></script>
+    <script src="js/storage.js?v=9.3"></script>
+    <script src="js/themes.js?v=9.3"></script>
+    <script src="js/achievements.js?v=9.3"></script>
+    <script src="js/notifications.js?v=9.3"></script>
+    <script src="js/goals.js?v=9.3"></script>
+    <script src="js/quotes.js?v=9.3"></script>
+    <script src="js/particles.js?v=9.3"></script>
+    <script src="js/services/music-service.js?v=9.3"></script>
+    <script src="js/ost-player.js?v=9.3"></script>
+    <script src="js/core/spa-router.js?v=9.3"></script>
+    <script src="js/common.js?v=9.3"></script>
     <script>
         // Random anime function (v8 - SPA navigation + API fallback resilience)
         async function goToRandomAnime() {
@@ -42,7 +42,7 @@
     </script>
     <?php if (isset($scripts_pagina)): ?>
         <?php foreach ($scripts_pagina as $script): ?>
-            <script src="<?= strpos($script, 'http') === 0 ? $script : $script . '?v=9.0' ?>" data-spa-page-script="<?= $script ?>"></script>
+            <script src="<?= strpos($script, 'http') === 0 ? $script : $script . '?v=9.3' ?>" data-spa-page-script="<?= $script ?>"></script>
         <?php endforeach; ?>
     <?php endif; ?>
 </body>

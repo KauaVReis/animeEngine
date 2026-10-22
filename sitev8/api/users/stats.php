@@ -71,9 +71,9 @@ $stats['achievements'] = intval($row['count']);
 // Dados do usuário — PREPARED
 $result = secure_query($conn, "SELECT username, xp, nivel FROM usuarios WHERE id = ?", "i", $usuario_id);
 $user = mysqli_fetch_assoc($result);
-$stats['username'] = $user['username'];
-$stats['xp'] = intval($user['xp']);
-$stats['level'] = intval($user['nivel']);
+$stats['username'] = $user['username'] ?? '';
+$stats['xp'] = intval($user['xp'] ?? 0);
+$stats['level'] = intval($user['nivel'] ?? 1);
 
 mysqli_close($conn);
 jsonResponse($stats);

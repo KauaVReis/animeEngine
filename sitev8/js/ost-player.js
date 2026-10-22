@@ -680,12 +680,15 @@ const OSTPlayer = {
         this.emitState();
     },
 
-    setQueue(tracks, startIndex = 0) {
-        if (!Array.isArray(tracks)) return;
+    setQueue(tracks, startIndex = 0, autoPlay = false) {
+        if (!Array.isArray(tracks) || tracks.length === 0) return;
         this.queue = [...tracks];
         this.currentIndex = Math.max(0, Math.min(startIndex, this.queue.length - 1));
         this.saveState();
         this.emitQueue();
+        if (autoPlay && this.queue[this.currentIndex]) {
+            this.playTrack(this.queue[this.currentIndex], false);
+        }
     },
 
     addToQueue(track) {

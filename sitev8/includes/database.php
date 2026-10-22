@@ -13,7 +13,7 @@ define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'animeengine_v7');
-define('DB_PORT', '3308');
+define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
 
 // ============================================================
 // CONEXÃO
@@ -24,9 +24,21 @@ define('DB_PORT', '3308');
  */
 function conectar()
 {
-    $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
+    $driver = new mysqli_driver();
+    $driver->report_mode = MYSQLI_REPORT_OFF;
+
+    $ports = array_unique([(int)DB_PORT, 3306, 3308]);
+    $conn = false;
+
+    foreach ($ports as $port) {
+        $conn = @mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME, $port);
+        if ($conn) {
+            break;
+        }
+    }
 
     if (!$conn) {
+        http_response_code(500);
         die(json_encode([
             'error' => true,
             'message' => 'Erro de conexão com o banco de dados'

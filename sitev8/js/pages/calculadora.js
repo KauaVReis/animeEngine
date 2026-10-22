@@ -26,6 +26,8 @@ const CalculadoraPage = {
 
 
 
+    radarRaf: null,
+
     init() {
         console.log('🧮 Loading Calculadora Page...');
 
@@ -59,11 +61,16 @@ const CalculadoraPage = {
     },
 
     initRadarAnimation() {
+        if (this.radarRaf) cancelAnimationFrame(this.radarRaf);
         const animate = () => {
+            if (!document.getElementById('radar-canvas')) {
+                this.radarRaf = null;
+                return;
+            }
             this.drawRadar();
-            requestAnimationFrame(animate);
+            this.radarRaf = requestAnimationFrame(animate);
         };
-        animate();
+        this.radarRaf = requestAnimationFrame(animate);
     },
 
     drawRadar() {

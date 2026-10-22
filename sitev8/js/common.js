@@ -124,8 +124,12 @@ const Common = {
     setupSearch() {
         const input = document.getElementById('search-input');
         const btn = document.querySelector('.search-btn');
-
+        if (input && input.dataset.searchBound === 'true') {
+            this.createMobileSearchToggle();
+            return;
+        }
         if (input) {
+            input.dataset.searchBound = 'true';
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && input.value.trim()) {
                     this.doSearch(input.value.trim());
@@ -176,29 +180,15 @@ const Common = {
      * Buscar sugestões na AniList
      */
     async fetchSearchSuggestions(query) {
-        const gql = `
-            query ($search: String) {
-                Page(page: 1, perPage: 5) {
-                    media(search: $search, type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
-                        id
-                        title { romaji }
-                        coverImage { medium }
-                        format
-                        seasonYear
-                    }
-                }
-            }
-        `;
-
         try {
-            const response = await fetch('https://graphql.anilist.co', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: gql, variables: { search: query } })
-            });
-
-            const data = await response.json();
-            const results = data.data?.Page?.media || [];
+            const items = await API.searchAnime(query, 1, 5);
+            const results = (items || []).map(a => ({
+                id: a.id,
+                title: { romaji: a.title },
+                coverImage: { medium: a.image },
+                format: a.format || 'TV',
+                seasonYear: a.year || ''
+            }));
             this.renderSearchSuggestions(results);
         } catch (e) {
             console.error('Erro na busca live:', e);

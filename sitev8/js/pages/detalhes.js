@@ -9,7 +9,13 @@ const DetalhesPage = {
     fillers: null,
 
     async init() {
-        console.log('📖 Loading Details Page...');
+        console.log('📖 Loading Details Page v8...');
+        this.staff = null;
+        this.fillers = null;
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
 
         // Pegar ID da URL
         const params = new URLSearchParams(window.location.search);
@@ -187,6 +193,17 @@ const DetalhesPage = {
                     </div>
                 ` : ''}
                 
+                <!-- OST JUKEBOX (OPENINGS & ENDINGS OFICIAIS) -->
+                <div class="details-section" id="ost-jukebox-section" style="display: none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                        <h2 class="section-title" style="margin:0;"><i class="fas fa-record-vinyl"></i> Jukebox — Openings & Endings Oficiais</h2>
+                        <button class="btn btn-primary btn-sm" onclick="DetalhesPage.playAllThemesInRadio()">
+                            <i class="fas fa-play"></i> Tocar Todas no Player
+                        </button>
+                    </div>
+                    <div id="ost-jukebox-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;"></div>
+                </div>
+
                 <!-- TIMELINE DE FRANQUIAS -->
                 <div class="details-section" id="timeline-container" style="display: none;"></div>
                 
@@ -304,6 +321,7 @@ const DetalhesPage = {
         this.loadRelations();
         this.loadRecommendations();
         this.loadStaff();
+        this.loadOstJukebox();
         this.fetchFillers(anime.title);
 
         // Iniciar contador se houver airing info
@@ -430,9 +448,25 @@ const DetalhesPage = {
 
             this.renderStaff();
         } catch (error) {
-            console.error('Erro ao buscar staff:', error);
-            const section = document.getElementById('staff-section');
-            if (section) section.style.display = 'none';
+            console.warn('[DetalhesPage] Staff fallback via Jikan v4:', error.message);
+            try {
+                const malId = this.anime?.mal_id || id;
+                const jikan = await API.fetchJikan('/anime/' + malId + '/staff');
+                const list = jikan.data || [];
+                this.staff = list.slice(0, 12).map(s => ({
+                    role: (s.positions || ['Staff'])[0],
+                    node: {
+                        id: s.person?.mal_id,
+                        name: { full: s.person?.name || 'Staff' },
+                        image: { medium: s.person?.images?.jpg?.image_url || 'img/placeholder.jpg' },
+                        description: ''
+                    }
+                }));
+                this.renderStaff();
+            } catch (_) {
+                const section = document.getElementById('staff-section');
+                if (section) section.style.display = 'none';
+            }
         }
     },
 
@@ -1458,6 +1492,51 @@ const DetalhesPage = {
     /**
      * Play anime opening using OST Player
      */
+    async loadOstJukebox() {
+        const section = document.getElementById('ost-jukebox-section');
+        const listEl = document.getElementById('ost-jukebox-list');
+        if (!section || !listEl || typeof MusicService === 'undefined') return;
+        try {
+            const tracks = await MusicService.getThemesForAnime(this.animeId, this.anime);
+            this.jukeboxTracks = tracks || [];
+            if (!tracks || tracks.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = 'block';
+            listEl.innerHTML = tracks.map((t, idx) => `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--color-surface);border:var(--border-width) solid var(--border-color);box-shadow:var(--shadow-neo);">
+                    <div style="min-width:0;flex:1;">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+                            <span style="background:var(--color-primary);color:var(--color-on-primary,#000);font-weight:800;font-size:0.7rem;padding:1px 6px;border:1px solid var(--border-color);">${t.themeLabel || t.themeType || 'OP'}</span>
+                            <strong style="font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${t.songTitle}</strong>
+                        </div>
+                        <div style="font-size:0.76rem;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            ${t.artistName || 'Artista Oficial'}
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="DetalhesPage.playJukeboxIndex(${idx})" title="Tocar esta faixa">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            `).join('');
+        } catch (err) {
+            section.style.display = 'none';
+        }
+    },
+
+    playJukeboxIndex(idx) {
+        if (!this.jukeboxTracks || !this.jukeboxTracks[idx] || typeof OSTPlayer === 'undefined') return;
+        OSTPlayer.setQueue(this.jukeboxTracks, idx, true);
+        Common.showToast('🎵 Tocando: ' + this.jukeboxTracks[idx].songTitle);
+    },
+
+    playAllThemesInRadio() {
+        if (!this.jukeboxTracks || this.jukeboxTracks.length === 0 || typeof OSTPlayer === 'undefined') return;
+        OSTPlayer.setQueue(this.jukeboxTracks, 0, true);
+        Common.showToast('📻 ' + this.jukeboxTracks.length + ' faixas enviadas para o Player!');
+    },
+
     async playOpening(preferredSlug = null) {
         const anime = this.anime;
         if (!anime) return;

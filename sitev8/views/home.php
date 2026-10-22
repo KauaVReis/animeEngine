@@ -1,8 +1,8 @@
 <?php
 /**
  * AnimeEngine v8 - View: Home
- * Conteúdo principal da página inicial.
- * NÃO inclui <html>, <head>, <body>, header ou footer.
+ * Conteudo principal da pagina inicial.
+ * NAO inclui <html>, <head>, <body>, header ou footer.
  */
 ?>
 
@@ -10,7 +10,7 @@
 <section class="hero-banner" id="hero-banner">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <span class="hero-badge">🔥 EM DESTAQUE</span>
+        <span class="hero-badge" id="hero-badge">🔥 EM DESTAQUE</span>
         <h1 class="hero-title" id="hero-title">Carregando...</h1>
         <p class="hero-synopsis" id="hero-synopsis"></p>
         <div class="hero-meta">
@@ -21,6 +21,9 @@
             <a href="#" class="btn btn-primary" id="hero-details-btn">
                 <i class="fas fa-info-circle"></i> Ver Detalhes
             </a>
+            <button class="btn btn-secondary" id="hero-ost-btn" title="Tocar Opening/Ending oficial no Player Global">
+                <i class="fas fa-music"></i> Ouvir OP/ED
+            </button>
             <?php if ($usuario): ?>
                 <button class="btn btn-secondary" id="hero-list-btn">
                     <i class="fas fa-plus"></i> Minha Lista
@@ -34,73 +37,85 @@
     </div>
 </section>
 
-<!-- QUOTE OF THE DAY -->
-<div id="quote-container"></div>
-
-<!-- SECTION: RADIO OST -->
-<section class="anime-section" id="section-radio">
-    <div class="section-header">
-        <h2 class="section-title"><i class="fas fa-headphones-alt"></i> Rádio & Trilhas Sonoras</h2>
-        <a href="radio" class="section-link">Abrir Rádio Completa →</a>
-    </div>
-    <div class="carousel ost-carousel" style="display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: 20px;">
-        <!-- Cards de OST Premium -->
-        <div class="ost-card-premium" onclick="OSTPlayer.play('owS7fA2mIu0', 'Tokyo Ghoul', 'Unravel (Opening 1)', 'https://i.ytimg.com/vi/owS7fA2mIu0/hqdefault.jpg')">
-            <div class="card-image-wrapper">
-                <img src="https://i.ytimg.com/vi/owS7fA2mIu0/hqdefault.jpg" alt="Unravel" onerror="this.src='img/placeholder.jpg'">
-                <div class="card-overlay"><i class="fas fa-play"></i></div>
+<!-- PAINEL DE CONTROLE DO DIA (COMMAND STRIP NEO-BRUTALISTA) -->
+<section class="command-strip-section" id="home-command-strip">
+    <div class="command-strip-grid">
+        <!-- BLOCO 1: ANIMDLE DIÁRIO -->
+        <div class="command-card command-card-animdle" id="cmd-card-animdle">
+            <div class="command-card-top">
+                <span class="command-tag"><i class="fas fa-gamepad"></i> DESAFIO DIÁRIO</span>
+                <span class="command-status-pill" id="cmd-animdle-badge">HOJE</span>
             </div>
-            <div class="card-info">
-                <h3 class="card-title">Unravel</h3>
-                <p class="card-studio">Tokyo Ghoul</p>
+            <div class="command-card-title" id="cmd-animdle-title">Animdle — Qual é o Anime?</div>
+            <div class="command-card-sub" id="cmd-animdle-sub">Adivinhe pela Opening em até 5 tentativas (+50 XP)</div>
+            <div class="command-card-actions">
+                <a href="?page=animdle" class="btn btn-primary btn-sm">
+                    <i class="fas fa-play"></i> Jogar Desafio
+                </a>
             </div>
         </div>
 
-        <div class="ost-card-premium" onclick="OSTPlayer.play('u3z89_P4Y_U', 'Naruto Shippuden', 'Blue Bird (Opening 3)', 'https://i.ytimg.com/vi/u3z89_P4Y_U/hqdefault.jpg')">
-            <div class="card-image-wrapper">
-                <img src="https://i.ytimg.com/vi/u3z89_P4Y_U/hqdefault.jpg" alt="Blue Bird" onerror="this.src='img/placeholder.jpg'">
-                <div class="card-overlay"><i class="fas fa-play"></i></div>
+        <!-- BLOCO 2: SINTONIA RÁDIO FM -->
+        <div class="command-card command-card-radio">
+            <div class="command-card-top">
+                <span class="command-tag"><i class="fas fa-broadcast-tower"></i> RÁDIO FM 11 ESTAÇÕES</span>
+                <span class="command-status-pill live-pill" id="cmd-radio-station">SHONEN POWER</span>
             </div>
-            <div class="card-info">
-                <h3 class="card-title">Blue Bird</h3>
-                <p class="card-studio">Naruto Shippuden</p>
-            </div>
-        </div>
-
-        <div class="ost-card-premium" onclick="OSTPlayer.play('GwaRztMaoY0', 'Jujutsu Kaisen', 'Kaikai Kitan', 'https://i.ytimg.com/vi/GwaRztMaoY0/hqdefault.jpg')">
-            <div class="card-image-wrapper">
-                <img src="https://i.ytimg.com/vi/GwaRztMaoY0/hqdefault.jpg" alt="Kaikai Kitan" onerror="this.src='img/placeholder.jpg'">
-                <div class="card-overlay"><i class="fas fa-play"></i></div>
-            </div>
-            <div class="card-info">
-                <h3 class="card-title">Kaikai Kitan</h3>
-                <p class="card-studio">Jujutsu Kaisen</p>
+            <div class="command-card-title" id="cmd-radio-track">Sintonizador OP/ED Oficial</div>
+            <div class="command-card-sub">Openings e Endings reais sem sair da navegação</div>
+            <div class="command-card-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="cmd-radio-play-btn" onclick="HomePage.quickTuneRadio()">
+                    <i class="fas fa-bolt"></i> Sintonizar Agora
+                </button>
+                <a href="?page=radio" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sliders-h"></i> Estações
+                </a>
             </div>
         </div>
 
-        <div class="ost-card-premium" onclick="OSTPlayer.play('X9LwI6G2X74', 'Saint Seiya', 'Pegasus Fantasy', 'https://i.ytimg.com/vi/X9LwI6G2X74/hqdefault.jpg')">
-            <div class="card-image-wrapper">
-                <img src="https://i.ytimg.com/vi/X9LwI6G2X74/hqdefault.jpg" alt="Pegasus Fantasy" onerror="this.src='img/placeholder.jpg'">
-                <div class="card-overlay"><i class="fas fa-play"></i></div>
+        <!-- BLOCO 3: ROLETA SONORA (SURPRESA) -->
+        <div class="command-card command-card-roulette">
+            <div class="command-card-top">
+                <span class="command-tag"><i class="fas fa-record-vinyl"></i> DESCOBERTA CEGA</span>
+                <span class="command-status-pill">SURPRESA</span>
             </div>
-            <div class="card-info">
-                <h3 class="card-title">Pegasus Fantasy</h3>
-                <p class="card-studio">Saint Seiya</p>
+            <div class="command-card-title" id="cmd-roulette-title">Roleta de Openings</div>
+            <div class="command-card-sub" id="cmd-roulette-sub">Sorteie uma OP aleatória e descubra um novo anime</div>
+            <div class="command-card-actions">
+                <button type="button" class="btn btn-secondary btn-sm" id="cmd-roulette-btn" onclick="HomePage.spinBlindOST()">
+                    <i class="fas fa-dice"></i> Girar Roleta OP
+                </button>
+                <a href="?page=calculadora" class="btn btn-secondary btn-sm" title="Oráculo de Recomendações">
+                    <i class="fas fa-magic"></i> Oráculo
+                </a>
             </div>
         </div>
 
-        <div class="ost-card-premium" onclick="OSTPlayer.play('h0S8H0MNoM4', 'Hunter x Hunter', 'Departure!', 'https://i.ytimg.com/vi/h0S8H0MNoM4/hqdefault.jpg')">
-            <div class="card-image-wrapper">
-                <img src="https://i.ytimg.com/vi/h0S8H0MNoM4/hqdefault.jpg" alt="Departure!" onerror="this.src='img/placeholder.jpg'">
-                <div class="card-overlay"><i class="fas fa-play"></i></div>
+        <!-- BLOCO 4: TELEMETRIA DO MOTOR TRI-API -->
+        <div class="command-card command-card-engine">
+            <div class="command-card-top">
+                <span class="command-tag"><i class="fas fa-microchip"></i> MOTOR DE DADOS v8</span>
+                <span class="command-status-pill engine-pill" id="cmd-engine-pill">TRI-API</span>
             </div>
-            <div class="card-info">
-                <h3 class="card-title">Departure!</h3>
-                <p class="card-studio">Hunter x Hunter</p>
+            <div class="command-card-title" id="cmd-engine-source">Verificando provedor...</div>
+            <div class="command-card-sub" id="cmd-engine-desc">Failover automático AniList ⇄ Jikan v4 ⇄ AnimeThemes</div>
+            <div class="command-card-actions">
+                <a href="?page=calendario" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-calendar-alt"></i> Grade Semanal
+                </a>
+                <a href="?page=changelog" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-code-branch"></i> v8.0
+                </a>
             </div>
         </div>
     </div>
 </section>
+
+<!-- QUOTE & WEEKLY GOALS ROW -->
+<div class="home-widgets-row">
+    <div id="quote-container"></div>
+    <div id="goals-container"></div>
+</div>
 
 <!-- SECTION: PRÓXIMOS EPISÓDIOS -->
 <section class="anime-section" id="section-airing" style="display: none;"></section>

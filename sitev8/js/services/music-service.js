@@ -128,9 +128,11 @@ const MusicService = (function () {
             isFallbackTrailer: false,
             themeType,
             themeSlug,
+            themeLabel: themeSlug,
             sequence,
             songTitle,
             artist: artistName,
+            artistName,
             animeId: anilistId ? Number(anilistId) : null,
             animeTitle,
             animeYear,
@@ -307,6 +309,29 @@ const MusicService = (function () {
             } catch (e) {
                 console.warn('[MusicService] Erro ao buscar por AniList ID na AnimeThemes:', e);
             }
+        }
+
+        // 1.5ª Tentativa: se o ID veio do Jikan v4 (MyAnimeList ID), buscar por site=MyAnimeList
+        if (themes.length === 0 && numericId) {
+            try {
+                const malUrl = `${ANIMETHEMES_BASE}/anime?filter[has]=resources&filter[site]=MyAnimeList&filter[external_id]=${numericId}&include=animethemes.animethemeentries.videos,animethemes.song.artists,resources,images`;
+                const malRes = await fetch(malUrl);
+                if (malRes.ok) {
+                    const malData = await malRes.json();
+                    for (const animeObj of (malData.anime || [])) {
+                        for (const th of (animeObj.animethemes || [])) {
+                            const track = normalizeAnimeTheme(th, animeObj, animeMeta ? {
+                                id: numericId,
+                                title: animeMeta.title,
+                                cover: animeMeta.image || animeMeta.cover,
+                                banner: animeMeta.banner,
+                                year: animeMeta.year
+                            } : null);
+                            if (track) themes.push(track);
+                        }
+                    }
+                }
+            } catch (_) {}
         }
 
         // 2ª Tentativa: se não encontrou por external_id e temos o título do anime, busca pelo nome
@@ -884,13 +909,20 @@ const MusicService = (function () {
         return typeFilter === 'ALL' ? pool : pool.filter(t => t.themeType === typeFilter);
     }
 
+    async function getThemesForAnime(id, meta = null) {
+        const res = await getThemesByAnimeId(id, meta);
+        return res?.themes || [];
+    }
+
     return {
         getThemesByAnimeId,
+        getThemesForAnime,
         searchTracks,
         getDiscoveryTracks,
         getStationTracks,
         getStationsCatalog,
         getStationConfig,
+        getStationById: getStationConfig,
         normalizeAnimeTheme,
         createYouTubeTrack,
         extractYouTubeId,

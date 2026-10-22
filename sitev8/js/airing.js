@@ -1,17 +1,23 @@
 /**
- * AnimeEngine v7 - Airing Countdown Module
- * Mostra os próximos episódios dos animes que o usuário está assistindo
+ * AnimeEngine v8 - Airing Countdown Module
+ * Mostra os próximos episódios dos animes que o usuário está assistindo (ou lançamentos em alta)
  */
 
 const Airing = {
+    timerInterval: null,
+
     async init() {
         console.log('⏰ Initializing Airing Countdown...');
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+
         const container = document.getElementById('section-airing');
         if (!container) return;
 
         const watching = Storage.getLists().watching || [];
         if (watching.length === 0) {
-            // Se não estiver assistindo nada, mostrar animes em alta que estão lançando
             this.loadTrendingAiring();
             return;
         }
@@ -19,37 +25,25 @@ const Airing = {
         this.loadWatchingAiring(watching);
     },
 
-    /**
-     * Carregar animes que o usuário está assistindo e que estão em lançamento
-     */
     async loadWatchingAiring(watching) {
-        const container = document.getElementById('section-airing');
-        
         try {
-            // Filtrar apenas animes que podem ter novos episódios (RELEASING)
-            // Nota: No Storage, guardamos o status simplificado, mas o API.formatAnime traz o status original
-            // Vamos buscar detalhes atualizados para os 5 primeiros da lista "Watching"
             const limitedWatching = watching.slice(0, 5);
-            
             const results = await Promise.all(limitedWatching.map(async (anime) => {
                 try {
-                    // Buscar dados frescos da API para ter o nextAiringEpisode atualizado
                     return await API.getAnimeById(anime.id);
                 } catch (e) {
                     return null;
                 }
             }));
 
-            const airingAnimes = results.filter(a => a && a.nextAiringEpisode);
+            const airingAnimes = results.filter(a => a && a.nextAiringEpisode && a.nextAiringEpisode.airingAt);
 
             if (airingAnimes.length === 0) {
-                this.loadTrendingAiring(); // Fallback se nenhum do "Watching" tiver data de lançamento
+                this.loadTrendingAiring();
                 return;
             }
 
-            // Ordenar por tempo mais próximo
             airingAnimes.sort((a, b) => a.nextAiringEpisode.airingAt - b.nextAiringEpisode.airingAt);
-
             this.renderAiringSection(airingAnimes, 'BASEADO NO QUE VOCÊ ASSISTE');
         } catch (error) {
             console.error('Erro ao carregar airing assistindo:', error);
@@ -57,15 +51,13 @@ const Airing = {
         }
     },
 
-    /**
-     * Fallback: Carregar animes em alta que estão em lançamento
-     */
     async loadTrendingAiring() {
         try {
             const trending = await API.getTrending(1, 15);
-            const airing = trending.filter(a => a.nextAiringEpisode);
-            
+            const airing = (trending || []).filter(a => a.nextAiringEpisode && a.nextAiringEpisode.airingAt);
+
             if (airing.length > 0) {
+                airing.sort((a, b) => a.nextAiringEpisode.airingAt - b.nextAiringEpisode.airingAt);
                 this.renderAiringSection(airing.slice(0, 5), 'LANÇAMENTOS EM ALTA');
             }
         } catch (error) {
@@ -73,9 +65,6 @@ const Airing = {
         }
     },
 
-    /**
-     * Renderizar a seção de Airing
-     */
     renderAiringSection(animes, subtitle) {
         const container = document.getElementById('section-airing');
         if (!container) return;
@@ -94,16 +83,13 @@ const Airing = {
         this.startTimers();
     },
 
-    /**
-     * Criar HTML do card de airing
-     */
     createAiringCard(anime) {
         const next = anime.nextAiringEpisode;
         return `
             <div class="airing-card" onclick="Common.navigate('?page=detalhes&id=${anime.id}')">
                 <div class="airing-card-image">
-                    <img src="${anime.image}" alt="${anime.title}">
-                    <div class="airing-badge">EP ${next.episode}</div>
+                    <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                    <div class="airing-badge">EP ${next.episode || '?'}</div>
                 </div>
                 <div class="airing-card-info">
                     <h3 class="airing-title">${anime.title}</h3>
@@ -118,25 +104,33 @@ const Airing = {
         `;
     },
 
-    /**
-     * Iniciar os cronômetros
-     */
     startTimers() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+
         const update = () => {
-            const now = Math.floor(Date.now() / 1000);
             const timers = document.querySelectorAll('.airing-timer');
-            
+            if (timers.length === 0) {
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                    this.timerInterval = null;
+                }
+                return;
+            }
+
+            const now = Math.floor(Date.now() / 1000);
             timers.forEach(timer => {
                 const targetAttr = timer.dataset.timestamp;
                 const target = parseInt(targetAttr, 10);
-                
+
                 if (isNaN(target) || target === 0) {
                     timer.innerHTML = '<span class="timer-tba">TBA 📡</span>';
                     return;
                 }
 
                 const diff = target - now;
-
                 if (diff <= 0) {
                     timer.innerHTML = '<span class="timer-now">LANÇADO! 📺</span>';
                     return;
@@ -157,14 +151,17 @@ const Airing = {
         };
 
         update();
-        setInterval(update, 1000); // Atualizar a cada segundo para precisão
+        this.timerInterval = setInterval(update, 1000);
     }
 };
 
-// Inicializar quando o DOM estiver pronto (se estivermos na home)
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('section-airing')) {
-        Airing.init();
-    }
-});
 window.Airing = Airing;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        if (document.getElementById('section-airing')) Airing.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('section-airing')) Airing.init();
+        });
+    }
+}
