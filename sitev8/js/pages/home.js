@@ -519,22 +519,43 @@ const HomePage = {
         const container = document.getElementById('anime-of-day-container');
         if (!container) return;
 
+        const cleanSynopsis = (anime.synopsis || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\(Source:.*?\)/gi, '').trim();
+        const dateStr = new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase();
+        
+        const genres = Array.isArray(anime.genres) ? anime.genres.slice(0, 3) : (typeof anime.genres === 'string' ? anime.genres.split(',').slice(0, 3) : []);
+        const genresHtml = genres.map(g => `<span class="aotd-genre-pill">${g.trim()}</span>`).join('');
+
         container.innerHTML = `
-            <div class="anime-of-day-card">
-                <div class="aotd-badge">✨ Destaque Especial do Dia</div>
-                <div class="aotd-content">
-                    <img src="${anime.image}" alt="${anime.title}" class="aotd-image" loading="lazy">
-                    <div class="aotd-info">
-                        <h3 class="aotd-title text-truncate">${anime.title}</h3>
-                        <p class="aotd-synopsis truncate-2">${anime.synopsis || 'Sem sinopse disponível.'}</p>
-                        <div class="aotd-meta">
-                            <span class="aotd-score"><i class="fas fa-star"></i> ${anime.score || '-'}</span>
-                            <span class="aotd-format">${anime.format || 'TV'}</span>
+            <div class="anime-of-day">
+                <div class="anime-of-day-header">
+                    <div class="anime-of-day-badge">
+                        <i class="fas fa-sparkles"></i> DESTAQUE ESPECIAL DO DIA
+                    </div>
+                    <div class="anime-of-day-date">
+                        <i class="fas fa-calendar-day"></i> ${dateStr}
+                    </div>
+                </div>
+                <div class="anime-of-day-content">
+                    <div class="anime-of-day-image" onclick="Common.navigate('?page=detalhes&id=${anime.id}')" title="Ver ${anime.title}">
+                        <img src="${anime.image}" alt="${anime.title}" loading="lazy">
+                        <span class="anime-of-day-format-badge">${anime.format || 'TV'}</span>
+                    </div>
+                    <div class="anime-of-day-info">
+                        <div class="anime-of-day-meta-tags">
+                            <span class="aotd-score-badge"><i class="fas fa-star"></i> ${anime.score || '-'} / 10</span>
+                            ${anime.year ? `<span class="aotd-meta-pill"><i class="fas fa-calendar"></i> ${anime.year}</span>` : ''}
+                            ${anime.episodes ? `<span class="aotd-meta-pill"><i class="fas fa-layer-group"></i> ${anime.episodes} eps</span>` : ''}
+                            ${genresHtml}
                         </div>
-                        <div class="aotd-actions">
-                            <a href="?page=detalhes&id=${anime.id}" class="btn btn-primary btn-sm">Ver Detalhes</a>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="HomePage.playAnimeOST(${anime.id}, '${(anime.title || '').replace(/'/g, "\\'")}', '${anime.image}')">
-                                <i class="fas fa-music"></i> Ouvir OP
+                        <h3 class="anime-of-day-title" onclick="Common.navigate('?page=detalhes&id=${anime.id}')">${anime.title}</h3>
+                        ${anime.title_english && anime.title_english !== anime.title ? `<div class="anime-of-day-sub">${anime.title_english}</div>` : ''}
+                        <p class="anime-of-day-synopsis">${cleanSynopsis || 'Sem sinopse disponível para este anime.'}</p>
+                        <div class="anime-of-day-actions">
+                            <a href="?page=detalhes&id=${anime.id}" class="btn btn-primary">
+                                <i class="fas fa-info-circle"></i> Ver Detalhes
+                            </a>
+                            <button type="button" class="btn btn-secondary" onclick="HomePage.playAnimeOST(${anime.id}, '${(anime.title || '').replace(/'/g, "\\'")}', '${anime.image}')">
+                                <i class="fas fa-music"></i> Ouvir Abertura
                             </button>
                         </div>
                     </div>

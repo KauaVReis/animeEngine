@@ -746,3 +746,238 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================================
+   6. DESTAQUE ESPECIAL DO DIA (ANIME OF THE DAY) NEO-BRUTALIST
+   ============================================================ */
+.anime-of-day {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    margin-bottom: var(--space-lg);
+    overflow: hidden;
+    position: relative;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.anime-of-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: var(--color-primary);
+    color: #000000;
+    border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.anime-of-day-badge {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+}
+
+.anime-of-day-date {
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    background: rgba(0, 0, 0, 0.12);
+    padding: 3px 8px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.anime-of-day-content {
+    display: flex;
+    gap: var(--space-lg);
+    padding: var(--space-md) var(--space-lg);
+    align-items: flex-start;
+    background: var(--color-surface);
+}
+
+.anime-of-day-image {
+    flex-shrink: 0;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: 4px 4px 0 var(--border-color);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.anime-of-day-image:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--border-color);
+}
+
+.anime-of-day-image img {
+    width: 130px;
+    height: 185px;
+    object-fit: cover;
+    display: block;
+}
+
+.anime-of-day-format-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: var(--color-secondary);
+    color: #000;
+    font-family: var(--font-display);
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border: 1.5px solid var(--border-color);
+    box-shadow: 2px 2px 0 var(--border-color);
+    text-transform: uppercase;
+}
+
+.anime-of-day-info {
+    flex: 1 1 0%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.anime-of-day-meta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.aotd-score-badge {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 900;
+    background: #facc15;
+    color: #000000;
+    padding: 3px 8px;
+    border: 1.5px solid var(--border-color);
+    box-shadow: 2px 2px 0 var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.aotd-meta-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--color-bg);
+    color: var(--color-text);
+    padding: 2px 8px;
+    border: 1.5px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.aotd-genre-pill {
+    font-size: 0.68rem;
+    font-weight: 800;
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    padding: 2px 7px;
+    border: 1px dashed var(--border-color);
+    text-transform: uppercase;
+}
+
+.anime-of-day-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1.2;
+    cursor: pointer;
+    margin: 0;
+    color: var(--color-text);
+    transition: color 0.15s ease;
+}
+
+.anime-of-day-title:hover {
+    color: var(--color-primary);
+}
+
+.anime-of-day-sub {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    margin-top: -4px;
+}
+
+.anime-of-day-synopsis {
+    font-size: 0.82rem;
+    color: var(--color-text);
+    opacity: 0.88;
+    line-height: 1.45;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.anime-of-day-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.anime-of-day-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    padding: 8px 16px;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
+    .anime-of-day-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 16px 12px;
+        gap: 14px;
+    }
+
+    .anime-of-day-image img {
+        width: 140px;
+        height: 200px;
+    }
+
+    .anime-of-day-info {
+        align-items: center;
+        width: 100%;
+    }
+
+    .anime-of-day-meta-tags {
+        justify-content: center;
+    }
+
+    .anime-of-day-synopsis {
+        text-align: left;
+        font-size: 0.78rem;
+    }
+
+    .anime-of-day-actions {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .anime-of-day-actions .btn {
+        flex: 1 1 calc(50% - 6px);
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
+}
