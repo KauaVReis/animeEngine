@@ -225,7 +225,7 @@ const CalendarioPage = {
 
         return `
             <div class="calendar-anime ${anime.isFollowing ? 'following' : ''} ${anime.isLive ? 'is-live' : ''}"
-                 onclick="window.location='detalhes.php?id=${anime.id}'">
+                 onclick="Common.navigate('?page=detalhes&id=${anime.id}')">
                 <img src="${image}" alt="${anime.title}" loading="lazy" onerror="this.src='img/placeholder.jpg'">
                 <div class="calendar-anime-info">
                     ${badgeHtml}
@@ -373,9 +373,11 @@ const CalendarioPage = {
     }
 };
 
-// Inicializar
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    CalendarioPage.init();
-} else {
-    document.addEventListener('DOMContentLoaded', () => CalendarioPage.init());
+window.CalendarioPage = CalendarioPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        CalendarioPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => CalendarioPage.init());
+    }
 }

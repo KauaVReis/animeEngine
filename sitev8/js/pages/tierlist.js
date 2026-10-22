@@ -129,4 +129,11 @@ const TierListPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => TierListPage.init());
+window.TierListPage = TierListPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        TierListPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => TierListPage.init());
+    }
+}

@@ -111,7 +111,7 @@ async function loadAffinity() {
                     const sharedGrid = document.getElementById('shared-animes');
                     if (sharedGrid && affinity.shared_animes) {
                         sharedGrid.innerHTML = affinity.shared_animes.map(anime => `
-                                <div class="shared-anime-card" onclick="window.location='detalhes.php?id=${anime.id}'">
+                                <div class="shared-anime-card" onclick="Common.navigate('?page=detalhes&id=${anime.id}')">
                                     <img src="${anime.imagem}" alt="${anime.titulo}">
                                     <div class="shared-scores">
                                         <span class="my-score">V: ${anime.my_score || '-'}</span>
@@ -162,7 +162,7 @@ async function loadListsAndFavorites() {
         if (favorites.length > 0) {
             document.getElementById('vip-favorites-section').style.display = 'block';
             document.getElementById('vip-favorites-grid').innerHTML = favorites.slice(0, 5).map(anime => `
-                    <div class="vip-favorite-card" onclick="window.location='detalhes.php?id=${anime.anime_id}'">
+                    <div class="vip-favorite-card" onclick="Common.navigate('?page=detalhes&id=${anime.anime_id}')">
                         <img src="${anime.imagem}" alt="${anime.titulo}">
                         <div class="vip-favorite-overlay">
                             <span class="vip-favorite-title">${anime.titulo}</span>
@@ -176,7 +176,7 @@ async function loadListsAndFavorites() {
             container.innerHTML = '<p>Nenhum anime completo ainda</p>';
         } else {
             container.innerHTML = completed.slice(0, 12).map(anime => `
-                <div class="completed-anime-card" onclick="window.location='detalhes.php?id=${anime.anime_id}'">
+                <div class="completed-anime-card" onclick="Common.navigate('?page=detalhes&id=${anime.anime_id}')">
                     <img src="${anime.imagem}" alt="${anime.titulo}">
                     ${anime.nota ? `<div class="anime-rating">⭐ ${anime.nota}</div>` : ''}
                 </div>
@@ -322,7 +322,7 @@ async function loadComments() {
                     </div>
                     <div class="comment-content">
                         <div class="comment-header">
-                            <span class="comment-author" onclick="window.location='perfil.php?user=${c.autor_username}'">
+                            <span class="comment-author" onclick="Common.navigate('?page=perfil&user=${c.autor_username}')">
                                 ${c.autor_username}
                             </span>
                             ${c.titulo_nome ? `<span class="comment-title-badge" style="color: ${c.titulo_cor}; border-color: ${c.titulo_cor}; background: rgba(0,0,0,0.5)">${c.titulo_icone} ${c.titulo_nome}</span>` : ''}
@@ -392,3 +392,10 @@ function escapeHtml(str) {
 
 // Init social
 loadComments();
+
+window.PerfilPage = {
+    init() {
+        if (typeof loadProfileData === 'function') loadProfileData();
+        if (typeof loadComments === 'function') loadComments();
+    }
+};

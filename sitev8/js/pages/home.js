@@ -109,7 +109,7 @@ const HomePage = {
                     <span class="anime-of-day-badge">🎲 ANIME DO DIA</span>
                     <span class="anime-of-day-date">${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
                 </div>
-                <div class="anime-of-day-content" onclick="window.location='detalhes.php?id=${anime.id}'">
+                <div class="anime-of-day-content" onclick="Common.navigate('?page=detalhes&id=${anime.id}')">
                     <div class="anime-of-day-image">
                         <img src="${anime.image}" alt="${anime.title}" loading="lazy">
                     </div>
@@ -195,7 +195,7 @@ const HomePage = {
         if (eps) eps.textContent = anime.episodes || '?';
 
         if (detailsBtn) {
-            detailsBtn.href = `detalhes.php?id=${anime.id}`;
+            detailsBtn.href = `?page=detalhes&id=${anime.id}`;
         }
 
         if (listBtn) {
@@ -268,7 +268,7 @@ const HomePage = {
 
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
-                window.location.href = `detalhes.php?id=${anime.id}`;
+                Common.navigate(`?page=detalhes&id=${anime.id}`);
             }
         });
 
@@ -365,10 +365,11 @@ const HomePage = {
     }
 };
 
-// Inicializar
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    HomePage.init();
-} else {
-    document.addEventListener('DOMContentLoaded', () => HomePage.init());
+window.HomePage = HomePage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        HomePage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => HomePage.init());
+    }
 }
-

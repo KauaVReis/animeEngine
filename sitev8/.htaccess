@@ -5,8 +5,8 @@
 
 RewriteEngine On
 
-# Base relativa ao diretório sitev8/
-RewriteBase /kaua1/2026/animeEngine/sitev8/
+# Sem RewriteBase fixo: o Apache resolve index.php relativamente ao diretório
+# atual (funciona em /animeengine/sitev8/, /sitev8/ ou qualquer subdiretório)
 
 # ----- BLOQUEIO DE ACESSO DIRETO À PASTA views/ -----
 RewriteRule ^views/ - [F,L]
@@ -20,17 +20,22 @@ RewriteRule .? - [L]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule .? - [L]
 
-# Caso contrário, manda tudo para o index.php
+# Caso contrário, manda tudo para o index.php relativo ao diretório atual
 RewriteRule . index.php [L]
 
 # ----- HEADERS HTTP DE SEGURANÇA -----
 <IfModule mod_headers.c>
-    Header always set X-Frame-Options "DENY"
+    Header always set X-Frame-Options "SAMEORIGIN"
     Header always set X-Content-Type-Options "nosniff"
-    Header always set Referrer-Policy "no-referrer"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    # CSP: permite self + Google Fonts + Font Awesome CDN + AniList API + YouTube
-    Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' https://s4.anilist.co https://img.youtube.com https://i.ytimg.com data:; connect-src 'self' https://graphql.anilist.co; frame-src https://www.youtube.com;"
+    # CSP restrita às origens necessárias do projeto:
+    # - Scripts: self, YouTube IFrame API (youtube.com, s.ytimg.com), SortableJS/Chart.js (cdn.jsdelivr.net)
+    # - Estilos/Fontes: self, Google Fonts, Font Awesome (cdnjs.cloudflare.com)
+    # - Imagens: self, AniList CDN (s4.anilist.co), YouTube thumbs (img.youtube.com, i.ytimg.com), placeholder
+    # - Mídia: self, AnimeThemes streams (v.animethemes.moe, a.animethemes.moe), blob:
+    # - Conexões (Fetch/XHR): self, AniList GraphQL, AnimeThemes API/Media, MyMemory Translation, Jikan API
+    Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' https://s4.anilist.co https://cdn.myanimelist.net https://pub-92474f7785774e91a790e086dfa6b2ef.r2.dev https://img.youtube.com https://i.ytimg.com https://via.placeholder.com data: blob:; media-src 'self' https://v.animethemes.moe https://a.animethemes.moe blob:; connect-src 'self' https://graphql.anilist.co https://api.animethemes.moe https://v.animethemes.moe https://a.animethemes.moe https://api.mymemory.translated.net https://api.jikan.moe; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com;"
 </IfModule>
 
 # ----- DESABILITAR LISTAGEM DE DIRETÓRIOS -----

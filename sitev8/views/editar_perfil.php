@@ -6,7 +6,7 @@
 
 
 if (!estaLogado()) {
-    header('Location: login.php?redirect=editar_perfil.php');
+    header('Location: login');
     exit;
 }
 
@@ -296,7 +296,7 @@ $badges_exibidos = json_decode($perfil['badges_exibidos'] ?? '[]', true) ?: [];
 
                 if (result.success) {
                     alert('Perfil atualizado com sucesso!');
-                    window.location.href = 'perfil.php';
+                    Common.navigate('perfil');
                 } else {
                     alert(result.message || 'Erro ao salvar');
                 }

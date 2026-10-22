@@ -227,7 +227,7 @@ const Common = {
         }
 
         dropdown.innerHTML = results.map(anime => `
-            <a href="detalhes.php?id=${anime.id}" class="search-result-item">
+            <a href="?page=detalhes&id=${anime.id}" class="search-result-item" onclick="Common.closeSearchSuggestions()">
                 <img src="${anime.coverImage.medium}" alt="${anime.title.romaji}">
                 <div class="search-result-info">
                     <div class="search-result-title">${anime.title.romaji}</div>
@@ -349,30 +349,41 @@ const Common = {
     /**
      * Executar busca
      */
+    navigate(url) {
+        this.closeSearchSuggestions();
+        this.closeModal();
+        if (typeof SpaRouter !== 'undefined' && SpaRouter.navigateTo) {
+            SpaRouter.navigateTo(url);
+        } else {
+            window.location.href = url;
+        }
+    },
+
+    initSearch() {
+        this.setupSearch();
+    },
+
     doSearch(query) {
-        window.location.href = `explorar.php?q=${encodeURIComponent(query)}`;
+        this.navigate(`?page=explorar&q=${encodeURIComponent(query)}`);
     },
 
     /**
      * Marcar nav item ativo
      */
     markActiveNav() {
-        const currentPage = window.location.pathname.split('/').pop() || 'index.php';
-
-        // Sidebar
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('href') === currentPage) {
-                item.classList.add('active');
-            }
-        });
-
-        // Bottom nav
-        document.querySelectorAll('.bottom-nav-item').forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('href') === currentPage) {
-                item.classList.add('active');
-            }
+        const urlObj = new URL(window.location.href);
+        let currentPage = urlObj.searchParams.get('page');
+        if (!currentPage) {
+            const baseTag = document.querySelector('base');
+            const basePath = baseTag ? new URL(baseTag.href).pathname : '/';
+            const rel = urlObj.pathname.replace(basePath, '').replace(/\/+$/, '');
+            currentPage = (rel && rel !== 'index.php') ? rel.replace(/\.php$/i, '') : 'home';
+        }
+        document.querySelectorAll('.nav-item, .bottom-nav-item').forEach(item => {
+            const href = item.getAttribute('href');
+            if (!href || href === '#') return;
+            const cleanHref = href.replace(/^\?page=/, '').replace(/\.php$/i, '').replace(/\/+$/, '') || 'home';
+            item.classList.toggle('active', cleanHref === currentPage);
         });
     },
 
@@ -416,7 +427,7 @@ const Common = {
         // Click para detalhes
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
-                window.location.href = `detalhes.php?id=${anime.id}`;
+                this.navigate(`?page=detalhes&id=${anime.id}`);
             }
         });
 
@@ -586,7 +597,7 @@ const Common = {
         try {
             const anime = await API.getRandomAnime();
             if (anime) {
-                window.location.href = `detalhes.php?id=${anime.id}`;
+                this.navigate(`?page=detalhes&id=${anime.id}`);
             }
         } catch (error) {
             console.error('Erro random:', error);

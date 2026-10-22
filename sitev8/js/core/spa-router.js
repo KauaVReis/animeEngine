@@ -2,30 +2,18 @@
  * AnimeEngine v8 — SPA Router
  * Intercepta links internos, carrega views via AJAX e injeta no DOM.
  * Usa History API (pushState + popstate) para navegação sem reload.
- * 
- * Funcionalidades:
- *  - Interceptação de cliques em links ?page=
- *  - Fetch de views com ?ajax=true
- *  - Transição fade out → skeleton → fade in
- *  - Carregamento dinâmico de scripts por página
- *  - Atualização do título e estado ativo do nav
- *  - Integração com sistemas existentes (themes, goals, achievements)
  */
 
 const SpaRouter = (function () {
     'use strict';
 
-    // =========================================================
-    // CONFIGURAÇÃO
-    // =========================================================
     const CONFIG = {
         contentSelector: '#spa-content',
         navItemSelector: '.nav-item, .bottom-nav-item, .bottom-nav-popup a',
-        transitionDuration: 250, // ms
-        skeletonMinTime: 300, // tempo mínimo do skeleton (UX)
+        transitionDuration: 200,
+        skeletonMinTime: 180,
     };
 
-    // Base path do projeto (Detectado da tag <base> ou fallback dinâmico)
     const getBasePath = () => {
         const baseTag = document.querySelector('base');
         if (baseTag && baseTag.href) {
@@ -35,17 +23,12 @@ const SpaRouter = (function () {
     };
     const BASE_PATH = getBasePath();
 
-    // Cache de scripts já carregados (para não carregar 2x)
     const loadedScripts = new Set();
 
-    // Estado
     let isNavigating = false;
     let currentPage = null;
     let abortController = null;
 
-    // =========================================================
-    // SKELETON SCREEN
-    // =========================================================
     function createSkeleton() {
         return `
         <div class="spa-skeleton" aria-busy="true">
@@ -64,15 +47,12 @@ const SpaRouter = (function () {
         </div>`;
     }
 
-    // =========================================================
-    // TRANSIÇÕES PREMIUM
-    // =========================================================
     function fadeOut(el) {
         return new Promise(resolve => {
             el.style.transition = `all ${CONFIG.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
             el.style.opacity = '0';
-            el.style.transform = 'scale(0.98)';
-            el.style.filter = 'blur(10px)';
+            el.style.transform = 'scale(0.99)';
+            el.style.filter = 'blur(6px)';
             setTimeout(resolve, CONFIG.transitionDuration);
         });
     }
@@ -80,9 +60,8 @@ const SpaRouter = (function () {
     function fadeIn(el) {
         return new Promise(resolve => {
             el.style.opacity = '0';
-            el.style.transform = 'scale(1.02)';
-            el.style.filter = 'blur(10px)';
-            // Force reflow
+            el.style.transform = 'scale(1.01)';
+            el.style.filter = 'blur(6px)';
             void el.offsetHeight;
             el.style.transition = `all ${CONFIG.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
             el.style.opacity = '1';
@@ -92,10 +71,31 @@ const SpaRouter = (function () {
         });
     }
 
-    // =========================================================
-    // NAVEGAÇÃO CORE
-    // =========================================================
-    async function navigateTo(url, pushState = true) {
+    /**
+     * Normaliza URLs legadas (ex: detalhes.php?id=10 -> ?page=detalhes&id=10)
+     */
+    function normalizeInternalUrl(rawUrl) {
+        if (!rawUrl) return 'home';
+        let cleaned = rawUrl.trim();
+        // Converter arquivo.php?xyz para ?page=arquivo&xyz ou arquivo
+        const phpMatch = cleaned.match(/^(?:.*\/)?([a-z0-9_]+)\.php(\?.*)?$/i);
+        if (phpMatch) {
+            let page = phpMatch[1].toLowerCase();
+            if (page === 'index') page = 'home';
+            const query = phpMatch[2] || '';
+            if (query) {
+                const params = new URLSearchParams(query);
+                params.set('page', page);
+                return '?' + params.toString();
+            }
+            return page;
+        }
+        return cleaned;
+    }
+
+    async function navigateTo(rawUrl, pushState = true) {
+        const url = normalizeInternalUrl(rawUrl);
+
         if (isNavigating) {
             if (abortController) abortController.abort();
         }
@@ -106,66 +106,58 @@ const SpaRouter = (function () {
             return;
         }
 
-        // Resolver URL (suportando friendly URLs e subpastas)
         let fullUrl;
         if (url.startsWith('http')) {
             fullUrl = new URL(url);
+        } else if (url.startsWith('?')) {
+            fullUrl = new URL(window.location.origin + BASE_PATH + url);
         } else {
-            // Se for ?page=, mantém o comportamento relativo
-            if (url.startsWith('?')) {
-                fullUrl = new URL(url, window.location.href);
-            } else {
-                // Para URLs amigáveis, garante que herdam a BASE_PATH corretamente
-                // Remove / inicial se existir para não resetar para a raiz do domínio
-                const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-                fullUrl = new URL(cleanUrl, window.location.origin + BASE_PATH);
-            }
+            const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+            fullUrl = new URL(cleanUrl, window.location.origin + BASE_PATH);
         }
 
-        // 1. Extrair o nome da página (pageName)
         let pageName = fullUrl.searchParams.get('page');
-
         if (!pageName) {
-            // Se não tem ?page=, tenta tirar do path
-            // Remove a BASE_PATH do path total para sobrar apenas a página
             const pathParts = fullUrl.pathname.replace(BASE_PATH, '').split('/');
             pageName = pathParts.find(p => p !== '') || 'home';
         }
+        pageName = pageName.replace(/\.php$/i, '').toLowerCase();
+        if (pageName === 'index' || !pageName) pageName = 'home';
+        if (pageName === 'arcade' || pageName === 'music_quiz') pageName = 'animdle';
 
-        // Se é a mesma página, não navegar (exceto detalhes que tem ID variável)
-        if (pageName === currentPage && pageName !== 'detalhes') return;
+        // Evitar recarregar a exata mesma rota + query
+        const currentSearch = window.location.search || '';
+        const targetSearch = fullUrl.search || '';
+        if (pushState && pageName === currentPage && currentSearch === targetSearch && !['detalhes', 'animdle', 'perfil'].includes(pageName)) {
+            return;
+        }
 
         isNavigating = true;
         abortController = new AbortController();
 
-        document.dispatchEvent(new CustomEvent('spa:beforeLeave', {
-            detail: { from: currentPage, to: pageName }
-        }));
+        const leaveDetail = { from: currentPage, to: pageName, url: fullUrl.href };
+        document.dispatchEvent(new CustomEvent('spa:beforeLeave', { detail: leaveDetail }));
+        window.dispatchEvent(new CustomEvent('spa:beforeNavigate', { detail: leaveDetail }));
 
         try {
-            // 1. Fade out dinâmico
             await fadeOut(container);
 
-            // 2. Mostrar skeleton com glassmorphism
             container.innerHTML = createSkeleton();
             container.style.opacity = '1';
             container.style.transform = 'none';
             container.style.filter = 'none';
             const skeletonStart = Date.now();
 
-            // 3. Preparar URL de fetch (sempre envia ?ajax=true)
-            const fetchUrl = new URL(fullUrl.toString());
-            fetchUrl.searchParams.set('ajax', 'true');
-
-            // Se a página for login ou register, limpa a interface (modo fullscreen)
             if (['login', 'register'].includes(pageName)) {
                 document.body.classList.add('fullscreen-mode');
             } else {
                 document.body.classList.remove('fullscreen-mode');
             }
 
-            // Fetch do conteúdo (com ?ajax=true)
-            const ajaxUrl = new URL(fullUrl.href);
+            // Construir URL AJAX garantindo que index.php receba ?page=...&ajax=true
+            const ajaxUrl = new URL(window.location.origin + BASE_PATH + 'index.php');
+            fullUrl.searchParams.forEach((val, key) => ajaxUrl.searchParams.set(key, val));
+            ajaxUrl.searchParams.set('page', pageName);
             ajaxUrl.searchParams.set('ajax', 'true');
 
             const response = await fetch(ajaxUrl.href, {
@@ -173,62 +165,62 @@ const SpaRouter = (function () {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            // Redirecionamentos
             const redirectUrl = response.headers.get('X-Page-Redirect');
             if (redirectUrl || response.status === 401) {
-                const target = redirectUrl || 'login';
-                navigateTo(target);
+                isNavigating = false;
+                navigateTo(redirectUrl || 'login');
                 return;
             }
 
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const html = await response.text();
 
-            // 5. Metadados do Header
-            const pageTitle = response.headers.get('X-Page-Title') || 'ANIME.ENGINE v8';
+            const rawTitle = response.headers.get('X-Page-Title');
+            const pageTitle = rawTitle ? decodeURIComponent(rawTitle) : 'ANIME.ENGINE v8';
             const pageScriptsRaw = response.headers.get('X-Page-Scripts');
             const pageScripts = pageScriptsRaw ? JSON.parse(pageScriptsRaw) : [];
             const pageCssRaw = response.headers.get('X-Page-Css');
             const pageCss = pageCssRaw ? JSON.parse(pageCssRaw) : [];
             const isFullscreen = response.headers.get('X-Page-Fullscreen') === 'true';
 
-            // 6. UX: Tempo mínimo de skeleton
             const elapsed = Date.now() - skeletonStart;
             if (elapsed < CONFIG.skeletonMinTime) {
                 await new Promise(r => setTimeout(r, CONFIG.skeletonMinTime - elapsed));
             }
 
-            // 7. Saída do skeleton
             await fadeOut(container);
 
-            // 8. Injetar e Configurar
             toggleFullscreen(isFullscreen);
             container.innerHTML = html;
             document.title = pageTitle;
 
-            // 9. Atualizar History (Formato amigável e limpo)
+            // Atualizar URL no navegador ANTES de rodar scripts de página (ex: DetalhesPage lê window.location.search)
             if (pushState) {
-                // Remove barras extras e garante que começa com /
+                const cleanParams = new URLSearchParams(fullUrl.search);
+                cleanParams.delete('ajax');
+                // Se tiver outros parâmetros (ex: id=123 ou date=...), mantém ?page=... ou /pagina?id=...
+                cleanParams.delete('page');
+                const queryString = cleanParams.toString();
                 const cleanPagePath = (pageName === 'home') ? '' : pageName;
-                const finalUrl = (BASE_PATH + cleanPagePath).replace(/\/+/g, '/');
-                history.pushState({ page: pageName }, pageTitle, finalUrl + fullUrl.search);
+                const finalPath = (BASE_PATH + cleanPagePath).replace(/\/+/g, '/');
+                const finalUrl = finalPath + (queryString ? '?' + queryString : '');
+                history.pushState({ page: pageName, url: finalUrl }, pageTitle, finalUrl);
             }
 
-            // 10. Recursos
             loadPageCss(pageCss);
+            await executeInlineViewScripts(container, pageScripts);
             await loadPageScripts(pageScripts);
             updateActiveNav(pageName);
 
-            // 11. Entrada triunfal
             await fadeIn(container);
 
             currentPage = pageName;
             window.scrollTo({ top: 0, behavior: 'instant' });
             reinitGlobalSystems();
 
-            document.dispatchEvent(new CustomEvent('spa:afterNavigate', {
-                detail: { page: pageName }
-            }));
+            const afterDetail = { page: pageName, url: window.location.href };
+            document.dispatchEvent(new CustomEvent('spa:afterNavigate', { detail: afterDetail }));
+            window.dispatchEvent(new CustomEvent('spa:afterNavigate', { detail: afterDetail }));
 
         } catch (err) {
             if (err.name === 'AbortError') return;
@@ -239,34 +231,6 @@ const SpaRouter = (function () {
         }
     }
 
-    // =========================================================
-    // CARREGAMENTO DINÂMICO DE SCRIPTS
-    // =========================================================
-    function loadScript(src) {
-        return new Promise((resolve, reject) => {
-            // Se já foi carregado, não recarregar
-            if (loadedScripts.has(src)) {
-                resolve();
-                return;
-            }
-
-            // Remover script anterior da mesma página (se existir)
-            const existing = document.querySelector(`script[data-spa-script="${src}"]`);
-            if (existing) existing.remove();
-
-            const script = document.createElement('script');
-            script.src = src + '?v=' + Date.now(); // Cache bust para reexecução
-            script.setAttribute('data-spa-script', src);
-            script.onload = () => {
-                loadedScripts.add(src);
-                resolve();
-            };
-            script.onerror = () => reject(new Error(`Falha ao carregar: ${src}`));
-            document.body.appendChild(script);
-        });
-    }
-
-    // Mapa de script src → objeto global que deve ter .init()
     const SCRIPT_GLOBALS = {
         'js/pages/lista.js': 'ListaPage',
         'js/pages/home.js': 'HomePage',
@@ -277,52 +241,107 @@ const SpaRouter = (function () {
         'js/pages/calculadora.js': 'CalculadoraPage',
         'js/pages/assistindo.js': 'AssistindoPage',
         'js/pages/favoritos.js': 'FavoritosPage',
-        'js/pages/tierlist.js': 'TierlistPage',
+        'js/pages/tierlist.js': 'TierListPage',
         'js/pages/titulos.js': 'TitulosPage',
         'js/pages/stats.js': 'StatsPage',
+        'js/pages/radio.js': 'RadioPage',
+        'js/pages/animdle.js': 'AnimdlePage',
         'js/calendar.js': 'Calendar',
-        'js/airing.js': 'AiringCountdown',
+        'js/airing.js': 'Airing',
+        'js/timeline.js': 'Timeline',
+        'js/animedata.js': 'ANIME_DATA'
     };
 
-    async function loadPageScripts(scripts) {
-        for (const src of scripts) {
-            try {
-                const globalName = SCRIPT_GLOBALS[src];
-                const globalObj = globalName ? window[globalName] : null;
+    function getGlobalObject(globalName) {
+        if (!globalName) return null;
+        if (window[globalName]) return window[globalName];
+        try {
+            return Function(`return typeof ${globalName} !== 'undefined' ? ${globalName} : null`)();
+        } catch (e) {
+            return null;
+        }
+    }
 
-                if (globalObj && typeof globalObj.init === 'function') {
-                    // Script já está carregado → apenas re-executar init()
-                    console.log(`[SPA] Re-init: ${globalName}.init()`);
-                    await globalObj.init();
-                } else {
-                    // Primeira carga → carregar script normalmente
-                    const script = document.createElement('script');
-                    script.src = src + '?spa=' + Date.now();
-                    script.setAttribute('data-spa-page-script', 'true');
-                    
-                    await new Promise((resolve, reject) => {
-                        script.onload = () => {
-                            // Após carregar primeiro, inicializa
-                            const newlyLoadedObj = window[globalName];
-                            if (newlyLoadedObj && typeof newlyLoadedObj.init === 'function') {
-                                console.log(`[SPA] Init: ${globalName}.init()`);
-                                newlyLoadedObj.init();
-                            }
-                            resolve();
-                        };
-                        script.onerror = reject;
-                        document.body.appendChild(script);
-                    });
+    /**
+     * Executa scripts inline presentes no HTML da view (ex: ranking.php, editar_perfil.php, variáveis de perfil.php)
+     */
+    async function executeInlineViewScripts(container, managedScripts = []) {
+        const inlineScripts = Array.from(container.querySelectorAll('script'));
+        for (const oldScript of inlineScripts) {
+            const src = oldScript.getAttribute('src');
+            if (src) {
+                // Se já está na lista de scripts gerenciados pela rota, apenas remove a tag duplicada
+                if (managedScripts.includes(src)) {
+                    oldScript.remove();
+                    continue;
                 }
-            } catch (e) {
-                console.warn(`[SPA] Script falhou: ${src}`, e);
+            } else {
+                const code = oldScript.textContent || '';
+                oldScript.remove();
+                if (!code.trim()) continue;
+                try {
+                    // Se o script inline usa document.addEventListener('DOMContentLoaded', fn), executa fn imediatamente
+                    const patchedCode = code.replace(
+                        /document\.addEventListener\(\s*['"]DOMContentLoaded['"]\s*,\s*([\s\S]*?)\)\s*;?\s*$/,
+                        '($1)();'
+                    );
+                    const newScript = document.createElement('script');
+                    newScript.textContent = patchedCode;
+                    document.body.appendChild(newScript);
+                    newScript.remove();
+                } catch (e) {
+                    console.warn('[SPA] Erro ao executar script inline da view:', e);
+                }
             }
         }
     }
 
-    // =========================================================
-    // TOGGLE FULLSCREEN (login/register)
-    // =========================================================
+    async function loadPageScripts(scripts) {
+        window.__SPA_MANAGED_LOAD__ = true;
+        try {
+            for (const src of scripts) {
+                try {
+                    const globalName = SCRIPT_GLOBALS[src];
+                    const globalObj = getGlobalObject(globalName);
+
+                    if (globalObj) {
+                        if (typeof globalObj.init === 'function') {
+                            await globalObj.init();
+                        }
+                        continue;
+                    }
+
+                    // Se for script externo (ex: Sortable.min.js ou chart.js) já carregado
+                    if (loadedScripts.has(src)) {
+                        continue;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = src.startsWith('http') ? src : (src + '?v=' + Date.now());
+                    script.async = false;
+                    script.setAttribute('data-spa-page-script', src);
+
+                    await new Promise((resolve, reject) => {
+                        script.onload = async () => {
+                            loadedScripts.add(src);
+                            const newlyLoadedObj = getGlobalObject(globalName);
+                            if (newlyLoadedObj && typeof newlyLoadedObj.init === 'function') {
+                                await newlyLoadedObj.init();
+                            }
+                            resolve();
+                        };
+                        script.onerror = () => reject(new Error(`Falha ao carregar: ${src}`));
+                        document.body.appendChild(script);
+                    });
+                } catch (e) {
+                    console.warn(`[SPA] Script falhou: ${src}`, e);
+                }
+            }
+        } finally {
+            window.__SPA_MANAGED_LOAD__ = false;
+        }
+    }
+
     function toggleFullscreen(fullscreen) {
         const header = document.querySelector('.header');
         const sidebar = document.querySelector('.sidebar');
@@ -352,26 +371,18 @@ const SpaRouter = (function () {
         }
     }
 
-    // =========================================================
-    // CARREGAMENTO DINÂMICO DE CSS POR PÁGINA
-    // =========================================================
     function loadPageCss(cssFiles) {
-        // Remover CSS da página anterior
         document.querySelectorAll('link[data-page-css]').forEach(el => el.remove());
 
-        // Injetar novos CSS
         for (const href of cssFiles) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = href;
+            link.href = href + '?v=9.0';
             link.setAttribute('data-page-css', 'true');
             document.head.appendChild(link);
         }
     }
 
-    // =========================================================
-    // NAV ATIVO
-    // =========================================================
     function updateActiveNav(pageName) {
         document.querySelectorAll('.nav-item.active, .bottom-nav-item.active').forEach(el => {
             el.classList.remove('active');
@@ -379,16 +390,15 @@ const SpaRouter = (function () {
 
         document.querySelectorAll(CONFIG.navItemSelector).forEach(link => {
             const href = link.getAttribute('href');
-            if (!href) return;
+            if (!href || href === '#') return;
 
             try {
-                // Suporta ?page= e links amigáveis
                 let linkPage = 'home';
                 if (href.includes('page=')) {
-                    const url = new URL(href, window.location.origin);
+                    const url = new URL(href, window.location.origin + BASE_PATH);
                     linkPage = url.searchParams.get('page') || 'home';
                 } else {
-                    linkPage = href.replace(/\/+$/, '') || 'home';
+                    linkPage = href.replace(/\/+$/, '').replace(/^\?/, '') || 'home';
                 }
 
                 if (linkPage === pageName) {
@@ -398,55 +408,41 @@ const SpaRouter = (function () {
         });
     }
 
-    // =========================================================
-    // RE-INICIALIZAÇÃO DE SISTEMAS GLOBAIS
-    // =========================================================
     function reinitGlobalSystems() {
-        // Themes — reaplicar tema ao novo conteúdo
         if (typeof Themes !== 'undefined' && Themes.apply) {
-            try { Themes.apply(); } catch (e) { /* silêncio */ }
+            try { Themes.apply(); } catch (e) { }
         }
-
-        // Achievements — verificar conquistas com novo estado
         if (typeof Achievements !== 'undefined' && Achievements.check) {
-            try { Achievements.check(); } catch (e) { /* silêncio */ }
+            try { Achievements.check(); } catch (e) { }
         }
-
-        // Goals — atualizar UI de metas
         if (typeof Goals !== 'undefined' && Goals.renderWeekly) {
-            try { Goals.renderWeekly(); } catch (e) { /* silêncio */ }
+            try { Goals.renderWeekly(); } catch (e) { }
         }
-
-        // Notifications — re-bind
         if (typeof NotificationSystem !== 'undefined' && NotificationSystem.init) {
-            try { NotificationSystem.init(); } catch (e) { /* silêncio */ }
+            try { NotificationSystem.init(); } catch (e) { }
         }
-
-        // Search — re-bind se existir
         if (typeof Common !== 'undefined' && Common.initSearch) {
-            try { Common.initSearch(); } catch (e) { /* silêncio */ }
+            try { Common.initSearch(); } catch (e) { }
         }
     }
 
-    // =========================================================
-    // EVENT LISTENERS
-    // =========================================================
     function init() {
-        // Detecção de página inicial (friendly url ou query param)
         const urlObj = new URL(window.location.href);
         currentPage = urlObj.searchParams.get('page');
-        
+
         if (!currentPage) {
             const path = urlObj.pathname.replace(BASE_PATH, '').replace(/\/+$/, '');
-            currentPage = path || 'home';
+            currentPage = (path && path !== 'index.php') ? path : 'home';
         }
+        currentPage = currentPage.replace(/\.php$/i, '').toLowerCase();
 
         document.querySelectorAll('script[src]').forEach(s => {
-            if (s.src) loadedScripts.add(new URL(s.src).pathname);
+            const rawSrc = s.getAttribute('src');
+            if (rawSrc) loadedScripts.add(rawSrc);
         });
 
         history.replaceState(
-            { page: currentPage },
+            { page: currentPage, url: window.location.href },
             document.title,
             window.location.href
         );
@@ -483,22 +479,17 @@ const SpaRouter = (function () {
     }
 
     function handlePopState(e) {
-        const page = e.state?.page || 'home';
-        const url = window.location.href;
-        navigateTo(url, false); // false = não fazer pushState de novo
+        const targetUrl = e.state?.url || window.location.href;
+        navigateTo(targetUrl, false);
     }
 
-    // =========================================================
-    // API PÚBLICA
-    // =========================================================
     return {
         init,
         navigateTo,
+        normalizeInternalUrl,
         getCurrentPage: () => currentPage,
         isNavigating: () => isNavigating
     };
-
 })();
 
-// Auto-inicializar quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => SpaRouter.init());

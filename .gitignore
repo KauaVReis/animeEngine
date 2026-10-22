@@ -36,12 +36,16 @@ Thumbs.db
 *.sqlite
 *.db
 .agents/
+.maestri/
 .gemini/
 .phpunit.result.cache
 
-# Outros
+# Outros e Backups Locais
 naoSubir/
+testes/
+theme/
+theme.zip
 
 # jsons no cache
-
 sitev7/api/cache/*
+sitev8/api/cache/*

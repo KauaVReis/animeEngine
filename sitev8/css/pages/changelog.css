@@ -1,0 +1,285 @@
+/* ============================================================
+   AnimeEngine v8 - Changelog Page (Neo-Brutalist Style)
+   Compatível com todos os 30 temas via tokens globais.
+   ============================================================ */
+
+.changelog-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 90px;
+}
+
+.changelog-hero-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    border-left: 8px solid var(--color-primary);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.changelog-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.cl-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 2px solid var(--border-color);
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    letter-spacing: 0.6px;
+}
+
+.cl-pill-live {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #ffffff);
+}
+
+.cl-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-secondary);
+}
+
+.changelog-title {
+    margin: 0;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.changelog-title i {
+    color: var(--color-primary);
+}
+
+.changelog-subtitle {
+    margin: 6px 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+}
+
+.changelog-filter-bar {
+    display: inline-flex;
+    border: 2px solid var(--border-color);
+    background: var(--color-bg);
+    box-shadow: 3px 3px 0 var(--border-color);
+    flex-wrap: wrap;
+}
+
+.cl-filter-btn {
+    background: transparent;
+    color: var(--color-text);
+    border: none;
+    border-right: 2px solid var(--border-color);
+    padding: 8px 14px;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.cl-filter-btn:last-child {
+    border-right: none;
+}
+
+.cl-filter-btn:hover {
+    background: var(--color-surface-hover);
+}
+
+.cl-filter-btn.active {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #ffffff);
+}
+
+/* TIMELINE & CARDS */
+.changelog-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cl-release-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cl-release-card.cl-featured {
+    border-top: 6px solid var(--color-primary);
+}
+
+.cl-release-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.cl-version-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.cl-version-tag {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    padding: 6px 14px;
+    background: var(--color-primary);
+    color: var(--color-on-primary, #ffffff);
+    border: 2px solid var(--border-color);
+    box-shadow: 3px 3px 0 var(--border-color);
+}
+
+.cl-version-tag.tag-v7 {
+    background: #10b981;
+    color: #0a0a0f;
+}
+
+.cl-version-tag.tag-v6 {
+    background: var(--color-secondary);
+    color: #0a0a0f;
+}
+
+.cl-version-tag.tag-legacy {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.cl-release-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+}
+
+.cl-release-date {
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+    font-weight: 700;
+}
+
+.cl-status-badge {
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    padding: 4px 10px;
+    border: 2px solid var(--border-color);
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.cl-status-badge.status-current {
+    background: var(--color-secondary);
+    color: #0a0a0f;
+}
+
+.cl-release-summary {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--color-text);
+}
+
+.cl-sections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.cl-section-box {
+    background: var(--color-bg);
+    border: 2px solid var(--border-color);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cl-section-heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.cl-section-heading i {
+    color: var(--color-primary);
+}
+
+.cl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.cl-compact-list {
+    gap: 8px;
+}
+
+.cl-tag {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 0.62rem;
+    padding: 1px 6px;
+    border: 1.5px solid var(--border-color);
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.cl-tag.tag-new {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #ffffff);
+}
+
+.cl-tag.tag-imp {
+    background: var(--color-secondary);
+    color: #0a0a0f;
+}
+
+.cl-tag.tag-fix {
+    background: #10b981;
+    color: #0a0a0f;
+}
+
+@media (max-width: 640px) {
+    .changelog-hero-card,
+    .cl-release-card {
+        padding: 16px;
+    }
+    .cl-sections-grid {
+        grid-template-columns: 1fr;
+    }
+}

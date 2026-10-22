@@ -848,4 +848,11 @@ const CalculadoraPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => CalculadoraPage.init());
+window.CalculadoraPage = CalculadoraPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        CalculadoraPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => CalculadoraPage.init());
+    }
+}

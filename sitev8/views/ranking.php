@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const medals = ['🥇', '🥈', '🥉'];
         
         podiumContainer.innerHTML = top3.map((user, i) => `
-            <div class="podium-item ${podiumClasses[i]}" onclick="window.location='perfil.php?user=${user.username}'">
+            <div class="podium-item ${podiumClasses[i]}" onclick="Common.navigate('?page=perfil&user=${user.username}')">
                 <div class="podium-rank">${medals[i]}</div>
                 <div class="podium-avatar">${nivelIcons[Math.min(user.nivel-1, 9)]}</div>
                 <div class="podium-name">${user.username}</div>
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             listContainer.innerHTML = '<p style="padding: 20px; text-align: center; color: var(--color-text-muted)">Apenas 3 usuários no ranking</p>';
         } else {
             listContainer.innerHTML = rest.map(user => `
-                <div class="ranking-item" onclick="window.location='perfil.php?user=${user.username}'">
+                <div class="ranking-item" onclick="Common.navigate('?page=perfil&user=${user.username}')">
                     <div class="rank-position">#${user.posicao}</div>
                     <div class="rank-avatar">${nivelIcons[Math.min(user.nivel-1, 9)]}</div>
                     <div class="rank-info">

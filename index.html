@@ -4,27 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnimeEngine - Version Select</title>
+    <title>AnimeEngine — Central de Versões &amp; Changelog</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            /* AnimeEngine Tokens */
+            /* AnimeEngine Neo-Brutalist Tokens */
             --color-bg: #f5f5f5;
             --color-surface: #ffffff;
             --color-black: #1a1a1a;
             --color-white: #ffffff;
 
+            --color-primary-v8: #ff3366;
+            --color-accent-v8: #ffd700;
             --color-primary-v7: #10b981;
-            /* v7 Green Style */
-            --color-primary-v6: #ff3366;
-            /* v6 Primary */
+            --color-primary-v6: #ff6b2b;
             --color-primary-v5: #3366ff;
-            /* v5 Blue Style */
-            --color-primary-arcade: #a855f7;
-            /* Arcade Purple */
 
             --border-width: 3px;
             --border-color: #1a1a1a;
@@ -49,7 +46,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             line-height: 1.5;
             padding: 2rem;
         }
@@ -61,13 +57,13 @@
 
         .header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
         }
 
         .logo {
             font-family: var(--font-display);
             font-size: 3.5rem;
-            margin: 0 0 1rem 0;
+            margin: 0 0 0.75rem 0;
             text-transform: uppercase;
             letter-spacing: -2px;
             color: var(--color-black);
@@ -75,15 +71,72 @@
         }
 
         .subtitle {
-            font-size: 1.25rem;
-            color: #666;
-            max-width: 600px;
-            margin: 0 auto;
+            font-size: 1.15rem;
+            color: #555;
+            max-width: 640px;
+            margin: 0 auto 1.5rem auto;
+            font-weight: 500;
+        }
+
+        /* NAV TABS (VERSÕES vs CHANGELOG) */
+        .hub-tabs {
+            display: inline-flex;
+            border: var(--border-width) solid var(--border-color);
+            background: var(--color-surface);
+            box-shadow: var(--shadow-neo);
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hub-tab-btn {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            padding: 0.85rem 1.6rem;
+            border: none;
+            border-right: var(--border-width) solid var(--border-color);
+            background: var(--color-surface);
+            color: var(--color-black);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .hub-tab-btn:last-child {
+            border-right: none;
+        }
+
+        .hub-tab-btn:hover {
+            background: #ececec;
+        }
+
+        .hub-tab-btn.active {
+            background: var(--color-primary-v8);
+            color: var(--color-white);
+        }
+
+        .hub-tab-badge {
+            font-size: 0.68rem;
+            padding: 2px 7px;
+            background: var(--color-accent-v8);
+            color: var(--color-black);
+            border: 2px solid var(--border-color);
+        }
+
+        .hub-panel {
+            display: none;
+            animation: fadeInUp 0.3s ease forwards;
+        }
+
+        .hub-panel.active {
+            display: block;
         }
 
         .versions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
             gap: 2rem;
             justify-content: center;
         }
@@ -100,13 +153,11 @@
             pointer-events: auto;
         }
 
-        /* animations for cards inside previous versions */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -117,31 +168,16 @@
             animation: fadeInUp 0.5s ease forwards;
         }
 
-        /* stagger delays */
-        #old-versions.show .version-card:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-
-        #old-versions.show .version-card:nth-child(3) {
-            animation-delay: 0.2s;
-        }
-
-        #old-versions.show .version-card:nth-child(4) {
-            animation-delay: 0.3s;
-        }
-
-        #old-versions.show .version-card:nth-child(5) {
-            animation-delay: 0.4s;
-        }
-
-        #old-versions.show .version-card:nth-child(6) {
-            animation-delay: 0.5s;
-        }
+        #old-versions.show .version-card:nth-child(2) { animation-delay: 0.1s; }
+        #old-versions.show .version-card:nth-child(3) { animation-delay: 0.2s; }
+        #old-versions.show .version-card:nth-child(4) { animation-delay: 0.3s; }
+        #old-versions.show .version-card:nth-child(5) { animation-delay: 0.4s; }
+        #old-versions.show .version-card:nth-child(6) { animation-delay: 0.5s; }
 
         .version-card {
             background: var(--color-surface);
             border: var(--border-width) solid var(--border-color);
-            padding: 2.5rem;
+            padding: 2.25rem;
             box-shadow: var(--shadow-neo);
             transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: pointer;
@@ -157,6 +193,14 @@
             box-shadow: var(--shadow-neo-hover);
         }
 
+        .v8-theme {
+            border-top: 8px solid var(--color-primary-v8);
+        }
+
+        .v7-theme {
+            border-top: 8px solid var(--color-primary-v7);
+        }
+
         /* Badges */
         .badge {
             position: absolute;
@@ -164,67 +208,56 @@
             right: 0;
             background: var(--color-black);
             color: var(--color-white);
-            padding: 0.5rem 1rem;
+            padding: 0.45rem 1rem;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             border-bottom: var(--border-width) solid var(--border-color);
             border-left: var(--border-width) solid var(--border-color);
         }
 
+        .v8-theme .badge {
+            background: var(--color-primary-v8);
+            color: var(--color-white);
+        }
+
         .v7-theme .badge {
             background: var(--color-primary-v7);
-            color: white;
+            color: var(--color-white);
         }
 
         .v6-theme .badge {
             background: var(--color-primary-v6);
-            color: white;
+            color: var(--color-white);
         }
 
         .v5-theme .badge {
             background: #666;
-            color: white;
-        }
-
-        .arcade-theme .badge {
-            background: var(--color-primary-arcade);
-            color: white;
+            color: var(--color-white);
         }
 
         /* Icons */
         .card-icon {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
+            font-size: 2.8rem;
+            margin-bottom: 1.2rem;
         }
 
-        .v7-theme .card-icon {
-            color: var(--color-primary-v7);
-        }
-
-        .v6-theme .card-icon {
-            color: var(--color-primary-v6);
-        }
-
-        .v5-theme .card-icon {
-            color: var(--color-primary-v5);
-        }
-
-        .arcade-theme .card-icon {
-            color: var(--color-primary-arcade);
-        }
+        .v8-theme .card-icon { color: var(--color-primary-v8); }
+        .v7-theme .card-icon { color: var(--color-primary-v7); }
+        .v6-theme .card-icon { color: var(--color-primary-v6); }
+        .v5-theme .card-icon { color: var(--color-primary-v5); }
 
         /* Typography */
         .card-title {
             font-family: var(--font-display);
-            font-size: 2rem;
-            margin: 0 0 1rem 0;
+            font-size: 1.9rem;
+            margin: 0 0 0.75rem 0;
             text-transform: uppercase;
         }
 
         .card-desc {
-            color: #555;
-            margin-bottom: 2rem;
+            color: #444;
+            margin-bottom: 1.5rem;
             flex-grow: 1;
         }
 
@@ -232,54 +265,88 @@
         .feature-list {
             list-style: none;
             padding: 0;
-            margin: 0 0 2rem 0;
+            margin: 0 0 1.6rem 0;
         }
 
         .feature-list li {
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.7rem;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            color: #444;
-            font-weight: 500;
+            gap: 0.75rem;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95rem;
         }
 
         .feature-list i {
             font-size: 1rem;
         }
 
-        .v7-theme .feature-list i {
-            color: var(--color-primary-v7);
-        }
-
-        .v6-theme .feature-list i {
-            color: var(--color-primary-v6);
-        }
-
-        .v5-theme .feature-list i {
-            color: var(--color-primary-v5);
-        }
-
-        .arcade-theme .feature-list i {
-            color: var(--color-primary-arcade);
-        }
+        .v8-theme .feature-list i { color: var(--color-primary-v8); }
+        .v7-theme .feature-list i { color: var(--color-primary-v7); }
+        .v6-theme .feature-list i { color: var(--color-primary-v6); }
+        .v5-theme .feature-list i { color: var(--color-primary-v5); }
 
         /* Buttons */
         .btn {
             display: block;
             width: 100%;
-            padding: 1rem;
+            padding: 0.95rem;
             text-align: center;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 1rem;
+            font-size: 0.98rem;
             border: var(--border-width) solid var(--border-color);
             transition: all 0.2s;
             background: var(--color-bg);
             box-shadow: 2px 2px 0 var(--border-color);
+            text-decoration: none;
+            color: var(--color-black);
+            cursor: pointer;
         }
 
-        /* Botão V7 */
+        .v8-theme .btn-main {
+            background: var(--color-primary-v8);
+            color: var(--color-white);
+            border-color: var(--color-black);
+        }
+
+        .v8-theme:hover .btn-main {
+            background: #e02454;
+            box-shadow: 4px 4px 0 var(--border-color);
+            transform: translate(-1px, -1px);
+        }
+
+        .v8-quick-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.6rem;
+            margin-top: 0.75rem;
+        }
+
+        .v8-sub-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.55rem 0.5rem;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--color-black);
+            background: var(--color-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: 2px 2px 0 var(--border-color);
+            transition: transform 0.12s, background 0.12s;
+        }
+
+        .v8-sub-btn:hover {
+            background: var(--color-accent-v8);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0 var(--border-color);
+        }
+
         .v7-theme .btn {
             background: var(--color-primary-v7);
             color: white;
@@ -292,61 +359,151 @@
             transform: translate(-1px, -1px);
         }
 
-        /* Botão V6 */
         .v6-theme .btn {
             background: var(--color-primary-v6);
             color: white;
             border-color: var(--color-black);
         }
 
-        .v6-theme:hover .btn {
-            background: #e02e5a;
-            box-shadow: 4px 4px 0 var(--border-color);
-            transform: translate(-1px, -1px);
-        }
-
-        /* Botão Arcade */
-        .arcade-theme .btn {
-            background: var(--color-primary-arcade);
-            color: white;
-            border-color: var(--color-black);
-        }
-
-        .arcade-theme:hover .btn {
-            background: #9333ea;
-            box-shadow: 4px 4px 0 var(--border-color);
-            transform: translate(-1px, -1px);
-        }
-
-        /* Botões Antigos */
         .v5-theme .btn {
             background: #fff;
             color: var(--color-black);
         }
 
-        .v5-theme:hover .btn {
-            background: #f0f0f0;
-            box-shadow: 4px 4px 0 var(--border-color);
-            transform: translate(-1px, -1px);
+        /* ============================================================
+           ABA DE CHANGELOG (NEO-BRUTALIST TIMELINE)
+           ============================================================ */
+        .cl-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: var(--color-surface);
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-neo);
+            padding: 1.1rem 1.5rem;
+            margin-bottom: 1.75rem;
         }
 
-        /* coming soon and toggle support */
-        .coming-soon-theme .badge {
-            background: #888;
-            color: #fff;
-        }
-
-        .coming-soon-theme .btn {
+        .cl-filter-group {
+            display: inline-flex;
+            border: 2px solid var(--border-color);
             background: var(--color-bg);
-            color: var(--color-black);
-            border-color: var(--border-color);
-            cursor: not-allowed;
+            flex-wrap: wrap;
         }
 
-        .coming-soon-theme .btn:hover {
-            transform: none;
+        .cl-filter-pill {
+            font-family: var(--font-display);
+            font-size: 0.74rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-right: 2px solid var(--border-color);
+            background: transparent;
+            color: var(--color-black);
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .cl-filter-pill:last-child {
+            border-right: none;
+        }
+
+        .cl-filter-pill.active {
+            background: var(--color-accent-v8);
+            color: var(--color-black);
+        }
+
+        .cl-card {
+            background: var(--color-surface);
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow-neo);
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.6rem;
+        }
+
+        .cl-card-v8 {
+            border-left: 8px solid var(--color-primary-v8);
+        }
+
+        .cl-card-v7 {
+            border-left: 8px solid var(--color-primary-v7);
+        }
+
+        .cl-card-legacy {
+            border-left: 8px solid var(--color-primary-v5);
+        }
+
+        .cl-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1.2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .cl-ver-badge {
+            font-family: var(--font-display);
+            font-size: 0.95rem;
+            padding: 0.35rem 0.85rem;
+            background: var(--color-primary-v8);
+            color: var(--color-white);
+            border: 2px solid var(--border-color);
             box-shadow: 2px 2px 0 var(--border-color);
         }
+
+        .cl-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .cl-box {
+            background: var(--color-bg);
+            border: 2px solid var(--border-color);
+            padding: 1.1rem;
+        }
+
+        .cl-box h4 {
+            font-family: var(--font-display);
+            font-size: 0.88rem;
+            margin: 0 0 0.75rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cl-box h4 i {
+            color: var(--color-primary-v8);
+        }
+
+        .cl-items {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            font-size: 0.88rem;
+        }
+
+        .cl-tag {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 0.62rem;
+            padding: 1px 6px;
+            border: 1.5px solid var(--border-color);
+            margin-right: 4px;
+        }
+
+        .cl-tag.new { background: var(--color-primary-v8); color: #fff; }
+        .cl-tag.imp { background: var(--color-accent-v8); color: #000; }
+        .cl-tag.fix { background: var(--color-primary-v7); color: #fff; }
 
         /* Splash Screen */
         #splash-screen {
@@ -358,7 +515,7 @@
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.2s;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
             overflow: hidden;
             color: #fff;
         }
@@ -372,6 +529,21 @@
             position: absolute;
             inset: 0;
             z-index: 1;
+        }
+
+        .splash-skip-btn {
+            position: absolute;
+            bottom: 28px;
+            right: 28px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 6px 14px;
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            cursor: pointer;
         }
 
         .scanline {
@@ -398,7 +570,7 @@
             letter-spacing: 12px;
             position: relative;
             opacity: 0;
-            animation: fadeInUp 1s ease forwards 0.5s;
+            animation: fadeInUp 1s ease forwards 0.3s;
             margin: 0;
         }
 
@@ -435,76 +607,32 @@
             margin-top: 15px;
             opacity: 0;
             text-transform: uppercase;
-            animation: fadeIn 1.5s ease forwards 1.8s;
-            color: #555;
+            animation: fadeIn 1.2s ease forwards 1.1s;
+            color: #888;
         }
 
         @keyframes kenBurns {
-            from {
-                transform: scale(1);
-            }
-
-            to {
-                transform: scale(1.15);
-            }
+            from { transform: scale(1); }
+            to { transform: scale(1.12); }
         }
 
         @keyframes scan {
-            from {
-                transform: translateY(-100%);
-            }
-
-            to {
-                transform: translateY(100vh);
-            }
+            from { transform: translateY(-100%); }
+            to { transform: translateY(100vh); }
         }
 
         @keyframes glitch-anim {
-            0% {
-                transform: translate(0);
-            }
-
-            20% {
-                transform: translate(-3px, 3px);
-            }
-
-            40% {
-                transform: translate(-3px, -3px);
-            }
-
-            60% {
-                transform: translate(3px, 3px);
-            }
-
-            80% {
-                transform: translate(3px, -3px);
-            }
-
-            100% {
-                transform: translate(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @media (max-width: 768px) {
@@ -512,20 +640,19 @@
                 font-size: 1.8rem;
                 letter-spacing: 6px;
             }
-
             .splash-content p {
                 font-size: 0.7rem;
                 letter-spacing: 2px;
             }
-
             .logo {
-                font-size: 2.5rem;
+                font-size: 2.4rem;
             }
-
             .versions-grid {
                 grid-template-columns: 1fr;
             }
-
+            .v8-quick-links {
+                grid-template-columns: 1fr;
+            }
             body {
                 padding: 1rem;
             }
@@ -543,6 +670,248 @@
             <h1 class="glitch" data-text="BRUH PRODUCTIONS">BRUH PRODUCTIONS</h1>
             <p>site desenvolvido por Kauã Vitor Reis</p>
         </div>
+        <button type="button" class="splash-skip-btn" onclick="dismissSplash()">Pular Intro <i class="fas fa-forward"></i></button>
+    </div>
+
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">Anime<i class="fas fa-cog fa-spin"
+                    style="font-size: 0.6em; margin: 0 0.1em; color: var(--color-primary-v8); vertical-align: middle;"></i>Engine
+            </h1>
+            <p class="subtitle">Selecione a geração do AnimeEngine ou consulte o histórico de atualizações</p>
+
+            <!-- SELETOR DE ABAS DA TELA INICIAL -->
+            <div class="hub-tabs" role="tablist" aria-label="Navegação Inicial">
+                <button type="button" class="hub-tab-btn active" id="tab-btn-versions" onclick="switchHubTab('versions')">
+                    <i class="fas fa-rocket"></i> Versões &amp; Acesso
+                </button>
+                <button type="button" class="hub-tab-btn" id="tab-btn-changelog" onclick="switchHubTab('changelog')">
+                    <i class="fas fa-clipboard-list"></i> Changelog <span class="hub-tab-badge">v8.0 NOVO</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ==================== PAINEL 1: VERSÕES & ACESSO ==================== -->
+        <section class="hub-panel active" id="hub-panel-versions">
+            <div class="versions-grid" id="current-versions">
+                <!-- V8 CARD (Oficial Principal) -->
+                <div class="version-card v8-theme" onclick="if(!event.target.closest('a,button')) window.location.href = document.getElementById('link-v8').href;">
+                    <div class="badge">v8.0 • Oficial SPA</div>
+                    <div class="card-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h2 class="card-title">Versão 8.0</h2>
+                    <p class="card-desc">
+                        Nova geração com Arquitetura SPA sem recarregamento, Rádio AnimeThemes com 11 Estações Temáticas, jogo Animdle (Music Quiz) e Design System auditado em 30 temas.
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> SPA Nativa + 30 Temas Neo-Brutalistas</li>
+                        <li><i class="fas fa-check-circle"></i> Rádio FM com 11 Estações &amp; Clipes OP/ED</li>
+                        <li><i class="fas fa-check-circle"></i> Animdle (Music Quiz Diário &amp; Infinito)</li>
+                        <li><i class="fas fa-check-circle"></i> Resiliência Dual API (AniList + AnimeThemes)</li>
+                    </ul>
+                    <a href="sitev8/index.php" id="link-v8" class="btn btn-main">
+                        <i class="fas fa-play"></i> Acessar AnimeEngine v8
+                    </a>
+                    <div class="v8-quick-links">
+                        <a href="sitev8/radio" id="link-v8-radio" class="v8-sub-btn" title="Ir direto para a Rádio AnimeThemes">
+                            <i class="fas fa-broadcast-tower"></i> Rádio FM
+                        </a>
+                        <a href="sitev8/animdle" id="link-v8-animdle" class="v8-sub-btn" title="Jogar Animdle — Music Quiz">
+                            <i class="fas fa-gamepad"></i> Animdle
+                        </a>
+                        <a href="sitev8/changelog" id="link-v8-changelog" class="v8-sub-btn" onclick="event.preventDefault(); switchHubTab('changelog');" title="Ver Notas de Lançamento da v8.0">
+                            <i class="fas fa-clipboard-list"></i> Notas v8
+                        </a>
+                    </div>
+                </div>
+
+                <!-- V7 CARD (Clássica Estável) -->
+                <a href="sitev7/index.php" id="link-v7" class="version-card v7-theme">
+                    <div class="badge">v7.0 • Clássica Estável</div>
+                    <div class="card-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <h2 class="card-title">Versão 7.0</h2>
+                    <p class="card-desc">
+                        Geração clássica Multi-Page com Backend em PHP, base de dados segura, estatísticas de perfil e referência visual consolidada.
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fas fa-check-circle"></i> Sistema de Perfil &amp; Níveis Seguro</li>
+                        <li><i class="fas fa-check-circle"></i> Streaks, Conquistas &amp; Estatísticas</li>
+                        <li><i class="fas fa-check-circle"></i> Sincronização de Listas no Servidor</li>
+                    </ul>
+                    <div class="btn">Acessar v7 (Clássica)</div>
+                </a>
+            </div>
+
+            <div class="actions" style="text-align:center; margin:2.2rem 0;">
+                <button id="toggle-old" class="btn" style="max-width:320px; margin:auto;">Ver versões anteriores (v6 – v1)</button>
+            </div>
+
+            <div class="versions-grid" id="old-versions" style="display:none;">
+                <!-- V6 CARD -->
+                <a href="versoesPassadas/sitev6/index.html" class="version-card v6-theme">
+                    <div class="badge">V6</div>
+                    <div class="card-icon"><i class="fas fa-bolt"></i></div>
+                    <h2 class="card-title">Versão 6.0</h2>
+                    <p class="card-desc">Design Neo‑Brutalist, timeline, calendário sazonal e front-end completo.</p>
+                    <div class="btn">Acessar</div>
+                </a>
+                <!-- V5 CARD -->
+                <a href="versoesPassadas/sitev5/index.html" class="version-card v5-theme">
+                    <div class="badge">V5</div>
+                    <div class="card-icon"><i class="fas fa-cube"></i></div>
+                    <h2 class="card-title">Versão 5.0</h2>
+                    <p class="card-desc">Clássica, baseada em Jikan API; leve e estável.</p>
+                    <div class="btn">Acessar</div>
+                </a>
+                <!-- V4 CARD -->
+                <a href="versoesPassadas/sitev4/index.html" class="version-card v5-theme">
+                    <div class="badge">V4</div>
+                    <div class="card-icon"><i class="fas fa-archive"></i></div>
+                    <h2 class="card-title">Versão 4.0</h2>
+                    <p class="card-desc">Interface anterior com suporte a temas e achievements.</p>
+                    <div class="btn">Acessar</div>
+                </a>
+                <!-- V3 CARD -->
+                <a href="versoesPassadas/sitev3/index.html" class="version-card v5-theme">
+                    <div class="badge">V3</div>
+                    <div class="card-icon"><i class="fas fa-layer-group"></i></div>
+                    <h2 class="card-title">Versão 3.0</h2>
+                    <p class="card-desc">Primeiro layout responsivo com animações básicas.</p>
+                    <div class="btn">Acessar</div>
+                </a>
+                <!-- V2 CARD -->
+                <a href="versoesPassadas/sitev2/index.html" class="version-card v5-theme">
+                    <div class="badge">V2</div>
+                    <div class="card-icon"><i class="fas fa-history"></i></div>
+                    <h2 class="card-title">Versão 2.0</h2>
+                    <p class="card-desc">Versão simples, ainda em HTML estático.</p>
+                    <div class="btn">Acessar</div>
+                </a>
+                <!-- V1 CARD -->
+                <a href="versoesPassadas/sitev1/index.html" class="version-card v5-theme">
+                    <div class="badge">V1</div>
+                    <div class="card-icon"><i class="fas fa-star"></i></div>
+                    <h2 class="card-title">Versão 1.0</h2>
+                    <p class="card-desc">Protótipo original, apenas lista.</p>
+                    <div class="btn">Acessar</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ==================== PAINEL 2: ABA DE CHANGELOG ==================== -->
+        <section class="hub-panel" id="hub-panel-changelog">
+            <div class="cl-toolbar">
+                <div>
+                    <strong style="font-family: var(--font-display); font-size: 1rem;">HISTÓRICO DE LANÇAMENTOS</strong>
+                    <span style="display: block; font-size: 0.85rem; color: #555;">Acompanhe todas as novidades da geração v8.0 e versões anteriores</span>
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                    <div class="cl-filter-group" role="group" aria-label="Filtrar Changelog">
+                        <button type="button" class="cl-filter-pill active" onclick="filterLandingChangelog('all', this)">Todas</button>
+                        <button type="button" class="cl-filter-pill" onclick="filterLandingChangelog('v8', this)">v8.0 SPA</button>
+                        <button type="button" class="cl-filter-pill" onclick="filterLandingChangelog('v7', this)">v7.0 PHP</button>
+                        <button type="button" class="cl-filter-pill" onclick="filterLandingChangelog('legacy', this)">v6 – v1</button>
+                    </div>
+                    <a href="sitev8/changelog" id="link-v8-changelog-full" class="v8-sub-btn" style="padding: 0.55rem 0.9rem;">
+                        <i class="fas fa-external-link-alt"></i> Abrir no v8
+                    </a>
+                </div>
+            </div>
+
+            <!-- RELEASE v8.0.0 -->
+            <article class="cl-card cl-card-v8" data-cl-cat="v8">
+                <div class="cl-card-head">
+                    <div style="display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;">
+                        <span class="cl-ver-badge">v8.0.0</span>
+                        <div>
+                            <h3 style="margin: 0; font-family: var(--font-display); font-size: 1.25rem;">Overdrive Musical, Arquitetura SPA &amp; Design System</h3>
+                            <span style="font-size: 0.8rem; color: #555; font-weight: 700;">Outubro 2026 • Release Oficial v8</span>
+                        </div>
+                    </div>
+                    <a href="sitev8/index.php" class="v8-sub-btn" id="link-v8-from-cl" style="background: var(--color-accent-v8);">
+                        <i class="fas fa-rocket"></i> Testar Agora
+                    </a>
+                </div>
+
+                <div class="cl-grid">
+                    <div class="cl-box">
+                        <h4><i class="fas fa-bolt"></i> Arquitetura SPA &amp; Resiliência</h4>
+                        <ul class="cl-items">
+                            <li><span class="cl-tag new">NOVO</span> <strong>Front Controller + SpaRouter:</strong> Navegação instantânea sem reload preservando o áudio/vídeo contínuo entre páginas.</li>
+                            <li><span class="cl-tag new">NOVO</span> <strong>Fallback Automático AniList → AnimeThemes:</strong> Circuit-breaker em <code>js/api.js</code> que mantém o catálogo ativo mesmo quando a AniList cai.</li>
+                            <li><span class="cl-tag imp">MELHORIA</span> <strong>Aba de Changelog Integrada:</strong> Disponível tanto na tela inicial quanto dentro da SPA (<code>/changelog</code>).</li>
+                        </ul>
+                    </div>
+
+                    <div class="cl-box">
+                        <h4><i class="fas fa-broadcast-tower"></i> Rádio AnimeThemes &amp; 11 Estações</h4>
+                        <ul class="cl-items">
+                            <li><span class="cl-tag new">NOVO</span> <strong>Openings &amp; Endings Reais:</strong> Integração com a AnimeThemes API via <code>MusicService</code> e <code>OSTPlayer</code> global.</li>
+                            <li><span class="cl-tag new">NOVO</span> <strong>11 Estações com Ambiência Visual:</strong> <em>Aleatória, Top Hits, New Wave, Minha Lista, Shonen Overdrive, Cyber-Synth 2099, Nostalgia 90s/00s, Lo-Fi &amp; Chill, Eclipse Seinen, Idol &amp; Pop</em> e <em>Matrix Terminal</em>.</li>
+                            <li><span class="cl-tag new">NOVO</span> <strong>Palco 16:9 &amp; Modo Vitrola:</strong> Alternância entre clipe oficial e vitrola animada com fila, busca no catálogo e histórico.</li>
+                        </ul>
+                    </div>
+
+                    <div class="cl-box">
+                        <h4><i class="fas fa-gamepad"></i> Animdle — Music Quiz (Arcade)</h4>
+                        <ul class="cl-items">
+                            <li><span class="cl-tag new">NOVO</span> <strong>Desafio Diário &amp; Modo Infinito:</strong> Adivinhe o anime em 5 etapas progressivas (1s, 3s, 6s, 10s, 15s) com revelação gradual da capa.</li>
+                            <li><span class="cl-tag new">NOVO</span> <strong>Calendário de Arquivo:</strong> Histórico persistente de desafios diários vencidos e pausa inteligente da Rádio durante as partidas.</li>
+                        </ul>
+                    </div>
+
+                    <div class="cl-box">
+                        <h4><i class="fas fa-palette"></i> Design System &amp; Contraste Multi-Tema</h4>
+                        <ul class="cl-items">
+                            <li><span class="cl-tag fix">CORREÇÃO</span> <strong>Contraste Garantido nos 30 Temas:</strong> Tokens <code>--color-on-primary</code> e <code>--station-on-accent</code> para legibilidade total em temas claros e neon.</li>
+                            <li><span class="cl-tag imp">MELHORIA</span> <strong>Tuner Header Compacto &amp; <code>.btn-icon-neo</code>:</strong> Fita horizontal de estações com filtro por categoria, mantendo o palco e a fila 100% acima da dobra.</li>
+                        </ul>
+                    </div>
+                </div>
+            </article>
+
+            <!-- RELEASE v7.0.0 -->
+            <article class="cl-card cl-card-v7" data-cl-cat="v7">
+                <div class="cl-card-head">
+                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                        <span class="cl-ver-badge" style="background: var(--color-primary-v7);">v7.0.0</span>
+                        <div>
+                            <h3 style="margin: 0; font-family: var(--font-display); font-size: 1.15rem;">Backend PHP, Autenticação &amp; Perfis Sincronizados</h3>
+                            <span style="font-size: 0.8rem; color: #555; font-weight: 700;">2026 • Geração Full-Stack</span>
+                        </div>
+                    </div>
+                </div>
+                <ul class="cl-items">
+                    <li><span class="cl-tag new">NOVO</span> Autenticação em PHP + Banco de Dados com níveis de usuário (Lv.1 a Lv.10), XP, streaks e títulos desbloqueáveis.</li>
+                    <li><span class="cl-tag new">NOVO</span> Sincronização persistente de <em>Minha Lista, Assistindo, Favoritos</em> e estatísticas detalhadas com gráficos.</li>
+                </ul>
+            </article>
+
+            <!-- RELEASES v6.0 – v1.0 -->
+            <article class="cl-card cl-card-legacy" data-cl-cat="legacy">
+                <div class="cl-card-head">
+                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                        <span class="cl-ver-badge" style="background: var(--color-primary-v5);">v1.0 – v6.0</span>
+                        <div>
+                            <h3 style="margin: 0; font-family: var(--font-display); font-size: 1.15rem;">Evolução Histórica &amp; Identidade Neo-Brutalista</h3>
+                            <span style="font-size: 0.8rem; color: #555; font-weight: 700;">Arquivo de Gerações Anteriores</span>
+                        </div>
+                    </div>
+                </div>
+                <ul class="cl-items">
+                    <li><strong>Versão 6.0:</strong> Estreia da identidade visual Neo-Brutalista, 30 temas (públicos e secretos), partículas, Calculadora e Tier List.</li>
+                    <li><strong>Versão 5.0:</strong> Integração com Jikan/AniList API e busca dinâmica de animes da temporada.</li>
+                    <li><strong>Versões 1.0 a 4.0:</strong> Primeiros layouts responsivos, sistema inicial de conquistas e protótipos fundadores.</li>
+                </ul>
+            </article>
+        </section>
+
+        <p style="text-align: center; margin-top: 3rem; color: #666; font-size: 0.9rem; font-weight: 600;">
+            AnimeEngine &copy; 2026 — Desenvolvido por Kauã Vitor Reis. Todos os direitos reservados.
+        </p>
     </div>
 
     <script>
@@ -584,9 +953,18 @@
         }
 
         function animateSplash() {
+            const splash = document.getElementById('splash-screen');
+            if (!splash) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             particles.forEach(p => { p.update(); p.draw(); });
             requestAnimationFrame(animateSplash);
+        }
+
+        function dismissSplash() {
+            const splash = document.getElementById('splash-screen');
+            if (!splash) return;
+            splash.classList.add('hidden');
+            setTimeout(() => splash.remove(), 800);
         }
 
         window.addEventListener('resize', resize);
@@ -594,173 +972,75 @@
         initParticles();
         animateSplash();
 
-        // Reveal Logic
         window.addEventListener('load', () => {
             const glitch = document.querySelector('.glitch');
-            setTimeout(() => glitch.classList.add('animating'), 1000);
-
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.classList.add('hidden');
-                setTimeout(() => splash.remove(), 1200);
-            }, 4500);
+            if (glitch) setTimeout(() => glitch.classList.add('animating'), 800);
+            setTimeout(dismissSplash, 3200);
         });
 
-        // Configuração Dinâmica do Link V7 (Vercel PHP fallback vs Localhost)
-        document.addEventListener('DOMContentLoaded', () => {
-            const linkV7 = document.getElementById('link-v7');
-            if (linkV7) {
-                const hostname = window.location.hostname;
-                const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168');
+        // Alternância entre Aba Versões e Aba Changelog
+        function switchHubTab(tabName) {
+            document.getElementById('tab-btn-versions').classList.toggle('active', tabName === 'versions');
+            document.getElementById('tab-btn-changelog').classList.toggle('active', tabName === 'changelog');
+            document.getElementById('hub-panel-versions').classList.toggle('active', tabName === 'versions');
+            document.getElementById('hub-panel-changelog').classList.toggle('active', tabName === 'changelog');
+        }
 
-                // Se for localhost, usa o caminho relativo padrão. Senão, direciona pro servidor hospedado.
-                linkV7.href = isLocal ? 'sitev7/index.php' : 'https://animeengine.ct.ws/sitev7/';
+        function filterLandingChangelog(cat, btn) {
+            document.querySelectorAll('.cl-filter-pill').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            document.querySelectorAll('#hub-panel-changelog .cl-card').forEach(card => {
+                const match = (cat === 'all') || (card.getAttribute('data-cl-cat') === cat);
+                card.style.display = match ? 'block' : 'none';
+            });
+        }
+
+        // Configuração Dinâmica dos Links v8 e v7 (Localhost vs Hospedagem Pública)
+        document.addEventListener('DOMContentLoaded', () => {
+            const hostname = window.location.hostname;
+            const isLocal = !hostname || hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168');
+
+            const v8Base = isLocal ? 'sitev8/' : 'https://animeengine.ct.ws/sitev8/';
+            const v7Base = isLocal ? 'sitev7/index.php' : 'https://animeengine.ct.ws/sitev7/';
+
+            const setHref = (id, url) => {
+                const el = document.getElementById(id);
+                if (el) el.href = url;
+            };
+
+            setHref('link-v8', v8Base + 'index.php');
+            setHref('link-v8-from-cl', v8Base + 'index.php');
+            setHref('link-v8-radio', v8Base + 'radio');
+            setHref('link-v8-animdle', v8Base + 'animdle');
+            setHref('link-v8-changelog-full', v8Base + 'changelog');
+            setHref('link-v7', v7Base);
+
+            // Se a URL tiver #changelog, abre direto na aba de changelog
+            if (window.location.hash === '#changelog') {
+                dismissSplash();
+                switchHubTab('changelog');
+            }
+        });
+
+        document.getElementById('toggle-old').addEventListener('click', function () {
+            var oldContainer = document.getElementById('old-versions');
+            if (!oldContainer.classList.contains('show')) {
+                oldContainer.style.display = 'grid';
+                requestAnimationFrame(function () {
+                    oldContainer.classList.add('show');
+                });
+                this.textContent = 'Ocultar versões anteriores';
+            } else {
+                oldContainer.classList.remove('show');
+                var btn = this;
+                oldContainer.addEventListener('transitionend', function handler() {
+                    oldContainer.style.display = 'none';
+                    oldContainer.removeEventListener('transitionend', handler);
+                });
+                btn.textContent = 'Ver versões anteriores (v6 – v1)';
             }
         });
     </script>
-
-    <div class="container">
-        <header class="header">
-            <h1 class="logo">Anime<i class="fas fa-cog fa-spin"
-                    style="font-size: 0.6em; margin: 0 0.1em; color: var(--color-primary-v7); vertical-align: middle;"></i>Engine
-            </h1>
-            <p class="subtitle">Selecione a versão para acessar</p>
-        </header>
-
-        <div class="versions-grid" id="current-versions">
-            <!-- V7 CARD (New, official) -->
-            <a href="#" id="link-v7" class="version-card v7-theme">
-                <div class="badge">Oficial</div>
-                <div class="card-icon">
-                    <i class="fas fa-server"></i>
-                </div>
-                <h2 class="card-title">Versão 7.0</h2>
-                <p class="card-desc">
-                    Nova geração com Backend em PHP, base de dados segura e sistema avançado de perfis.
-                </p>
-                <ul class="feature-list">
-                    <li><i class="fas fa-check-circle"></i> Sistema de Perfil Seguro</li>
-                    <li><i class="fas fa-check-circle"></i> Streaks & Estatísticas</li>
-                    <li><i class="fas fa-check-circle"></i> Sincronização e Listas</li>
-                </ul>
-                <div class="btn">Acessar v7 (Oficial)</div>
-            </a>
-        </div>
-
-        <div class="actions" style="text-align:center; margin:2rem 0;">
-            <button id="toggle-old" class="btn" style="max-width:300px; margin:auto;">Ver versões anteriores</button>
-        </div>
-
-        <div class="versions-grid" id="old-versions" style="display:none;">
-            <!-- V6 CARD (Moved to old versions) -->
-            <a href="versoesPassadas/sitev6/index.html" class="version-card v6-theme">
-                <div class="badge">V6</div>
-                <div class="card-icon"><i class="fas fa-bolt"></i></div>
-                <h2 class="card-title">Versão 6.0</h2>
-                <p class="card-desc">Design Neo‑Brutalist, timeline, calendário sazonal e front-end completo.</p>
-                <div class="btn">Acessar</div>
-            </a>
-            <!-- V5 CARD (Legacy) -->
-            <a href="versoesPassadas/sitev5/index.html" class="version-card v5-theme">
-                <div class="badge">V5</div>
-                <div class="card-icon"><i class="fas fa-cube"></i></div>
-                <h2 class="card-title">Versão 5.0</h2>
-                <p class="card-desc">Clássica, baseada em Jikan API; leve e estável.</p>
-                <div class="btn">Acessar</div>
-            </a>
-            <!-- V4 CARD -->
-            <a href="versoesPassadas/sitev4/index.html" class="version-card v5-theme">
-                <div class="badge">V4</div>
-                <div class="card-icon"><i class="fas fa-archive"></i></div>
-                <h2 class="card-title">Versão 4.0</h2>
-                <p class="card-desc">Interface anterior com suporte a temas e achievements.</p>
-                <div class="btn">Acessar</div>
-            </a>
-            <!-- V3 CARD -->
-            <a href="versoesPassadas/sitev3/index.html" class="version-card v5-theme">
-                <div class="badge">V3</div>
-                <div class="card-icon"><i class="fas fa-layer-group"></i></div>
-                <h2 class="card-title">Versão 3.0</h2>
-                <p class="card-desc">Primeiro layout responsivo com animações básicas.</p>
-                <div class="btn">Acessar</div>
-            </a>
-            <!-- V2 CARD -->
-            <a href="versoesPassadas/sitev2/index.html" class="version-card v5-theme">
-                <div class="badge">V2</div>
-                <div class="card-icon"><i class="fas fa-history"></i></div>
-                <h2 class="card-title">Versão 2.0</h2>
-                <p class="card-desc">Versão simples, ainda em HTML estático.</p>
-                <div class="btn">Acessar</div>
-            </a>
-            <!-- V1 CARD -->
-            <a href="versoesPassadas/sitev1/index.html" class="version-card v5-theme">
-                <div class="badge">V1</div>
-                <div class="card-icon"><i class="fas fa-star"></i></div>
-                <h2 class="card-title">Versão 1.0</h2>
-                <p class="card-desc">Protótipo original, apenas lista.</p>
-                <div class="btn">Acessar</div>
-            </a>
-        </div>
-
-        <!-- Coming soon section -->
-        <h2 style="text-align:center; margin-top:4rem;">Em breve</h2>
-        <div class="versions-grid" id="coming-soon">
-
-            <!-- V8 CARD -->
-            <div class="version-card coming-soon-theme">
-                <div class="badge">Coming Soon</div>
-                <div class="card-icon">
-                    <i class="fas fa-rocket"></i>
-                </div>
-                <h2 class="card-title">Versão 8.0</h2>
-                <p class="card-desc">
-                    Arquitetura SPA (App Nativo), JS Modular, CSS Otimizado e performance Extrema.
-                </p>
-                <div class="btn" style="opacity:0.5; cursor:not-allowed;">Em Desenvolvimento</div>
-            </div>
-
-            <!-- Arcade -->
-            <div class="version-card arcade-theme coming-soon-theme">
-                <div class="badge">Coming Soon</div>
-                <div class="card-icon">
-                    <i class="fas fa-gamepad"></i>
-                </div>
-                <h2 class="card-title">Arcade</h2>
-                <p class="card-desc">
-                    Minigames diários: Music Quiz, CharacterDle e outros projetos divertidos integrados ao seu perfil.
-                </p>
-                <div class="btn" style="opacity:0.5; cursor:not-allowed;">Aguardando</div>
-            </div>
-        </div>
-
-        <script>
-            document.getElementById('toggle-old').addEventListener('click', function () {
-                var oldContainer = document.getElementById('old-versions');
-                if (!oldContainer.classList.contains('show')) {
-                    // show with fade
-                    oldContainer.style.display = 'grid';
-                    // allow layout before fade-in
-                    requestAnimationFrame(function () {
-                        oldContainer.classList.add('show');
-                    });
-                    this.textContent = 'Ocultar versões anteriores';
-                } else {
-                    // fade out then hide
-                    oldContainer.classList.remove('show');
-                    var btn = this;
-                    oldContainer.addEventListener('transitionend', function handler() {
-                        oldContainer.style.display = 'none';
-                        oldContainer.removeEventListener('transitionend', handler);
-                    });
-                    btn.textContent = 'Ver versões anteriores';
-                }
-            });
-        </script>
-
-        <p style="text-align: center; margin-top: 3rem; color: #888; font-size: 0.9rem;">
-            AnimeEngine &copy; 2026 - Todos os direitos reservados.
-        </p>
-    </div>
 
 </body>
 
