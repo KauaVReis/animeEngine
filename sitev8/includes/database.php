@@ -9,6 +9,8 @@
  * 3. TODAS as queries passam por prepared statements
  */
 
+date_default_timezone_set('America/Sao_Paulo');
+
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
@@ -46,6 +48,7 @@ function conectar()
     }
 
     mysqli_set_charset($conn, 'utf8mb4');
+    @mysqli_query($conn, "SET time_zone = '-03:00'");
 
     return $conn;
 }

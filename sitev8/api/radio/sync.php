@@ -27,6 +27,7 @@ $sala = secure_fetch_one(
     "SELECT id, uuid, slug, criador_id, nome, descricao, tipo, senha_hash, 
             status, tema_visual, max_ouvintes, tocando_agora_fila_id, 
             playback_started_at, playback_paused_at_sec, is_paused, 
+            TIMESTAMPDIFF(MICROSECOND, playback_started_at, NOW(3)) / 1000000.0 AS elapsed_calc,
             ouvintes_count, version, encerrada_em, criado_em, atualizado_em
      FROM radio_salas 
      WHERE uuid = ?",
@@ -115,65 +116,78 @@ if (!empty($sala['tocando_agora_fila_id'])) {
 $nowFloat = microtime(true);
 $elapsedSeconds = 0.0;
 
-if ($musicaAtual && !$sala['is_paused'] && !empty($sala['playback_started_at'])) {
-    $startedTimestamp = strtotime($sala['playback_started_at']);
-    $elapsedSeconds = max(0.0, $nowFloat - $startedTimestamp);
-    
-    // Se a música atual estourou a duração (+ 2s de margem de buffer), avança para a próxima
-    if ($elapsedSeconds >= ((int)$musicaAtual['duracao_segundos'] + 2)) {
-        // Buscar próxima música pendente na fila
-        $proxima = secure_fetch_one(
-            $conn,
-            "SELECT id, duracao_segundos FROM radio_fila 
-             WHERE sala_id = ? AND status = 'pendente' 
-             ORDER BY posicao ASC LIMIT 1",
-            "i",
-            $sala['id']
-        );
+if ($musicaAtual) {
+    if (!$sala['is_paused']) {
+        $elapsedSeconds = isset($sala['elapsed_calc']) ? max(0.0, (float)$sala['elapsed_calc']) : 0.0;
         
-        if ($proxima) {
-            // Marcar atual como tocada
-            secure_query($conn, "UPDATE radio_fila SET status = 'tocada', terminou_em = NOW(3) WHERE id = ?", "i", $musicaAtual['id']);
-            
-            // Iniciar próxima
-            secure_query(
+        // Se a música atual estourou a duração (+ 2s de margem de buffer), avança para a próxima
+        if ($elapsedSeconds >= ((int)$musicaAtual['duracao_segundos'] + 2)) {
+            // Buscar próxima música pendente na fila
+            $proxima = secure_fetch_one(
                 $conn,
-                "UPDATE radio_salas 
-                 SET tocando_agora_fila_id = ?, playback_started_at = NOW(3), is_paused = 0, version = version + 1 
-                 WHERE id = ?",
-                "ii",
-                $proxima['id'],
+                "SELECT id, duracao_segundos FROM radio_fila 
+                 WHERE sala_id = ? AND status = 'pendente' 
+                 ORDER BY posicao ASC LIMIT 1",
+                "i",
                 $sala['id']
             );
-            secure_query($conn, "UPDATE radio_fila SET status = 'tocando', iniciou_em = NOW(3) WHERE id = ?", "i", $proxima['id']);
             
-            // Recarregar snapshot atualizado
-            $sala['tocando_agora_fila_id'] = $proxima['id'];
-            $sala['playback_started_at'] = date('Y-m-d H:i:s');
-            $sala['version']++;
-            $elapsedSeconds = 0.0;
-            
-            $musicaAtual = secure_fetch_one(
-                $conn,
-                "SELECT id, anilist_id, anime_titulo, tipo_tema, tema_numero, musica_titulo, 
-                        artista, audio_url, video_url, duracao_segundos, capa_url, status, 
-                        votos_pular, iniciou_em 
-                 FROM radio_fila WHERE id = ?",
-                "i",
-                $proxima['id']
-            );
-        } else {
-            // Sem próximas músicas: encerra reprodução da fila
-            secure_query($conn, "UPDATE radio_fila SET status = 'tocada', terminou_em = NOW(3) WHERE id = ?", "i", $musicaAtual['id']);
-            secure_query($conn, "UPDATE radio_salas SET tocando_agora_fila_id = NULL, is_paused = 1, version = version + 1 WHERE id = ?", "i", $sala['id']);
-            $musicaAtual = null;
-            $sala['tocando_agora_fila_id'] = null;
-            $sala['is_paused'] = 1;
-            $sala['version']++;
+            if ($proxima) {
+                // Marcar atual como tocada
+                secure_query($conn, "UPDATE radio_fila SET status = 'tocada', terminou_em = NOW(3) WHERE id = ?", "i", $musicaAtual['id']);
+                
+                // Iniciar próxima
+                secure_query(
+                    $conn,
+                    "UPDATE radio_salas 
+                     SET tocando_agora_fila_id = ?, playback_started_at = NOW(3), is_paused = 0, version = version + 1 
+                     WHERE id = ?",
+                    "ii",
+                    $proxima['id'],
+                    $sala['id']
+                );
+                secure_query($conn, "UPDATE radio_fila SET status = 'tocando', iniciou_em = NOW(3) WHERE id = ?", "i", $proxima['id']);
+                
+                // Recarregar snapshot atualizado
+                $sala['tocando_agora_fila_id'] = $proxima['id'];
+                $sala['playback_started_at'] = date('Y-m-d H:i:s');
+                $sala['version']++;
+                $elapsedSeconds = 0.0;
+                
+                $musicaAtual = secure_fetch_one(
+                    $conn,
+                    "SELECT id, anilist_id, anime_titulo, tipo_tema, tema_numero, musica_titulo, 
+                            artista, audio_url, video_url, duracao_segundos, capa_url, status, 
+                            votos_pular, iniciou_em 
+                     FROM radio_fila WHERE id = ?",
+                    "i",
+                    $proxima['id']
+                );
+            } else {
+                // Sem próximas músicas: reseta fila em loop contínuo da estação para manter a sala viva
+                secure_query($conn, "UPDATE radio_fila SET status = 'pendente', votos_pular = 0, iniciou_em = NULL, terminou_em = NULL WHERE sala_id = ?", "i", $sala['id']);
+                $reiniciar = secure_fetch_one($conn, "SELECT id, duracao_segundos FROM radio_fila WHERE sala_id = ? ORDER BY posicao ASC LIMIT 1", "i", $sala['id']);
+                if ($reiniciar) {
+                    secure_query($conn, "UPDATE radio_salas SET tocando_agora_fila_id = ?, playback_started_at = NOW(3), is_paused = 0, version = version + 1 WHERE id = ?", "ii", $reiniciar['id'], $sala['id']);
+                    secure_query($conn, "UPDATE radio_fila SET status = 'tocando', iniciou_em = NOW(3) WHERE id = ?", "i", $reiniciar['id']);
+                    $sala['tocando_agora_fila_id'] = $reiniciar['id'];
+                    $sala['playback_started_at'] = date('Y-m-d H:i:s');
+                    $sala['version']++;
+                    $elapsedSeconds = 0.0;
+                    $musicaAtual = secure_fetch_one($conn, "SELECT id, anilist_id, anime_titulo, tipo_tema, tema_numero, musica_titulo, artista, audio_url, video_url, duracao_segundos, capa_url, status, votos_pular, iniciou_em FROM radio_fila WHERE id = ?", "i", $reiniciar['id']);
+                } else {
+                    secure_query($conn, "UPDATE radio_fila SET status = 'tocada', terminou_em = NOW(3) WHERE id = ?", "i", $musicaAtual['id']);
+                    secure_query($conn, "UPDATE radio_salas SET tocando_agora_fila_id = NULL, is_paused = 1, version = version + 1 WHERE id = ?", "i", $sala['id']);
+                    $musicaAtual = null;
+                    $sala['tocando_agora_fila_id'] = null;
+                    $sala['is_paused'] = 1;
+                    $sala['version']++;
+                }
+            }
         }
+    } else {
+        $elapsedSeconds = (float)($sala['playback_paused_at_sec'] ?? 0.0);
     }
-} elseif ($sala['is_paused']) {
-    $elapsedSeconds = (float)$sala['playback_paused_at_sec'];
 }
 
 // ------------------------------------------------------------
