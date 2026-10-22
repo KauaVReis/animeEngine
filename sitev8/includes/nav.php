@@ -50,7 +50,7 @@ function navActive($pagina, $atual)
     <a href="changelog" class="nav-item <?= navActive('changelog', $pagina_atual) ?>">
         <i class="fas fa-clipboard-list"></i><span>Changelog</span>
     </a>
-    <a href="configuracoes" class="nav-item <?= navActive('configuracoes', $pagina_atual) ?>">
+    <a href="#" class="nav-item" onclick="if(window.Common) Common.openSettings(); return false;" title="Abrir Configurações (Modal)">
         <i class="fas fa-cog"></i><span>Configurações</span>
     </a>
     <a href="#" class="nav-item" onclick="goToRandomAnime(); return false;">

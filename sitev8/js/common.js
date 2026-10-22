@@ -884,6 +884,9 @@ const Common = {
                     <button class="settings-tab ${activeTab === 'general' ? 'active' : ''}" data-tab-id="general" onclick="Common.switchSettingsTab('general')">
                         <i class="fas fa-cog"></i> Geral
                     </button>
+                    <button class="settings-tab ${activeTab === 'audio' ? 'active' : ''}" data-tab-id="audio" onclick="Common.switchSettingsTab('audio')">
+                        <i class="fas fa-volume-up"></i> Áudio
+                    </button>
                     <button class="settings-tab ${activeTab === 'content' ? 'active' : ''}" data-tab-id="content" onclick="Common.switchSettingsTab('content')">
                         <i class="fas fa-shield-alt"></i> Conteúdo
                     </button>
@@ -1002,6 +1005,30 @@ const Common = {
                             <option value="en" ${settings.language === 'en' ? 'selected' : ''}>🇺🇸 English</option>
                             <option value="es" ${settings.language === 'es' ? 'selected' : ''}>🇪🇸 Español</option>
                         </select>
+                    </div>
+                `;
+
+            case 'audio':
+                return `
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">🔊 Áudio & Rádio v8</h4>
+                        <div class="settings-option">
+                            <div class="settings-option-info">
+                                <span class="settings-option-name">Mini-Player Micro-Dock</span>
+                                <span class="settings-option-desc">Manter mini-player persistente visível no rodapé</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked onchange="const d = document.getElementById('ost-micro-dock'); if (d) d.classList.toggle('hidden', !this.checked);">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="settings-option">
+                            <div class="settings-option-info">
+                                <span class="settings-option-name">Volume Inicial Padrão</span>
+                                <span class="settings-option-desc">Volume padrão ao iniciar reproduções</span>
+                            </div>
+                            <input type="range" min="0" max="1" step="0.05" value="${localStorage.getItem('ost_volume') || '0.7'}" onchange="localStorage.setItem('ost_volume', this.value); if(window.OSTPlayer) OSTPlayer.setVolume(this.value);" style="width: 130px; accent-color: var(--color-primary);">
+                        </div>
                     </div>
                 `;
 

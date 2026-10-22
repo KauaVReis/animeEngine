@@ -20,12 +20,12 @@ $pagina_atual = $pagina_atual ?? 'home';
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=9.7">
-    <link rel="stylesheet" href="css/v6_styles.css?v=9.7">
-    <link rel="stylesheet" href="css/spa.css?v=9.7">
+    <link rel="stylesheet" href="css/style.css?v=9.8">
+    <link rel="stylesheet" href="css/v6_styles.css?v=9.8">
+    <link rel="stylesheet" href="css/spa.css?v=9.8">
     <?php if (isset($css_pagina) && !empty($css_pagina)): ?>
         <?php foreach ($css_pagina as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>?v=9.7" data-page-css>
+            <link rel="stylesheet" href="<?= $css ?>?v=9.8" data-page-css>
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
@@ -45,9 +45,9 @@ $pagina_atual = $pagina_atual ?? 'home';
             </div>
 
             <div class="user-area">
-                <a href="configuracoes" class="header-btn" title="Configurações do Sistema">
+                <button type="button" class="header-btn" title="Configurações do Sistema" onclick="if(window.Common) Common.openSettings();">
                     <i class="fas fa-cog"></i>
-                </a>
+                </button>
                 <?php if ($usuario): ?>
                     <a href="perfil" class="level-badge" id="level-badge" title="Ver Perfil">
                         <span

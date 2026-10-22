@@ -461,14 +461,22 @@ const HomePage = {
     },
 
     renderGoalsWidget() {
-        const container = document.getElementById('goals-container');
-        if (container && typeof Goals !== 'undefined') {
-            Goals.renderWidget('goals-container');
-        }
+        try {
+            const container = document.getElementById('goals-container');
+            if (container && typeof Goals !== 'undefined' && typeof Goals.renderWidget === 'function') {
+                Goals.renderWidget('goals-container');
+            }
 
-        const quoteContainer = document.getElementById('quote-container');
-        if (quoteContainer && typeof Quotes !== 'undefined') {
-            Quotes.render('quote-container');
+            const quoteContainer = document.getElementById('quote-container');
+            if (quoteContainer && typeof Quotes !== 'undefined') {
+                if (typeof Quotes.render === 'function') {
+                    Quotes.render('quote-container');
+                } else if (typeof Quotes.renderWidget === 'function') {
+                    quoteContainer.innerHTML = Quotes.renderWidget();
+                }
+            }
+        } catch (err) {
+            console.warn('[Home] Erro não-bloqueante no widget de metas/quotes:', err);
         }
     },
 

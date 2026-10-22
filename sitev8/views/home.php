@@ -144,9 +144,9 @@
                 <a href="?page=calendario" class="btn btn-secondary btn-sm">
                     <i class="fas fa-calendar-alt"></i> Grade
                 </a>
-                <a href="?page=configuracoes" class="btn btn-secondary btn-sm" title="Abrir Configurações do Sistema">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="if(window.Common) Common.openSettings();" title="Abrir Configurações do Sistema">
                     <i class="fas fa-cog"></i> Ajustes
-                </a>
+                </button>
             </div>
         </div>
     </div>

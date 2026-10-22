@@ -135,8 +135,17 @@ const Quotes = {
                 </div>
             </div>
         `;
+    },
+
+    /**
+     * Render directly into a container element or ID
+     */
+    render(containerId = 'quote-container') {
+        const el = typeof containerId === 'string' ? document.getElementById(containerId) : containerId;
+        if (el) {
+            el.innerHTML = this.renderWidget();
+        }
     }
 };
 
 window.Quotes = Quotes;
-
