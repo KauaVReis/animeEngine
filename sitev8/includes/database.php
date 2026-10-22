@@ -12,7 +12,7 @@
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'animeengine_v7');
+define('DB_NAME', 'animeengine_v8');
 define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
 
 // ============================================================
@@ -131,6 +131,38 @@ function affected_rows_stmt($stmt)
         return mysqli_stmt_affected_rows($stmt);
     }
     return 0;
+}
+
+/**
+ * Executa query parametrizada e retorna o primeiro registro como array associativo (ou null)
+ * ZERO PDO - usa apenas mysqli + bind_param
+ */
+function secure_fetch_one($conn, string $sql, string $types = '', ...$params): ?array
+{
+    $result = secure_query($conn, $sql, $types, ...$params);
+    if ($result instanceof mysqli_result) {
+        $row = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
+        return $row ?: null;
+    }
+    return null;
+}
+
+/**
+ * Executa query parametrizada e retorna todos os registros como lista de arrays associativos
+ * ZERO PDO - usa apenas mysqli + bind_param
+ */
+function secure_fetch_all($conn, string $sql, string $types = '', ...$params): array
+{
+    $result = secure_query($conn, $sql, $types, ...$params);
+    $rows = [];
+    if ($result instanceof mysqli_result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+    return $rows;
 }
 
 // ============================================================
