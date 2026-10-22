@@ -323,3 +323,170 @@ body.fullscreen-mode .sidebar-fix {
         display: none;
     }
 }
+
+
+/* ============================================================
+   MICRO-DOCK PLAYER NEO-BRUTALISTA (DISCRETO & PERSISTENTE)
+   ============================================================ */
+.ost-micro-dock {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    height: 44px;
+    max-width: 330px;
+    background: var(--color-surface);
+    border: 2px solid var(--border-color);
+    box-shadow: 3px 3px 0 var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px 0 6px;
+    z-index: 1045;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+    user-select: none;
+    border-radius: 0;
+}
+
+.ost-micro-dock.hidden {
+    display: none !important;
+}
+
+.ost-micro-dock:hover {
+    box-shadow: 4px 4px 0 var(--border-color);
+    transform: translate(-1px, -1px);
+}
+
+.ost-micro-thumb {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--border-color);
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.ost-micro-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ost-micro-info {
+    flex: 1;
+    min-width: 0;
+    max-width: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.15;
+    cursor: pointer;
+}
+
+.ost-micro-song {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ost-micro-anime {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ost-micro-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.ost-micro-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1.5px solid var(--border-color);
+    box-shadow: 1.5px 1.5px 0 var(--border-color);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: transform 0.1s, background 0.1s;
+    padding: 0;
+}
+
+.ost-micro-btn:hover {
+    background: var(--color-surface);
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0 var(--border-color);
+}
+
+.ost-micro-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0 0 0;
+}
+
+.ost-micro-btn.play-btn {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--border-color);
+}
+
+.ost-micro-btn.play-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Equalizer mini animation when playing */
+.ost-micro-eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 1.5px;
+    height: 10px;
+    margin-right: 2px;
+}
+
+.ost-micro-eq span {
+    width: 2px;
+    height: 100%;
+    background: var(--color-primary);
+    animation: microEq 0.8s ease-in-out infinite alternate;
+}
+
+.ost-micro-eq span:nth-child(2) { animation-delay: 0.2s; }
+.ost-micro-eq span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes microEq {
+    0% { height: 2px; }
+    100% { height: 10px; }
+}
+
+.ost-micro-dock.paused .ost-micro-eq span {
+    animation-play-state: paused;
+    height: 2px;
+}
+
+@media (max-width: 640px) {
+    .ost-micro-dock {
+        bottom: 68px; /* Above bottom nav */
+        right: 12px;
+        max-width: 250px;
+        height: 40px;
+    }
+    .ost-micro-info {
+        max-width: 100px;
+    }
+}

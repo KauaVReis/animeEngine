@@ -249,7 +249,8 @@ const SpaRouter = (function () {
         'js/calendar.js': 'Calendar',
         'js/airing.js': 'Airing',
         'js/timeline.js': 'Timeline',
-        'js/animedata.js': 'ANIME_DATA'
+        'js/animedata.js': 'ANIME_DATA',
+        'js/pages/configuracoes.js': 'ConfiguracoesPage'
     };
 
     function getGlobalObject(globalName) {
@@ -377,7 +378,7 @@ const SpaRouter = (function () {
         for (const href of cssFiles) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = href + '?v=9.4';
+            link.href = href + '?v=9.5';
             link.setAttribute('data-page-css', 'true');
             document.head.appendChild(link);
         }

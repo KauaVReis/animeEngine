@@ -1650,6 +1650,78 @@
     padding: 0;
 }
 
+/* ============================================================
+   GLOBAL TEXT OVERFLOW PROTECTION & CONTAINMENT (v8)
+   Impede que títulos longos, romaji ou sinopses estourem cards/divs
+   ============================================================ */
+p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* Contenção em filhos de Flexbox e Grid */
+.flex-col > *,
+.flex-row > *,
+.card > *,
+.command-card > *,
+.hero-content > *,
+.details-hero > *,
+.anime-card > *,
+.stats-grid > *,
+.character-card > * {
+    min-width: 0;
+}
+
+/* Utilitários de Truncamento */
+.text-truncate,
+.truncate-1 {
+    display: block;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* Contenção estrita em containers e cards */
+.card, .anime-card, .details-card, .command-card, .character-card, 
+.quote-card, .stats-card, .modal-card, .episodes-card, .tier-row,
+.settings-card, .config-card {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.card-title, .anime-title, .hero-title, .section-title, .character-name, .song-title {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.hero-synopsis, .synopsis, .anime-synopsis, .char-bio {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+
 html {
     scroll-behavior: smooth;
 }

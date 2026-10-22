@@ -72,6 +72,7 @@ $rotas = [
     'editar_perfil' => 'views/editar_perfil.php',
     'estatisticas'  => 'views/estatisticas.php',
     'changelog'     => 'views/changelog.php',
+    'configuracoes' => 'views/configuracoes.php',
 ];
 
 $titulos = [
@@ -94,6 +95,7 @@ $titulos = [
     'editar_perfil' => 'Editar Perfil',
     'estatisticas'  => 'Estatísticas',
     'changelog'     => 'Changelog',
+    'configuracoes' => 'Configurações',
 ];
 
 $scripts_por_pagina = [
@@ -111,6 +113,7 @@ $scripts_por_pagina = [
     'tierlist'      => ['https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', 'js/pages/tierlist.js'],
     'titulos'       => ['js/pages/titulos.js'],
     'perfil'        => ['https://cdn.jsdelivr.net/npm/chart.js', 'js/pages/perfil.js'],
+    'configuracoes' => ['js/pages/configuracoes.js'],
 ];
 
 $css_por_pagina = [
@@ -133,6 +136,7 @@ $css_por_pagina = [
     'editar_perfil' => ['css/pages/perfil.css'],
     'ranking'       => ['css/pages/ranking.css'],
     'changelog'     => ['css/pages/changelog.css'],
+    'configuracoes' => ['css/pages/configuracoes.css'],
 ];
 
 // Fallback para home se a rota não existir

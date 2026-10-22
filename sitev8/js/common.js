@@ -1201,6 +1201,33 @@ const Common = {
                     marquee.innerHTML = `⏸️ EM PAUSA: <b>${track.songTitle}</b> — <i>${track.animeTitle}</i>`;
                 }
             }
+
+            // Atualizar Micro-Dock Player Neo-Brutalista (Discreto & Persistente)
+            const microDock = document.getElementById('ost-micro-dock');
+            if (microDock && track) {
+                microDock.style.display = 'inline-flex';
+                microDock.classList.toggle('paused', !isPlaying);
+
+                const songEl = document.getElementById('ost-micro-song');
+                if (songEl) songEl.textContent = track.songTitle || 'Trilha Sonora';
+
+                const animeEl = document.getElementById('ost-micro-anime');
+                if (animeEl) animeEl.textContent = track.animeTitle || 'Rádio AnimeEngine';
+
+                const playIcon = document.getElementById('ost-micro-play-icon');
+                if (playIcon) {
+                    playIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+                }
+
+                const thumbEl = document.getElementById('ost-micro-thumb');
+                if (thumbEl) {
+                    if (track.coverImage || track.animeImage) {
+                        thumbEl.innerHTML = `<img src="${track.coverImage || track.animeImage}" alt="Capa" />`;
+                    } else {
+                        thumbEl.innerHTML = isPlaying ? '<span class="ost-micro-eq"><span></span><span></span><span></span></span>' : '<i class="fas fa-music"></i>';
+                    }
+                }
+            }
         });
 
         // Atualizar status de circuit breaker das APIs
