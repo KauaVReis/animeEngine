@@ -49,7 +49,7 @@ const AssistindoPage = {
             const percent = total ? Math.round((current / total) * 100) : 0;
 
             return `
-                <div class="watching-card" id="anime-card-${anime.anime_id}" onclick="window.location='detalhes.php?id=${anime.anime_id}'">
+                <div class="watching-card" id="anime-card-${anime.anime_id}" onclick="Common.navigate('?page=detalhes&id=${anime.anime_id}')">
                     <div class="watching-image">
                         <img src="${anime.imagem || anime.image}" alt="${anime.titulo}" loading="lazy">
                     </div>
@@ -120,7 +120,7 @@ const AssistindoPage = {
                     <button class="btn btn-primary" onclick="AssistindoPage.confirmEdit(${animeId}, ${total})">Salvar</button>
                 </div>
                 <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                    <a href="detalhes.php?id=${animeId}" class="btn btn-block btn-outline">
+                    <a href="?page=detalhes&id=${animeId}" class="btn btn-block btn-outline">
                         <i class="fas fa-info-circle"></i> Ver Detalhes do Anime
                     </a>
                 </div>
@@ -201,4 +201,11 @@ const AssistindoPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => AssistindoPage.init());
+window.AssistindoPage = AssistindoPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        AssistindoPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => AssistindoPage.init());
+    }
+}

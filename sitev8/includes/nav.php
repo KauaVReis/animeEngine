@@ -1,7 +1,7 @@
 <?php
 /**
  * AnimeEngine v8 - Navigation Include
- * Sidebar e Bottom Nav — links atualizados para Front Controller
+ * Sidebar e Bottom Nav — links atualizados para Front Controller + Rádio & Animdle
  */
 
 $pagina_atual = $pagina_atual ?? 'home';
@@ -19,6 +19,12 @@ function navActive($pagina, $atual)
     </a>
     <a href="explorar" class="nav-item <?= navActive('explorar', $pagina_atual) ?>">
         <i class="fas fa-search"></i><span>Explorar</span>
+    </a>
+    <a href="radio" class="nav-item <?= navActive('radio', $pagina_atual) ?>">
+        <i class="fas fa-broadcast-tower"></i><span>Rádio</span>
+    </a>
+    <a href="animdle" class="nav-item <?= navActive('animdle', $pagina_atual) ?>">
+        <i class="fas fa-music"></i><span>Animdle</span>
     </a>
     <a href="lista" class="nav-item <?= navActive('lista', $pagina_atual) ?>">
         <i class="fas fa-list"></i><span>Minha Lista</span>
@@ -41,6 +47,9 @@ function navActive($pagina, $atual)
     <a href="titulos" class="nav-item <?= navActive('titulos', $pagina_atual) ?>">
         <i class="fas fa-crown"></i><span>Títulos</span>
     </a>
+    <a href="changelog" class="nav-item <?= navActive('changelog', $pagina_atual) ?>">
+        <i class="fas fa-clipboard-list"></i><span>Changelog</span>
+    </a>
     <a href="#" class="nav-item" onclick="goToRandomAnime(); return false;">
         <i class="fas fa-dice"></i><span>Aleatório</span>
     </a>
@@ -58,20 +67,23 @@ function navActive($pagina, $atual)
     <a href="explorar" class="bottom-nav-item <?= navActive('explorar', $pagina_atual) ?>">
         <i class="fas fa-search"></i>
     </a>
-    <a href="lista" class="bottom-nav-item <?= navActive('lista', $pagina_atual) ?>">
-        <i class="fas fa-list"></i>
+    <a href="radio" class="bottom-nav-item <?= navActive('radio', $pagina_atual) ?>" title="Rádio">
+        <i class="fas fa-broadcast-tower"></i>
     </a>
-    <a href="calendario" class="bottom-nav-item <?= navActive('calendario', $pagina_atual) ?>">
-        <i class="fas fa-calendar-alt"></i>
+    <a href="animdle" class="bottom-nav-item <?= navActive('animdle', $pagina_atual) ?>" title="Animdle">
+        <i class="fas fa-music"></i>
     </a>
     <div class="bottom-nav-item bottom-nav-more" onclick="Common.toggleBottomNavMore()">
         <i class="fas fa-ellipsis-h"></i>
         <div class="bottom-nav-popup" id="bottom-nav-popup">
+            <a href="lista"><i class="fas fa-list"></i> Minha Lista</a>
+            <a href="calendario"><i class="fas fa-calendar-alt"></i> Calendário</a>
             <a href="favoritos"><i class="fas fa-star"></i> Favoritos</a>
             <a href="assistindo"><i class="fas fa-play-circle"></i> Assistindo</a>
             <a href="calculadora"><i class="fas fa-calculator"></i> Calculadora</a>
             <a href="estatisticas"><i class="fas fa-chart-bar"></i> Estatísticas</a>
             <a href="titulos"><i class="fas fa-crown"></i> Títulos</a>
+            <a href="changelog"><i class="fas fa-clipboard-list"></i> Changelog</a>
             <a href="#" onclick="goToRandomAnime(); return false;"><i class="fas fa-dice"></i> Aleatório</a>
             <hr style="margin: 5px 0; border: 0; border-top: 1px solid var(--border-color);">
             <?php if (isset($usuario) && $usuario): ?>

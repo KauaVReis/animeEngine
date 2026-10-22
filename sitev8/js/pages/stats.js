@@ -176,7 +176,7 @@ const StatsPage = {
         }
         
         return animes.map((anime, i) => `
-            <div class="top-rated-item" onclick="window.location='detalhes.php?id=${anime.id}'">
+            <div class="top-rated-item" onclick="Common.navigate('?page=detalhes&id=${anime.id}')">
                 <span class="top-rated-rank">#${i + 1}</span>
                 <img src="${anime.image}" alt="${anime.title}">
                 <div class="top-rated-info">
@@ -190,5 +190,11 @@ const StatsPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => StatsPage.init());
-
+window.StatsPage = StatsPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        StatsPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => StatsPage.init());
+    }
+}

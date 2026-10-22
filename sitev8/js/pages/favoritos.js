@@ -43,7 +43,7 @@ const FavoritosPage = {
         if (emptyState) emptyState.style.display = 'none';
 
         container.innerHTML = this.animes.map(anime => `
-            <div class="fav-card" onclick="window.location='detalhes.php?id=${anime.anime_id}'">
+            <div class="fav-card" onclick="Common.navigate('?page=detalhes&id=${anime.anime_id}')">
                 <div class="fav-image">
                     <img src="${anime.imagem}" alt="${anime.titulo}" loading="lazy">
                     <div class="fav-overlay">
@@ -70,4 +70,11 @@ const FavoritosPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => FavoritosPage.init());
+window.FavoritosPage = FavoritosPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        FavoritosPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => FavoritosPage.init());
+    }
+}

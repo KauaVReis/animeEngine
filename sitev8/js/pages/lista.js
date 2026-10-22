@@ -83,7 +83,7 @@ const ListaPage = {
 
             if (container) {
                 container.innerHTML = animes.map(anime => `
-                    <div class="kanban-card" data-id="${anime.anime_id}" data-status="${col}" onclick="if(!window.isDragging) window.location='detalhes.php?id=${anime.anime_id}'">
+                    <div class="kanban-card" data-id="${anime.anime_id}" data-status="${col}" onclick="if(!window.isDragging) Common.navigate('?page=detalhes&id=${anime.anime_id}')">
                         <img src="${anime.imagem}" alt="${anime.titulo}" draggable="false" loading="lazy">
                         <div class="kanban-card-info">
                             <h4 class="kanban-card-title">${anime.titulo}</h4>
@@ -161,5 +161,11 @@ const ListaPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => ListaPage.init());
-
+window.ListaPage = ListaPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        ListaPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => ListaPage.init());
+    }
+}

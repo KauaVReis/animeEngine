@@ -157,11 +157,9 @@ const DetalhesPage = {
                                 <i class="fas fa-external-link-alt"></i> Links
                             </button>
                             
-                            ${anime.trailer ? `
-                                <button class="btn btn-secondary" onclick="DetalhesPage.playOpening()" title="Ouvir Opening">
-                                    <i class="fas fa-music"></i> Opening
+                            <button class="btn btn-secondary" onclick="DetalhesPage.playOpening()" title="Ouvir Openings & Endings Reais">
+                                    <i class="fas fa-music"></i> Openings / Endings
                                 </button>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -619,7 +617,7 @@ const DetalhesPage = {
                 const node = item.node;
                 const role = item.staffRole;
                 return `
-                <a href="detalhes.php?id=${node.id}" class="char-anime-link" title="${node.title.romaji}">
+                <a href="?page=detalhes&id=${node.id}" class="char-anime-link" title="${node.title.romaji}">
                     <img src="${node.coverImage.medium}" alt="${node.title.romaji}">
                     <span style="display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${node.title.romaji}</span>
                     <small style="display:block; font-size: 0.65rem; color: var(--color-primary); width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${role}">${role}</small>
@@ -1019,7 +1017,7 @@ const DetalhesPage = {
                         node.format === 'NOVEL' ? '📚' : '🎬';
 
                 grid.innerHTML += `
-                    <div class="relation-card" onclick="window.location.href='detalhes.php?id=${node.id}'" style="cursor: pointer;">
+                    <div class="relation-card" onclick="Common.navigate('?page=detalhes&id=${node.id}')" style="cursor: pointer;">
                         <div class="relation-icon">${typeIcon}</div>
                         <div class="relation-info">
                             <div class="relation-type">${relationType}</div>
@@ -1262,7 +1260,7 @@ const DetalhesPage = {
             <div class="error-container">
                 <i class="fas fa-exclamation-triangle"></i>
                 <p>${message}</p>
-                <a href="index.php" class="btn btn-primary">Voltar</a>
+                <a href="home" class="btn btn-primary">Voltar</a>
             </div>
         `;
     },
@@ -1347,7 +1345,7 @@ const DetalhesPage = {
             // We use the media pairs we already have. 
             // In v5 it was "Aparece em".
             const animeList = char.media && char.media.edges ? char.media.edges.slice(0, 12).map(edge => `
-                <a href="detalhes.php?id=${edge.node.id}" class="char-anime-link" title="${edge.node.title.romaji}">
+                <a href="?page=detalhes&id=${edge.node.id}" class="char-anime-link" title="${edge.node.title.romaji}">
                     <img src="${edge.node.coverImage.medium}" alt="${edge.node.title.romaji}">
                     <span>${edge.node.title.romaji}</span>
                 </a>
@@ -1460,34 +1458,66 @@ const DetalhesPage = {
     /**
      * Play anime opening using OST Player
      */
-    playOpening() {
+    async playOpening(preferredSlug = null) {
         const anime = this.anime;
-        if (!anime || !anime.trailer) {
-            Common.showNotification('Opening não disponível', 'error');
-            return;
+        if (!anime) return;
+
+        if (typeof MusicService !== 'undefined' && typeof OSTPlayer !== 'undefined') {
+            Common.showToast('🎵 Consultando Openings e Endings na AnimeThemes...');
+            const { themes, trailerFallback } = await MusicService.getThemesByAnimeId(this.animeId, anime);
+
+            if (themes && themes.length > 0) {
+                let startIdx = 0;
+                if (preferredSlug) {
+                    const foundIdx = themes.findIndex(t => t.themeSlug === preferredSlug);
+                    if (foundIdx >= 0) startIdx = foundIdx;
+                }
+                OSTPlayer.setQueue(themes, startIdx);
+                await OSTPlayer.playTrack(themes[startIdx], false);
+
+                // Se houver múltiplos temas e o usuário clicou no botão principal, mostrar seletor
+                if (!preferredSlug && themes.length > 1) {
+                    const listHtml = themes.map((t, idx) => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border:2px solid var(--border-color); background:var(--color-bg); margin-bottom:8px;">
+                            <div>
+                                <span style="background:var(--color-primary); color:#fff; font-weight:700; padding:2px 6px; font-size:0.75rem; margin-right:6px;">${t.themeSlug}</span>
+                                <strong>${t.songTitle}</strong>
+                                <div style="font-size:0.8rem; color:var(--color-text-muted);">${t.artist} • ${t.resolution || 720}p${t.nc ? ' NC' : ''}</div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="OSTPlayer.playQueueAt(${idx}); Common.closeModal();">
+                                <i class="fas fa-play"></i> Tocar
+                            </button>
+                        </div>
+                    `).join('');
+                    Common.openModal(`
+                        <p style="margin-bottom:12px; color:var(--color-text-muted);">Reproduzindo <strong>${themes[startIdx].themeSlug} — ${themes[startIdx].songTitle}</strong> no player inferior. Todas as ${themes.length} faixas foram adicionadas à fila:</p>
+                        <div style="max-height:340px; overflow-y:auto;">${listHtml}</div>
+                        <div style="margin-top:12px; text-align:right;">
+                            <button class="btn btn-secondary btn-sm" onclick="Common.navigate('radio')">
+                                <i class="fas fa-broadcast-tower"></i> Abrir na Rádio
+                            </button>
+                        </div>
+                    `, { title: `🎵 Temas de ${anime.title}` });
+                }
+                return;
+            }
+
+            if (trailerFallback) {
+                Common.showToast('⚠️ OP/ED não catalogada na AnimeThemes. Reproduzindo Trailer (PV) como alternativa.');
+                await OSTPlayer.playTrack(trailerFallback);
+                return;
+            }
         }
 
-        // Extract video ID from YouTube URL
-        let videoId = null;
-        const trailer = anime.trailer;
-
-        if (trailer.includes('youtube.com/watch?v=')) {
-            videoId = trailer.split('watch?v=')[1].split('&')[0];
-        } else if (trailer.includes('youtube.com/embed/')) {
-            videoId = trailer.split('embed/')[1].split('?')[0];
-        } else if (trailer.includes('youtu.be/')) {
-            videoId = trailer.split('youtu.be/')[1].split('?')[0];
-        }
-
-        if (videoId && typeof OSTPlayer !== 'undefined') {
-            OSTPlayer.play(videoId, anime.title + ' - Opening');
-        } else {
-            // Fallback: search for opening on YouTube
-            const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(anime.title + ' opening full')}`;
-            window.open(searchUrl, '_blank');
-        }
+        Common.showNotification('Nenhuma Opening/Ending disponível para este anime.', 'error');
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => DetalhesPage.init());
-
+window.DetalhesPage = DetalhesPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        DetalhesPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => DetalhesPage.init());
+    }
+}

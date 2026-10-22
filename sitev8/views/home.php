@@ -41,7 +41,7 @@
 <section class="anime-section" id="section-radio">
     <div class="section-header">
         <h2 class="section-title"><i class="fas fa-headphones-alt"></i> Rádio & Trilhas Sonoras</h2>
-        <a href="?page=explorar" class="section-link">Sintonizar →</a>
+        <a href="radio" class="section-link">Abrir Rádio Completa →</a>
     </div>
     <div class="carousel ost-carousel" style="display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: 20px;">
         <!-- Cards de OST Premium -->

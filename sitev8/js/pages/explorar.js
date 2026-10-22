@@ -474,7 +474,7 @@ const ExplorePage = {
         animes.forEach(anime => {
             const card = document.createElement('div');
             card.className = 'anime-card';
-            card.onclick = () => window.location = `detalhes.php?id=${anime.id}`;
+            card.onclick = () => Common.navigate(`?page=detalhes&id=${anime.id}`);
 
             card.innerHTML = `
                 <div class="anime-card-image">
@@ -515,9 +515,11 @@ const ExplorePage = {
     }
 };
 
-// Inicializar
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    ExplorePage.init();
-} else {
-    document.addEventListener('DOMContentLoaded', () => ExplorePage.init());
+window.ExplorePage = ExplorePage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        ExplorePage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => ExplorePage.init());
+    }
 }

@@ -100,7 +100,7 @@ const Airing = {
     createAiringCard(anime) {
         const next = anime.nextAiringEpisode;
         return `
-            <div class="airing-card" onclick="window.location='detalhes.php?id=${anime.id}'">
+            <div class="airing-card" onclick="Common.navigate('?page=detalhes&id=${anime.id}')">
                 <div class="airing-card-image">
                     <img src="${anime.image}" alt="${anime.title}">
                     <div class="airing-badge">EP ${next.episode}</div>
@@ -167,3 +167,4 @@ document.addEventListener('DOMContentLoaded', () => {
         Airing.init();
     }
 });
+window.Airing = Airing;

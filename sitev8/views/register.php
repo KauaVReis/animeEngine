@@ -219,7 +219,7 @@
                     
                     // Redirecionar para login
                     setTimeout(() => {
-                        window.location.href = 'login.php';
+                        window.location.href = 'login';
                     }, 1500);
                 } else {
                     message.className = 'auth-message error';

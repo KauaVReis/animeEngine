@@ -3,50 +3,36 @@
     <div id="modal-container"></div>
     
     <!-- SCRIPTS -->
-    <script src="js/api-client.js"></script>
-    <script src="js/translation.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/themes.js"></script>
-    <script src="js/achievements.js"></script>
-    <script src="js/notifications.js"></script>
-    <script src="js/goals.js"></script>
-    <script src="js/quotes.js"></script>
-    <script src="js/particles.js"></script>
-    <script src="js/ost-player.js"></script>
-    <script src="js/core/spa-router.js"></script>
-    <script src="js/common.js"></script>
+    <script src="js/api-client.js?v=9.0"></script>
+    <script src="js/translation.js?v=9.0"></script>
+    <script src="js/api.js?v=9.0"></script>
+    <script src="js/storage.js?v=9.0"></script>
+    <script src="js/themes.js?v=9.0"></script>
+    <script src="js/achievements.js?v=9.0"></script>
+    <script src="js/notifications.js?v=9.0"></script>
+    <script src="js/goals.js?v=9.0"></script>
+    <script src="js/quotes.js?v=9.0"></script>
+    <script src="js/particles.js?v=9.0"></script>
+    <script src="js/services/music-service.js?v=9.0"></script>
+    <script src="js/ost-player.js?v=9.0"></script>
+    <script src="js/core/spa-router.js?v=9.0"></script>
+    <script src="js/common.js?v=9.0"></script>
     <script>
-        // Random anime function (v8 - SPA navigation)
+        // Random anime function (v8 - SPA navigation + API fallback resilience)
         async function goToRandomAnime() {
-            const query = `
-                query {
-                    Page(page: 1, perPage: 50) {
-                        media(type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
-                            id
-                        }
-                    }
-                }
-            `;
-            
             try {
-                const response = await fetch('https://graphql.anilist.co', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query })
-                });
-                
-                const data = await response.json();
-                const animes = data.data?.Page?.media || [];
-                
-                if (animes.length > 0) {
-                    const random = animes[Math.floor(Math.random() * animes.length)];
-                    const url = '?page=detalhes&id=' + random.id;
-                    // Usar SPA Router se disponível, senão fallback
-                    if (typeof SpaRouter !== 'undefined') {
-                        SpaRouter.navigateTo(url);
-                    } else {
-                        window.location.href = url;
+                if (typeof API !== 'undefined' && API.getRandomAnime) {
+                    const random = await API.getRandomAnime();
+                    if (random && random.id) {
+                        const url = '?page=detalhes&id=' + random.id;
+                        if (typeof Common !== 'undefined' && Common.navigate) {
+                            Common.navigate(url);
+                        } else if (typeof SpaRouter !== 'undefined') {
+                            SpaRouter.navigateTo(url);
+                        } else {
+                            window.location.href = url;
+                        }
+                        return;
                     }
                 }
             } catch (e) {
@@ -56,7 +42,7 @@
     </script>
     <?php if (isset($scripts_pagina)): ?>
         <?php foreach ($scripts_pagina as $script): ?>
-            <script src="<?= $script ?>"></script>
+            <script src="<?= strpos($script, 'http') === 0 ? $script : $script . '?v=9.0' ?>" data-spa-page-script="<?= $script ?>"></script>
         <?php endforeach; ?>
     <?php endif; ?>
 </body>

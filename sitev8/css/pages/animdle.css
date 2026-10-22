@@ -1,0 +1,507 @@
+/* ============================================================
+   AnimeEngine v8 - Animdle / Music Quiz (Neo-Brutalist Style)
+   ============================================================ */
+
+.animdle-page-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 100px;
+}
+
+.animdle-header-card,
+.animdle-arena-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    padding: 22px 24px;
+}
+
+.animdle-header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.animdle-tag {
+    display: inline-block;
+    background: var(--color-secondary);
+    color: #0a0a0f;
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border: 2px solid var(--border-color);
+    margin-bottom: 6px;
+}
+
+.animdle-main-title {
+    margin: 0;
+    font-size: 1.75rem;
+}
+
+.animdle-subtitle-inline {
+    font-size: 0.95rem;
+    color: var(--color-primary);
+}
+
+.animdle-desc {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.animdle-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.animdle-header-actions .btn-sm {
+    width: auto;
+    height: 36px;
+    padding: 6px 12px;
+    white-space: nowrap;
+    font-size: 0.75rem;
+}
+
+.animdle-mode-switch {
+    display: flex;
+    gap: 4px;
+}
+
+.animdle-mode-btn {
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 2px solid var(--border-color);
+    box-shadow: 2px 2px 0 var(--border-color);
+    padding: 7px 12px;
+    height: 36px;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.animdle-mode-btn.active {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #ffffff);
+}
+
+/* STATUS BAR (VIDAS + TEMPO) */
+.animdle-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.status-label {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    margin-right: 6px;
+}
+
+.animdle-hearts {
+    font-size: 1.25rem;
+    letter-spacing: 3px;
+}
+
+.unlock-badge {
+    background: var(--color-secondary);
+    color: #000;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    border: 2px solid var(--border-color);
+}
+
+/* PALCO CENTRAL: CAPA BORRADA + REPRODUTOR DE SNIPPET */
+.animdle-stage-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 22px;
+}
+
+.animdle-cover-frame {
+    position: relative;
+    width: 200px;
+    height: 270px;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    overflow: hidden;
+    background: #111;
+}
+
+.animdle-cover-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter 0.45s ease, transform 0.45s ease;
+}
+
+.animdle-cover-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 3px 3px 0 #000;
+    pointer-events: none;
+}
+
+.animdle-player-box {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: var(--color-bg);
+    border: 2px solid var(--border-color);
+    padding: 20px;
+}
+
+.animdle-visualizer-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+    height: 46px;
+}
+
+.animdle-visualizer-bars .v-bar {
+    width: 10px;
+    height: 10px;
+    background: var(--color-primary);
+    border: 1px solid var(--border-color);
+    transition: height 0.2s ease;
+}
+
+.animdle-visualizer-bars.playing .v-bar {
+    animation: animdleBounce 0.6s ease-in-out infinite alternate;
+}
+
+.animdle-visualizer-bars.playing .v-bar:nth-child(2n) { animation-duration: 0.42s; background: var(--color-secondary); }
+.animdle-visualizer-bars.playing .v-bar:nth-child(3n) { animation-duration: 0.75s; background: var(--color-primary); }
+
+@keyframes animdleBounce {
+    from { height: 8px; }
+    to { height: 44px; }
+}
+
+.animdle-progress-track {
+    position: relative;
+    height: 18px;
+    background: var(--color-surface);
+    border: 2px solid var(--border-color);
+    overflow: hidden;
+}
+
+.animdle-progress-unlocked {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: rgba(128, 128, 128, 0.25);
+    transition: width 0.3s ease;
+}
+
+.animdle-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: var(--color-primary);
+}
+
+.step-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-color);
+    z-index: 2;
+}
+
+.animdle-time-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    margin-top: 6px;
+}
+
+.animdle-play-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.animdle-play-btn {
+    width: 56px;
+    height: 56px;
+    background: var(--color-primary);
+    color: var(--color-on-primary, #ffffff);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    font-size: 1.3rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.14s ease;
+}
+
+.animdle-play-btn:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-neo-hover);
+}
+
+.animdle-play-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.animdle-status-msg {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+/* AUTOCOMPLETE E BOTÃO PULAR */
+.animdle-input-row {
+    display: flex;
+    gap: 12px;
+}
+
+.animdle-autocomplete-wrap {
+    position: relative;
+    flex: 1;
+}
+
+.animdle-guess-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: var(--border-width) solid var(--border-color);
+}
+
+.animdle-suggestions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    z-index: 50;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.animdle-suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.animdle-suggestion-item:hover {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #ffffff);
+}
+
+.animdle-suggestion-item img {
+    width: 36px;
+    height: 48px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+.sug-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.sug-year {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* TENTATIVAS */
+.animdle-attempts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.animdle-attempt-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--color-bg);
+    border: 2px solid var(--border-color);
+    font-weight: 700;
+}
+
+.animdle-attempt-item.status-correct {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.animdle-attempt-item.status-wrong {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+/* CARD DE RESULTADO */
+.animdle-result-card {
+    margin-top: 22px;
+    padding: 20px;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    background: var(--color-bg);
+    text-align: center;
+}
+
+.result-heading {
+    margin: 0 0 8px;
+    font-family: var(--font-display);
+}
+
+.result-anime-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0 0 8px;
+}
+
+.result-song-info {
+    margin: 0 0 16px;
+}
+
+.result-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* MODAL DE ARQUIVO / CALENDÁRIO */
+.animdle-calendar-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.animdle-calendar-box {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    padding: 20px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.calendar-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.calendar-box-header h3 {
+    margin: 0;
+    font-family: var(--font-display);
+}
+
+.calendar-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.6rem;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.calendar-month-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.animdle-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    text-align: center;
+}
+
+.cal-day-head {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    padding: 4px;
+}
+
+.cal-day-cell {
+    padding: 8px 4px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 2px solid var(--border-color);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cal-day-cell.completed {
+    background: #22c55e;
+    color: #000;
+}
+
+.cal-day-cell.selected {
+    border-color: var(--color-primary);
+    box-shadow: 2px 2px 0 var(--color-primary);
+}
+
+.cal-day-cell.future {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+@media (max-width: 680px) {
+    .animdle-stage-row {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+    .animdle-player-box {
+        width: 100%;
+    }
+    .animdle-input-row {
+        flex-direction: column;
+    }
+}

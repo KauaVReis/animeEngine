@@ -141,4 +141,11 @@ const TitulosPage = {
     }
 };
 
-document.addEventListener('DOMContentLoaded', () => TitulosPage.init());
+window.TitulosPage = TitulosPage;
+if (!window.__SPA_MANAGED_LOAD__) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        TitulosPage.init();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => TitulosPage.init());
+    }
+}
