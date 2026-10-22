@@ -463,8 +463,12 @@ const HomePage = {
     renderGoalsWidget() {
         try {
             const container = document.getElementById('goals-container');
-            if (container && typeof Goals !== 'undefined' && typeof Goals.renderWidget === 'function') {
-                Goals.renderWidget('goals-container');
+            if (container && typeof Goals !== 'undefined') {
+                if (typeof Goals.render === 'function') {
+                    Goals.render('goals-container');
+                } else if (typeof Goals.renderWidget === 'function') {
+                    container.innerHTML = Goals.renderWidget();
+                }
             }
 
             const quoteContainer = document.getElementById('quote-container');

@@ -379,7 +379,7 @@ const SpaRouter = (function () {
         for (const href of cssFiles) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = href + '?v=9.8';
+            link.href = href + '?v=10.1';
             link.setAttribute('data-page-css', 'true');
             document.head.appendChild(link);
         }

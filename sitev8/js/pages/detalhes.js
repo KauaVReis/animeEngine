@@ -78,9 +78,12 @@ const DetalhesPage = {
                         </div>
                         
                         <!-- RATING STARS -->
-                        <div class="details-rating-box" style="margin-top: 10px; width: 100%; justify-content: center;">
-                            <span class="rating-label">Sua Nota:</span>
-                            <div class="rating-stars" id="rating-stars">
+                        <div class="details-rating-box">
+                            <div class="details-rating-header">
+                                <span class="rating-label">Sua Nota:</span>
+                                <span class="rating-val-badge" id="rating-val-badge">${userAnime?.rating ? userAnime.rating + ' / 10' : '- / 10'}</span>
+                            </div>
+                            <div class="rating-stars" id="rating-stars" title="Avaliar de 1 a 10 estrelas">
                                 ${this.renderStars(userAnime?.rating || 0)}
                             </div>
                         </div>
@@ -102,7 +105,7 @@ const DetalhesPage = {
                             <span class="details-badge badge-format"><i class="fas fa-tv"></i> ${anime.format || 'TV'}</span>
                             <span class="details-badge badge-status"><i class="fas fa-signal"></i> ${anime.status}</span>
                             <span class="details-badge"><i class="fas fa-layer-group"></i> ${anime.episodes || anime.total_episodes || '?'} eps</span>
-                            <span class="details-badge"><i class="fas fa-clock"></i> ${anime.duration || '24 min'}</span>
+                            <span class="details-badge"><i class="fas fa-clock"></i> ${anime.duration ? `${anime.duration} min` : '24 min'}</span>
                             <span class="details-badge"><i class="fas fa-calendar"></i> ${anime.year || '-'}</span>
                         </div>
 
@@ -246,7 +249,7 @@ const DetalhesPage = {
                             </div>
                             <div class="tech-info-item">
                                 <span class="tech-info-label">Duração Média</span>
-                                <span class="tech-info-value">${anime.duration || '24 min'}</span>
+                                <span class="tech-info-value">${anime.duration ? `${anime.duration} min` : '24 min'}</span>
                             </div>
                             <div class="tech-info-item">
                                 <span class="tech-info-label">Fonte Original</span>
@@ -1387,6 +1390,8 @@ const DetalhesPage = {
 
             // Atualizar UI
             document.getElementById('rating-stars').innerHTML = this.renderStars(rating);
+            const badge = document.getElementById('rating-val-badge');
+            if (badge) badge.innerText = `${rating} / 10`;
             Common.updateLevelBadge();
         }
     },

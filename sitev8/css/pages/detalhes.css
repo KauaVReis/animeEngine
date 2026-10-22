@@ -207,26 +207,71 @@
 }
 
 .details-rating-box {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    background: var(--color-bg);
-    border: 2px solid var(--border-color);
+    gap: 6px;
+    padding: 8px 10px;
+    margin-top: 10px;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
     box-shadow: var(--shadow-neo-sm);
-    font-size: 0.8rem;
-    font-weight: 700;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 0;
 }
 
-.rating-stars {
-    display: inline-flex;
-    gap: 3px;
-    color: #eab308;
+.details-rating-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+}
+
+.details-rating-box .rating-label {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--color-text);
+}
+
+.rating-val-badge {
+    background: var(--color-primary);
+    color: var(--color-white, #ffffff);
+    padding: 2px 7px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    font-family: var(--font-mono, monospace);
+    border: 1.5px solid var(--border-color);
+    box-shadow: 1px 1px 0 var(--border-color);
+}
+
+.details-rating-box .rating-stars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 100%;
     cursor: pointer;
 }
 
-.rating-stars i:hover {
-    transform: scale(1.2);
+.details-rating-box .rating-stars .star-btn {
+    font-size: 0.95rem !important; /* Tamanho proporcional que não vaza do card */
+    padding: 2px 1px;
+    color: var(--color-text-muted);
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.details-rating-box .rating-stars .star-btn.filled {
+    color: #eab308 !important;
+}
+
+.details-rating-box .rating-stars .star-btn:hover {
+    transform: scale(1.25);
+    color: #facc15 !important;
 }
 
 /* ============================================================
@@ -734,22 +779,48 @@
 
     .details-content {
         margin-top: -80px;
-        padding: 0 8px;
+        padding: 0 10px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .details-header-card {
+        padding: var(--space-md);
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .details-title {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+        word-break: break-word;
     }
 
     .details-tabs-bar {
         top: 60px;
         padding: 4px;
         gap: 4px;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .details-tabs-bar::-webkit-scrollbar {
+        display: none;
     }
 
     .details-tab-btn {
-        padding: 8px 10px;
+        padding: 8px 12px;
         font-size: 0.75rem;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .details-rating-box .rating-stars .star-btn {
+        font-size: 0.9rem !important;
+        padding: 2px 1px;
     }
 
     .jukebox-grid {
@@ -759,4 +830,140 @@
     .characters-grid {
         grid-template-columns: 1fr;
     }
+
+    .timeline-wrapper {
+        padding-left: 24px !important;
+    }
+
+    .timeline-card {
+        padding: 6px 8px !important;
+    }
+
+    .timeline-card img {
+        width: 38px !important;
+        height: 54px !important;
+    }
+}
+
+/* ============================================================
+   10. TIMELINE DE FRANQUIAS (SCOPED & RESPONSIVE)
+   ============================================================ */
+.details-page-wrapper,
+.details-content,
+.details-tab-panel,
+.details-card {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.timeline-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: var(--space-sm) !important;
+    padding-left: 28px !important;
+    position: relative;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.timeline-wrapper::before {
+    content: '';
+    position: absolute;
+    left: 12px !important;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    background: var(--color-primary);
+}
+
+.timeline-item {
+    display: flex !important;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    position: relative;
+    padding-left: 0 !important;
+    padding-bottom: var(--space-md);
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: var(--space-sm) !important;
+}
+
+.timeline-marker {
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    border: 3px solid var(--color-surface);
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+    margin-left: -26px !important;
+    box-shadow: 0 0 0 2px var(--color-bg);
+}
+
+.timeline-content {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.timeline-type {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    background: var(--color-bg);
+    padding: 2px 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--space-xs);
+    box-shadow: 2px 2px 0 var(--border-color);
+}
+
+.timeline-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 8px 10px;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo-sm);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.timeline-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-neo);
+}
+
+.timeline-card img {
+    width: 44px;
+    height: 62px;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.timeline-info {
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+.timeline-title {
+    font-weight: 800;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline-meta {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    margin-top: 4px;
 }

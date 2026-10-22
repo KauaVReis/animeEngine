@@ -87,7 +87,7 @@ function navActive($pagina, $atual)
             <a href="estatisticas"><i class="fas fa-chart-bar"></i> Estatísticas</a>
             <a href="titulos"><i class="fas fa-crown"></i> Títulos</a>
             <a href="changelog"><i class="fas fa-clipboard-list"></i> Changelog</a>
-            <a href="configuracoes"><i class="fas fa-cog"></i> Configurações</a>
+            <a href="javascript:void(0)" onclick="Common.openSettings(); Common.toggleBottomNavMore(); return false;"><i class="fas fa-cog"></i> Configurações</a>
             <a href="#" onclick="goToRandomAnime(); return false;"><i class="fas fa-dice"></i> Aleatório</a>
             <hr style="margin: 5px 0; border: 0; border-top: 1px solid var(--border-color);">
             <?php if (isset($usuario) && $usuario): ?>
