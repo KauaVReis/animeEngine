@@ -42,7 +42,13 @@ const DetalhesPage = {
             }
 
             // Atualizar título da página
-            document.title = `${this.anime.title} - ANIME.ENGINE v6`;
+            document.title = `${this.anime.title} - ANIME.ENGINE v8`;
+
+            // Ativar aba por hash se presente
+            const initialHash = (window.location.hash || '').replace('#', '');
+            if (initialHash) {
+                this.switchTab(initialHash, false);
+            }
         } catch (error) {
             console.error('Erro ao carregar anime:', error);
             this.showError('Erro ao carregar anime');
@@ -58,67 +64,70 @@ const DetalhesPage = {
 
         container.innerHTML = `
             <!-- HERO -->
-            <div class="details-hero" style="background-image: url('${anime.banner}')">
+            <div class="details-hero" style="background-image: url('${anime.banner || anime.image}')">
                 <div class="details-hero-overlay"></div>
             </div>
             
-            <!-- MAIN INFO -->
+            <!-- MAIN CONTENT WRAPPER -->
             <div class="details-content">
-                <div class="details-header">
-                    <div class="details-cover">
-                        <img src="${anime.image}" alt="${anime.title}">
-                    </div>
-                    <div class="details-info">
-                        <h1 class="details-title">${anime.title}</h1>
-                        ${anime.titleEnglish ? `<p class="details-alt-title">${anime.titleEnglish}</p>` : ''}
-                        
-                        <div class="details-score">
-                            <i class="fas fa-star"></i>
-                            <span class="score-value">${anime.score || '-'}</span>
-                            <span class="score-label">/ 10</span>
+                <!-- HEADER CARD -->
+                <div class="details-header-card">
+                    <div class="details-cover-wrapper">
+                        <div class="details-cover">
+                            <img src="${anime.image}" alt="${anime.title}">
                         </div>
                         
-                        <div class="details-meta">
-                            <span><i class="fas fa-tv"></i> ${anime.episodes || anime.total_episodes || '?'} episódios</span>
-                            <span><i class="fas fa-clock"></i> ${anime.duration || '24 min'}</span>
-                            <span><i class="fas fa-signal"></i> ${anime.status}</span>
-                            <span><i class="fas fa-calendar"></i> ${anime.year || '-'}</span>
-                        </div>
-                        
-                        <div class="details-genres">
-                            ${anime.genres.map(g => `<span class="genre-tag">${g}</span>`).join('')}
+                        <!-- RATING STARS -->
+                        <div class="details-rating-box" style="margin-top: 10px; width: 100%; justify-content: center;">
+                            <span class="rating-label">Sua Nota:</span>
+                            <div class="rating-stars" id="rating-stars">
+                                ${this.renderStars(userAnime?.rating || 0)}
+                            </div>
                         </div>
 
-                        <!-- AIRING STATUS -->
-                        ${anime.nextAiringEpisode ? `
-                            <div class="airing-status" id="airing-status">
-                                <div class="pulse-dot"></div>
-                                <span>Ep ${anime.nextAiringEpisode.episode} em: </span>
-                                <span class="countdown-timer" id="countdown-timer">Carregando...</span>
-                            </div>
-                        ` : ''}
-                        
                         <!-- STATUS BADGE -->
                         ${listType ? `
-                            <div class="details-current-status">
+                            <div class="details-current-status" style="margin-top: 8px; text-align: center;">
                                 <span class="status-badge status-${listType}">
                                     ${this.getStatusLabel(listType)}
                                 </span>
                             </div>
                         ` : ''}
-                        
-                        <!-- RATING STARS -->
-                        <div class="details-rating">
-                            <span class="rating-label">Sua Avaliação:</span>
-                            <div class="rating-stars" id="rating-stars">
-                                ${this.renderStars(userAnime?.rating || 0)}
-                            </div>
+                    </div>
+
+                    <div class="details-main-info">
+                        <!-- TOP BADGES -->
+                        <div class="details-top-badges">
+                            <span class="details-badge badge-score"><i class="fas fa-star"></i> ${anime.score || '-'} / 10</span>
+                            <span class="details-badge badge-format"><i class="fas fa-tv"></i> ${anime.format || 'TV'}</span>
+                            <span class="details-badge badge-status"><i class="fas fa-signal"></i> ${anime.status}</span>
+                            <span class="details-badge"><i class="fas fa-layer-group"></i> ${anime.episodes || anime.total_episodes || '?'} eps</span>
+                            <span class="details-badge"><i class="fas fa-clock"></i> ${anime.duration || '24 min'}</span>
+                            <span class="details-badge"><i class="fas fa-calendar"></i> ${anime.year || '-'}</span>
                         </div>
-                        
-                        <div class="details-actions">
+
+                        <h1 class="details-title">${anime.title}</h1>
+                        ${anime.titleEnglish ? `<p class="details-alt-title">${anime.titleEnglish}</p>` : ''}
+
+                        <!-- AIRING STATUS BANNER -->
+                        ${anime.nextAiringEpisode ? `
+                            <div class="details-airing-banner" id="airing-status">
+                                <div class="pulse-dot"></div>
+                                <span>Episódio ${anime.nextAiringEpisode.episode} estreia em: </span>
+                                <span class="countdown-timer" id="countdown-timer" style="color: #22c55e;">Carregando...</span>
+                            </div>
+                        ` : ''}
+
+                        <!-- GENRES -->
+                        <div class="details-genres-row">
+                            ${(anime.genres || []).map(g => `<span class="genre-tag">${g}</span>`).join('')}
+                        </div>
+
+                        <!-- ACTIONS BAR -->
+                        <div class="details-actions-bar">
                             <div class="dropdown">
                                 <button class="btn btn-primary dropdown-toggle" onclick="DetalhesPage.toggleDropdown()">
-                                    <i class="fas fa-list"></i> ${listType ? 'Mover para' : 'Adicionar'}
+                                    <i class="fas fa-list"></i> ${listType ? 'Mover para' : 'Adicionar à Lista'}
                                 </button>
                                 <div class="dropdown-menu" id="list-dropdown">
                                     <button class="${listType === 'watching' ? 'active' : ''}" onclick="DetalhesPage.addToList('watching')">📺 Assistindo</button>
@@ -133,184 +142,269 @@ const DetalhesPage = {
                             <button class="btn ${isFav ? 'btn-danger' : 'btn-secondary'}" onclick="DetalhesPage.toggleFavorite()">
                                 <i class="fas fa-heart"></i> ${isFav ? 'Desfavoritar' : 'Favoritar'}
                             </button>
-                            
-                            ${(() => {
-                const nextEp = this.getResumeEpisode();
-                const isCompleted = listType === 'completed';
 
-                if (isCompleted) {
-                    return `
+                            ${(() => {
+                                const nextEp = this.getResumeEpisode();
+                                const isCompleted = listType === 'completed';
+                                if (isCompleted) {
+                                    return `
                                         <button class="btn btn-secondary" onclick="DetalhesPage.confirmRewatch()">
                                             <i class="fas fa-redo"></i> Reassistir
                                         </button>
                                     `;
-                } else if (nextEp > 1) {
-                    return `
-                                        <button class="btn resume-btn" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
+                                } else if (nextEp > 1) {
+                                    return `
+                                        <button class="btn btn-primary" onclick="DetalhesPage.switchTab('episodes', true)">
                                             <i class="fas fa-play"></i> Continuar: Ep ${nextEp}
                                         </button>
                                     `;
-                } else {
-                    return `
-                                        <button class="btn btn-secondary" onclick="document.getElementById('episodes-section').scrollIntoView({behavior: 'smooth'})">
+                                } else {
+                                    return `
+                                        <button class="btn btn-secondary" onclick="DetalhesPage.switchTab('episodes', true)">
                                             <i class="fas fa-play"></i> Começar Ep 1
                                         </button>
                                     `;
-                }
-            })()}
-                            
-                            <button class="btn btn-secondary" onclick="DetalhesPage.openStreaming()" title="Onde Assistir">
-                                <i class="fas fa-external-link-alt"></i> Links
+                                }
+                            })()}
+
+                            <button class="btn btn-secondary" onclick="DetalhesPage.switchTab('jukebox', true)" title="Openings e Endings em Alta Fidelidade">
+                                <i class="fas fa-record-vinyl"></i> Ouvir OP/ED
                             </button>
-                            
-                            <button class="btn btn-secondary" onclick="DetalhesPage.playOpening()" title="Ouvir Openings & Endings Reais">
-                                    <i class="fas fa-music"></i> Openings / Endings
+
+                            <button class="btn btn-secondary" onclick="DetalhesPage.openStreaming()" title="Onde Assistir Oficialmente">
+                                <i class="fas fa-external-link-alt"></i> Onde Assistir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEGMENTED TABS BAR -->
+                <nav class="details-tabs-bar" id="details-tabs-bar" aria-label="Navegação de seções de detalhes">
+                    <button type="button" class="details-tab-btn active" data-tab="overview" onclick="DetalhesPage.switchTab('overview')">
+                        <i class="fas fa-book-open"></i> Visão Geral
+                    </button>
+                    <button type="button" class="details-tab-btn" data-tab="episodes" onclick="DetalhesPage.switchTab('episodes')">
+                        <i class="fas fa-play-circle"></i> Episódios &amp; Fillers
+                        <span class="details-tab-badge" id="tab-episodes-count">${anime.episodes || anime.total_episodes || '?'}</span>
+                    </button>
+                    <button type="button" class="details-tab-btn" data-tab="characters" onclick="DetalhesPage.switchTab('characters')">
+                        <i class="fas fa-users"></i> Personagens &amp; Dubladores
+                        <span class="details-tab-badge" id="tab-chars-count">...</span>
+                    </button>
+                    <button type="button" class="details-tab-btn" data-tab="jukebox" onclick="DetalhesPage.switchTab('jukebox')">
+                        <i class="fas fa-record-vinyl"></i> OST Jukebox
+                        <span class="details-tab-badge" id="tab-jukebox-count">OP/ED</span>
+                    </button>
+                    <button type="button" class="details-tab-btn" data-tab="relations" onclick="DetalhesPage.switchTab('relations')">
+                        <i class="fas fa-project-diagram"></i> Relações &amp; Recomendações
+                    </button>
+                    <button type="button" class="details-tab-btn" data-tab="staff" onclick="DetalhesPage.switchTab('staff')">
+                        <i class="fas fa-hammer"></i> Equipe Técnica
+                    </button>
+                </nav>
+
+                <!-- TAB PANELS -->
+                <!-- PAINEL 1: VISÃO GERAL -->
+                <div class="details-tab-panel active" id="panel-overview">
+                    <!-- Sinopse -->
+                    <div class="details-card">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-book-open"></i> Sinopse Oficial</h2>
+                        </div>
+                        <p class="details-synopsis-text">${anime.synopsis || 'Sinopse não disponível para esta obra.'}</p>
+                    </div>
+
+                    <!-- Informações Técnicas -->
+                    <div class="details-card">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-info-circle"></i> Informações Técnicas</h2>
+                        </div>
+                        <div class="tech-info-grid">
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Formato</span>
+                                <span class="tech-info-value">${anime.format || 'TV'}</span>
+                            </div>
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Estúdio Principal</span>
+                                <span class="tech-info-value">${(anime.studios && anime.studios.length) ? anime.studios.join(', ') : 'Não informado'}</span>
+                            </div>
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Ranking de Avaliação</span>
+                                <span class="tech-info-value">#${anime.rank || '-'}</span>
+                            </div>
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Popularidade</span>
+                                <span class="tech-info-value">#${anime.popularity || '-'}</span>
+                            </div>
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Status</span>
+                                <span class="tech-info-value">${anime.status || '-'}</span>
+                            </div>
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Temporada &amp; Ano</span>
+                                <span class="tech-info-value">${anime.season || ''} ${anime.year || '-'}</span>
+                            </div>
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Duração Média</span>
+                                <span class="tech-info-value">${anime.duration || '24 min'}</span>
+                            </div>
+                            <div class="tech-info-item">
+                                <span class="tech-info-label">Fonte Original</span>
+                                <span class="tech-info-value">${anime.source ? anime.source.replace(/_/g, ' ') : 'Desconhecida'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trailer Oficial -->
+                    ${anime.trailer ? `
+                        <div class="details-card">
+                            <div class="details-card-header">
+                                <h2 class="details-card-title"><i class="fas fa-film"></i> Trailer Promocional Oficial</h2>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="DetalhesPage.toggleFocusMode()">
+                                    <i class="fas fa-expand"></i> Modo Foco
                                 </button>
+                            </div>
+                            <div class="trailer-frame-box" onclick="DetalhesPage.toggleFocusMode()">
+                                <iframe 
+                                    src="${anime.trailer.replace('watch?v=', 'embed/')}" 
+                                    frameborder="0" 
+                                    allowfullscreen
+                                    title="Trailer do Anime">
+                                </iframe>
+                            </div>
+                            <button class="trailer-focus-close" onclick="DetalhesPage.toggleFocusMode()">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- SYNOPSIS -->
-                <div class="details-section">
-                    <h2 class="section-title"><i class="fas fa-book-open"></i> Sinopse</h2>
-                    <p class="details-synopsis">${anime.synopsis || 'Sinopse não disponível.'}</p>
-                </div>
-                
-                <!-- TRAILER -->
-                ${anime.trailer ? `
-                    <div class="details-section">
-                        <h2 class="section-title"><i class="fas fa-film"></i> Trailer <span style="font-size: 0.7rem; color: var(--color-text-muted);">(clique para modo foco)</span></h2>
-                        <div class="details-trailer" onclick="DetalhesPage.toggleFocusMode()">
-                            <iframe 
-                                src="${anime.trailer.replace('watch?v=', 'embed/')}" 
-                                frameborder="0" 
-                                allowfullscreen>
-                            </iframe>
-                        </div>
-                        <button class="trailer-focus-close" onclick="DetalhesPage.toggleFocusMode()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                ` : ''}
-                
-                <!-- OST JUKEBOX (OPENINGS & ENDINGS OFICIAIS) -->
-                <div class="details-section" id="ost-jukebox-section" style="display: none;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-                        <h2 class="section-title" style="margin:0;"><i class="fas fa-record-vinyl"></i> Jukebox — Openings & Endings Oficiais</h2>
-                        <button class="btn btn-primary btn-sm" onclick="DetalhesPage.playAllThemesInRadio()">
-                            <i class="fas fa-play"></i> Tocar Todas no Player
-                        </button>
-                    </div>
-                    <div id="ost-jukebox-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;"></div>
+                    ` : ''}
+
+                    <!-- Timeline de Franquias -->
+                    <div class="details-card" id="timeline-container" style="display: none;"></div>
                 </div>
 
-                <!-- TIMELINE DE FRANQUIAS -->
-                <div class="details-section" id="timeline-container" style="display: none;"></div>
-                
-                <!-- INFO GRID -->
-                <div class="details-section">
-                    <h2 class="section-title"><i class="fas fa-info-circle"></i> Informações</h2>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Tipo</span>
-                            <span class="info-value">${anime.format || 'TV'}</span>
+                <!-- PAINEL 2: GUIA DE EPISÓDIOS & FILLERS -->
+                <div class="details-tab-panel" id="panel-episodes">
+                    <div class="details-card" id="episodes-section">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-play-circle"></i> Guia de Episódios &amp; Fillers</h2>
+                            <div class="episodes-view-toggle">
+                                <button id="btn-grid-view" class="btn-icon active" onclick="DetalhesPage.toggleViewMode('grid')" title="Vista em Grade"><i class="fas fa-th"></i></button>
+                                <button id="btn-list-view" class="btn-icon" onclick="DetalhesPage.toggleViewMode('list')" title="Vista em Lista"><i class="fas fa-list"></i></button>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <span class="info-label">Estúdio</span>
-                            <span class="info-value">${anime.studios.join(', ') || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Rank</span>
-                            <span class="info-value">#${anime.rank || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Popularidade</span>
-                            <span class="info-value">#${anime.popularity || '-'}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- CHARACTERS -->
-                <div class="details-section" id="characters-section">
-                    <h2 class="section-title"><i class="fas fa-users"></i> Personagens & Dubladores</h2>
-                    <div class="characters-grid" id="characters-grid">
-                        <div class="carousel-loading"><div class="loader"></div></div>
-                    </div>
-                </div>
-                
-                <!-- RELATIONS (Manga, Sequels, etc) -->
-                <div class="details-section" id="relations-section">
-                    <h2 class="section-title"><i class="fas fa-book"></i> Obras Relacionadas</h2>
-                    <div class="relations-grid" id="relations-grid">
-                        <div class="carousel-loading"><div class="loader"></div></div>
-                    </div>
-                </div>
-                
-                <!-- RECOMMENDATIONS -->
-                <div class="details-section" id="recommendations-section">
-                    <h2 class="section-title"><i class="fas fa-thumbs-up"></i> Recomendações</h2>
-                    <div class="carousel" id="recommendations-carousel">
-                        <div class="carousel-loading"><div class="loader"></div></div>
-                    </div>
-                </div>
 
-                <!-- STAFF (Equipe Técnica) -->
-                <div class="details-section" id="staff-section">
-                    <h2 class="section-title"><i class="fas fa-hammer"></i> Equipe Técnica</h2>
-                    <div class="staff-track" id="staff-track">
-                        <div class="skeleton" style="height: 180px; width: 100%; border-radius: 8px;"></div>
-                    </div>
-                </div>
-
-                <!-- EPISODES & FILLERS -->
-                <div class="details-section" id="episodes-section">
-                    <div class="section-header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
-                        <h2 class="section-title" style="margin: 0;"><i class="fas fa-play-circle"></i> Guia de Episódios</h2>
-                        <div class="episodes-view-toggle">
-                            <button id="btn-grid-view" class="btn-icon active" onclick="DetalhesPage.toggleViewMode('grid')" title="Vista em Grade"><i class="fas fa-th"></i></button>
-                            <button id="btn-list-view" class="btn-icon" onclick="DetalhesPage.toggleViewMode('list')" title="Vista em Lista"><i class="fas fa-list"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- Stats & Filters Bar -->
-                    <div class="episodes-toolbox" style="background: var(--color-surface); border: var(--border-width) solid var(--border-color); padding: var(--space-sm); border-radius: 8px; margin-bottom: var(--space-md); box-shadow: var(--shadow-neo);">
-                        <div class="stats-row" style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-sm); flex-wrap: wrap;">
-                            <div class="filler-meter-container" style="flex-grow: 1; min-width: 200px;">
-                                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
-                                    <span>Conteúdo Canon / Filler</span>
-                                    <span id="filler-percent">Calculando...</span>
+                        <!-- Stats & Filters Bar -->
+                        <div class="episodes-toolbox">
+                            <div class="stats-row" style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-sm); flex-wrap: wrap;">
+                                <div class="filler-meter-container" style="flex-grow: 1; min-width: 200px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                                        <span>Conteúdo Canon / Filler</span>
+                                        <span id="filler-percent">Calculando...</span>
+                                    </div>
+                                    <div class="filler-meter-track">
+                                        <div id="bar-canon" style="height: 100%; background: #22c55e; width: 0%; transition: width 0.5s;"></div>
+                                        <div id="bar-mixed" style="height: 100%; background: #f59e0b; width: 0%; transition: width 0.5s;"></div>
+                                        <div id="bar-filler" style="height: 100%; background: #ef4444; width: 0%; transition: width 0.5s;"></div>
+                                    </div>
                                 </div>
-                                <div class="filler-meter-bar" style="height: 8px; background: #eee; border-radius: 4px; overflow: hidden; display: flex;">
-                                    <div id="bar-canon" style="height: 100%; background: #33cc66; width: 0%; transition: width 0.5s;"></div>
-                                    <div id="bar-mixed" style="height: 100%; background: #ffd700; width: 0%; transition: width 0.5s;"></div>
-                                    <div id="bar-filler" style="height: 100%; background: #ff3366; width: 0%; transition: width 0.5s;"></div>
+                                <div class="stats-badges" style="display: flex; gap: var(--space-sm);">
+                                    <div class="stat-badge" style="background: rgba(34, 197, 94, 0.1); border: 1.5px solid #22c55e; padding: 3px 8px; font-size: 0.72rem; font-weight: 700;">
+                                        Canon: <strong id="count-canon">-</strong>
+                                    </div>
+                                    <div class="stat-badge" style="background: rgba(239, 68, 68, 0.1); border: 1.5px solid #ef4444; padding: 3px 8px; font-size: 0.72rem; font-weight: 700;">
+                                        Filler: <strong id="count-filler">-</strong>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="stats-badges" style="display: flex; gap: var(--space-sm);">
-                                <div class="stat-badge" style="background: rgba(51, 204, 102, 0.1); border: 1px solid #33cc66; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
-                                    Canon: <strong id="count-canon">-</strong>
+
+                            <div class="filter-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
+                                <div class="episodes-filters" style="display: flex; gap: var(--space-xs);">
+                                    <button class="filter-btn active" onclick="DetalhesPage.applyFilter('all')">Todos</button>
+                                    <button class="filter-btn" onclick="DetalhesPage.applyFilter('canon')">Canon</button>
+                                    <button class="filter-btn" onclick="DetalhesPage.applyFilter('filler')">Filler</button>
+                                    <button class="filter-btn" onclick="DetalhesPage.applyFilter('mixed')">Misto</button>
                                 </div>
-                                <div class="stat-badge" style="background: rgba(255, 51, 102, 0.1); border: 1px solid #ff3366; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;">
-                                    Filler: <strong id="count-filler">-</strong>
+                                <div class="progress-info" style="font-size: 0.8rem; font-weight: 700; color: var(--color-text);">
+                                    <i class="fas fa-check-circle" style="color: #22c55e;"></i> <span id="watched-count">0</span> assistidos
                                 </div>
                             </div>
                         </div>
 
-                        <div class="filter-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-sm);">
-                            <div class="episodes-filters" style="display: flex; gap: var(--space-xs);">
-                                <button class="filter-btn active" onclick="DetalhesPage.applyFilter('all')">Todos</button>
-                                <button class="filter-btn" onclick="DetalhesPage.applyFilter('canon')">Canon</button>
-                                <button class="filter-btn" onclick="DetalhesPage.applyFilter('filler')">Filler</button>
-                                <button class="filter-btn" onclick="DetalhesPage.applyFilter('mixed')">Misto</button>
+                        <div class="episodes-grid" id="episodes-grid">
+                            <div class="carousel-loading"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAINEL 3: PERSONAGENS & DUBLADORES -->
+                <div class="details-tab-panel" id="panel-characters">
+                    <div class="details-card" id="characters-section">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-users"></i> Personagens &amp; Dubladores Oficiais</h2>
+                        </div>
+                        <div class="characters-grid" id="characters-grid">
+                            <div class="carousel-loading"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAINEL 4: OST JUKEBOX -->
+                <div class="details-tab-panel" id="panel-jukebox">
+                    <div class="details-card">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-record-vinyl"></i> Jukebox — Openings &amp; Endings Oficiais (AnimeThemes HD)</h2>
+                        </div>
+                        <div class="jukebox-toolbar">
+                            <div style="font-size: 0.85rem; font-weight: 700;">
+                                <i class="fas fa-broadcast-tower" style="color: var(--color-primary);"></i> Áudio oficial sincronizado com o player global
                             </div>
-                            <div class="progress-info" style="font-size: 0.75rem; color: var(--color-text-muted);">
-                                <i class="fas fa-check-circle"></i> <span id="watched-count">0</span> assistidos
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="DetalhesPage.playAllThemesInRadio()">
+                                    <i class="fas fa-play"></i> Tocar Todas no Player
+                                </button>
+                                <a href="?page=radio" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-sliders-h"></i> Abrir na Rádio FM
+                                </a>
                             </div>
+                        </div>
+                        <div class="jukebox-grid" id="ost-jukebox-list">
+                            <div class="carousel-loading"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAINEL 5: RELAÇÕES & RECOMENDAÇÕES -->
+                <div class="details-tab-panel" id="panel-relations">
+                    <!-- Obras Relacionadas -->
+                    <div class="details-card" id="relations-section">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-book"></i> Obras Relacionadas (Mangás, Prequels, Sequels)</h2>
+                        </div>
+                        <div class="relations-grid" id="relations-grid">
+                            <div class="carousel-loading"><div class="loader"></div></div>
                         </div>
                     </div>
 
-                    <div class="episodes-grid" id="episodes-grid">
-                        <div class="carousel-loading"><div class="loader"></div></div>
+                    <!-- Recomendações -->
+                    <div class="details-card" id="recommendations-section">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-thumbs-up"></i> Quem assistiu também curtiu</h2>
+                        </div>
+                        <div class="carousel" id="recommendations-carousel">
+                            <div class="carousel-loading"><div class="loader"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAINEL 6: EQUIPE TÉCNICA (STAFF) -->
+                <div class="details-tab-panel" id="panel-staff">
+                    <div class="details-card" id="staff-section">
+                        <div class="details-card-header">
+                            <h2 class="details-card-title"><i class="fas fa-hammer"></i> Equipe Técnica &amp; Produção</h2>
+                        </div>
+                        <div class="staff-track" id="staff-track">
+                            <div class="skeleton" style="height: 180px; width: 100%; border-radius: 8px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -327,6 +421,35 @@ const DetalhesPage = {
         // Iniciar contador se houver airing info
         if (this.anime && this.anime.nextAiringEpisode) {
             this.startAiringCountdown();
+        }
+    },
+
+    /**
+     * Alternar Abas Segmentadas com suporte a deep linking e scroll opcional
+     */
+    switchTab(tabId, scroll = false) {
+        const validTabs = ['overview', 'episodes', 'characters', 'jukebox', 'relations', 'staff'];
+        const activeTab = validTabs.includes(tabId) ? tabId : 'overview';
+        this.currentTab = activeTab;
+
+        document.querySelectorAll('.details-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === activeTab);
+        });
+
+        document.querySelectorAll('.details-tab-panel').forEach(panel => {
+            panel.classList.toggle('active', panel.id === `panel-${activeTab}`);
+        });
+
+        try {
+            const currentUrl = new URL(window.location.href);
+            currentUrl.hash = activeTab;
+            window.history.replaceState(null, null, currentUrl.pathname + currentUrl.search + currentUrl.hash);
+        } catch (_) {}
+
+        if (scroll) {
+            setTimeout(() => {
+                document.getElementById('details-tabs-bar')?.scrollIntoView({ behavior: 'smooth' });
+            }, 60);
         }
     },
 
@@ -874,7 +997,14 @@ const DetalhesPage = {
             if (!grid || !section) return;
 
             if (!data || data.length === 0) {
-                section.style.display = 'none';
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: var(--space-xl); text-align: center; background: var(--color-surface); border: 2px dashed var(--color-border); font-weight: 700;">
+                        <i class="fas fa-users-slash" style="font-size: 2rem; margin-bottom: 8px; display: block; opacity: 0.5;"></i>
+                        Nenhum registro de personagem ou elenco disponível para esta obra.
+                    </div>
+                `;
+                const badge = document.getElementById('tab-chars-count');
+                if (badge) badge.textContent = '0';
                 return;
             }
 
@@ -882,6 +1012,11 @@ const DetalhesPage = {
             this.charactersData = data;
             this.charactersShown = 0;
             this.apiPage = 1;
+
+            const badge = document.getElementById('tab-chars-count');
+            if (badge) {
+                badge.textContent = `${data.length}${characters && characters.pageInfo && characters.pageInfo.hasNextPage ? '+' : ''}`;
+            }
 
             // Check if there are more pages based on pageInfo
             // pageInfo is now available in the initial query
@@ -1493,36 +1628,63 @@ const DetalhesPage = {
      * Play anime opening using OST Player
      */
     async loadOstJukebox() {
-        const section = document.getElementById('ost-jukebox-section');
         const listEl = document.getElementById('ost-jukebox-list');
-        if (!section || !listEl || typeof MusicService === 'undefined') return;
+        const badgeEl = document.getElementById('tab-jukebox-count');
+        if (!listEl || typeof MusicService === 'undefined') return;
         try {
             const tracks = await MusicService.getThemesForAnime(this.animeId, this.anime);
             this.jukeboxTracks = tracks || [];
+            if (badgeEl) {
+                badgeEl.textContent = `${this.jukeboxTracks.length}`;
+            }
             if (!tracks || tracks.length === 0) {
-                section.style.display = 'none';
+                listEl.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: 24px; text-align: center; background: var(--color-bg); border: 2px dashed var(--border-color);">
+                        <i class="fas fa-music" style="font-size: 2rem; color: var(--color-text-muted); margin-bottom: 8px;"></i>
+                        <p style="margin: 0; font-weight: 700; color: var(--color-text-secondary);">Nenhuma Opening ou Ending oficial catalogada para esta obra na AnimeThemes.</p>
+                        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--color-text-muted);">Você ainda pode ouvir as 11 estações da Rádio AnimeEngine pelo menu lateral.</p>
+                    </div>
+                `;
                 return;
             }
-            section.style.display = 'block';
             listEl.innerHTML = tracks.map((t, idx) => `
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;background:var(--color-surface);border:var(--border-width) solid var(--border-color);box-shadow:var(--shadow-neo);">
-                    <div style="min-width:0;flex:1;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-                            <span style="background:var(--color-primary);color:var(--color-on-primary,#000);font-weight:800;font-size:0.7rem;padding:1px 6px;border:1px solid var(--border-color);">${t.themeLabel || t.themeType || 'OP'}</span>
-                            <strong style="font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${t.songTitle}</strong>
+                <div class="jukebox-track-card">
+                    <div style="min-width: 0; flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <span class="track-pill ${t.themeType === 'ED' ? 'pill-ed' : 'pill-op'}">
+                                ${t.themeLabel || t.themeType || 'OP'}
+                            </span>
+                            <strong class="track-song-title" title="${t.songTitle}">${t.songTitle}</strong>
                         </div>
-                        <div style="font-size:0.76rem;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                            ${t.artistName || 'Artista Oficial'}
+                        <div class="track-artist" title="${t.artistName || 'Artista Oficial'}">
+                            ${t.artistName || 'Artista Oficial'} ${t.episodes ? `• Ep ${t.episodes}` : ''}
                         </div>
                     </div>
-                    <button class="btn btn-secondary btn-sm" onclick="DetalhesPage.playJukeboxIndex(${idx})" title="Tocar esta faixa">
-                        <i class="fas fa-play"></i>
-                    </button>
+                    <div class="track-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="DetalhesPage.addTrackToQueue(${idx})" title="Adicionar à fila do player">
+                            <i class="fas fa-plus"></i> Fila
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="DetalhesPage.playJukeboxIndex(${idx})" title="Tocar imediatamente">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
                 </div>
             `).join('');
         } catch (err) {
-            section.style.display = 'none';
+            console.warn('[DetalhesPage] Erro ao carregar Jukebox:', err);
+            if (badgeEl) badgeEl.textContent = '0';
         }
+    },
+
+    addTrackToQueue(idx) {
+        if (!this.jukeboxTracks || !this.jukeboxTracks[idx] || typeof OSTPlayer === 'undefined') return;
+        const track = this.jukeboxTracks[idx];
+        if (OSTPlayer.addToQueue) {
+            OSTPlayer.addToQueue(track);
+        } else if (OSTPlayer.queue) {
+            OSTPlayer.queue.push(track);
+        }
+        Common.showToast(`➕ "${track.songTitle}" adicionada à fila!`);
     },
 
     playJukeboxIndex(idx) {

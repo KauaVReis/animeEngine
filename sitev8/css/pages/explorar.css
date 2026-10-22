@@ -1,36 +1,473 @@
 /**
- * AnimeEngine v8 — Explorar Page CSS
- * Estilos exclusivos da página de exploração
+ * AnimeEngine v8 — Explorar Page CSS (Neo-Brutalist Overhaul)
+ * Barra de Filtros Avançados, View Switcher (Grade vs Lista),
+ * Roleta de Descoberta Sonora, Selos & Cards Interativos
  */
 
-/* Filtros - animação de entrada */
-.filters-section {
-    animation: slideDown 0.3s ease;
+/* ============================================================
+   1. CABEÇALHO & VIEW SWITCHER
+   ============================================================ */
+.explore-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: var(--space-md);
+    padding-bottom: 12px;
+    border-bottom: var(--border-width) solid var(--border-color);
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
+.explore-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.explore-view-switcher {
+    display: inline-flex;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo-sm);
+    padding: 3px;
+    gap: 3px;
+}
+
+.view-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: var(--font-display);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.view-switch-btn:hover {
+    color: var(--color-text);
+}
+
+.view-switch-btn.active {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+    box-shadow: 1px 1px 0px var(--border-color);
+}
+
+/* ============================================================
+   2. BARRA DE FILTROS RÁPIDOS & CONTROLES
+   ============================================================ */
+.filter-controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: var(--space-md);
+}
+
+.quick-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.quick-filter {
+    padding: 8px 14px;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo-sm);
+    color: var(--color-text);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font-display);
+    transition: all 0.15s ease;
+}
+
+.quick-filter:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-neo);
+}
+
+.quick-filter.active {
+    background: var(--color-secondary);
+    color: #000;
+    box-shadow: var(--shadow-neo);
+}
+
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ============================================================
+   3. FILTROS DE FORMATO, GÊNEROS E AVANÇADOS
+   ============================================================ */
+.format-filters,
+.genre-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo-sm);
+}
+
+.filter-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    font-family: var(--font-display);
+    margin-right: 4px;
+}
+
+.format-tag,
+.genre-tag {
+    padding: 4px 10px;
+    background: var(--color-bg);
+    border: 1.5px solid var(--border-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.format-tag:hover,
+.genre-tag:hover {
+    background: var(--color-surface-hover);
+    transform: translate(-1px, -1px);
+}
+
+.format-tag.active,
+.genre-tag.active {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+    box-shadow: 2px 2px 0px var(--border-color);
+}
+
+.advanced-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo-sm);
+    padding: 12px 14px;
+    margin-bottom: 14px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-inputs {
+    display: flex;
+    gap: 6px;
+}
+
+/* Chips Ativos & Contador */
+.filter-status-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 6px 0;
+}
+
+.active-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.active-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+    border: 1.5px solid var(--border-color);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.active-chip button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-weight: 900;
+    padding: 0;
+    margin-left: 2px;
+}
+
+.btn-clear-all {
+    background: none;
+    border: 1.5px dashed var(--border-color);
+    color: var(--color-text-muted);
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-clear-all:hover {
+    color: #ef4444;
+    border-color: #ef4444;
+}
+
+/* ============================================================
+   4. MODO GRADE (ANIME-GRID) — CARDS NEO-BRUTALISTAS
+   ============================================================ */
+.anime-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.anime-card {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.anime-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: var(--shadow-neo-lg);
+}
+
+.card-poster-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background: #000;
+    overflow: hidden;
+}
+
+.card-poster-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.anime-card:hover .card-poster-wrapper img {
+    transform: scale(1.04);
+}
+
+.card-badge-score {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--color-accent, #ffd700);
+    color: #000;
+    font-weight: 900;
+    font-size: 0.75rem;
+    padding: 2px 7px;
+    border: 1.5px solid var(--border-color);
+    box-shadow: 2px 2px 0px var(--border-color);
+    z-index: 2;
+}
+
+.card-badge-format {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+    font-weight: 800;
+    font-size: 0.68rem;
+    padding: 2px 6px;
+    border: 1.5px solid var(--border-color);
+    z-index: 2;
+}
+
+.card-audio-preview-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    color: var(--color-primary);
+    border: 2px solid var(--border-color);
+    box-shadow: 2px 2px 0px var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 3;
+    transition: all 0.15s ease;
+}
+
+.card-audio-preview-btn:hover {
+    transform: scale(1.15);
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+}
+
+.card-body {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.card-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    margin: 0 0 6px 0;
+    line-height: 1.25;
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+}
+
+.card-actions-row {
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.card-actions-row .btn {
+    flex: 1;
+    font-size: 0.75rem;
+    padding: 6px 8px;
+}
+
+/* ============================================================
+   5. MODO LISTA COMPACTA (TABELA DE DADOS DENSA)
+   ============================================================ */
+.explore-table-wrapper {
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow-neo);
+    overflow-x: auto;
+    margin-bottom: var(--space-xl);
+}
+
+.explore-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.85rem;
+}
+
+.explore-table th {
+    background: var(--color-bg);
+    border-bottom: 2px solid var(--border-color);
+    padding: 10px 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    color: var(--color-text-muted);
+}
+
+.explore-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.explore-table tr:hover {
+    background: var(--color-surface-hover);
+}
+
+.table-cover-thumb {
+    width: 44px;
+    height: 62px;
+    object-fit: cover;
+    border: 1.5px solid var(--border-color);
+    display: block;
+}
+
+.table-anime-title {
+    font-weight: 800;
+    color: var(--color-text);
+    text-decoration: none;
+    display: block;
+}
+
+.table-anime-title:hover {
+    color: var(--color-primary);
+}
+
+.table-anime-sub {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+}
+
+/* ============================================================
+   6. RESPONSIVIDADE
+   ============================================================ */
+@media (max-width: 900px) {
+    .anime-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    .advanced-filters-grid {
+        grid-template-columns: 1fr 1fr;
     }
 }
 
-/* Grid de resultados - stagger */
-.explore-grid .anime-card {
-    animation: cardFadeIn 0.4s ease backwards;
-}
+@media (max-width: 640px) {
+    .explore-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-.explore-grid .anime-card:nth-child(2) { animation-delay: 0.03s; }
-.explore-grid .anime-card:nth-child(3) { animation-delay: 0.06s; }
-.explore-grid .anime-card:nth-child(4) { animation-delay: 0.09s; }
-.explore-grid .anime-card:nth-child(5) { animation-delay: 0.12s; }
-.explore-grid .anime-card:nth-child(6) { animation-delay: 0.15s; }
+    .anime-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
 
-@keyframes cardFadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+    .card-title {
+        font-size: 0.82rem;
+    }
+
+    .advanced-filters-grid {
+        grid-template-columns: 1fr;
+    }
 }

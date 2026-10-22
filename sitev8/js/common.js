@@ -1187,6 +1187,40 @@ const Common = {
     },
 
     /**
+     * Setup da Fita de Telemetria das APIs e Player Global
+     */
+    setupTelemetryListener() {
+        window.addEventListener('ost:stateChange', (e) => {
+            const track = e.detail?.currentTrack;
+            const isPlaying = e.detail?.isPlaying;
+            const marquee = document.getElementById('tel-marquee-text');
+            if (marquee && track) {
+                if (isPlaying) {
+                    marquee.innerHTML = `🎵 TOCANDO AGORA: <b>${track.songTitle}</b> (${track.themeLabel || 'OP'}) — <i>${track.animeTitle}</i>`;
+                } else {
+                    marquee.innerHTML = `⏸️ EM PAUSA: <b>${track.songTitle}</b> — <i>${track.animeTitle}</i>`;
+                }
+            }
+        });
+
+        // Atualizar status de circuit breaker das APIs
+        const updateApiStatus = () => {
+            const isAnilistCooldown = sessionStorage.getItem('ae_anilist_cooldown');
+            const elAnilist = document.getElementById('tel-anilist');
+            if (elAnilist) {
+                if (isAnilistCooldown) {
+                    elAnilist.innerHTML = '<span class="tel-dot dot-standby"></span> ANILIST <b>RESERVA</b>';
+                } else {
+                    elAnilist.innerHTML = '<span class="tel-dot dot-online"></span> ANILIST <b>OK</b>';
+                }
+            }
+        };
+
+        setInterval(updateApiStatus, 5000);
+        updateApiStatus();
+    },
+
+    /**
      * Toggle popup do menu "Mais" na bottom-nav
      */
     toggleBottomNavMore() {
@@ -1204,6 +1238,7 @@ window.Common = Common;
 document.addEventListener('DOMContentLoaded', () => {
     Common.init();
     Common.setupScrollReveal();
+    Common.setupTelemetryListener();
 });
 
 

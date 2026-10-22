@@ -215,3 +215,111 @@ body.fullscreen-mode .sidebar-fix {
         display: none;
     }
 }
+
+/* ============================================================
+   TELEMETRY FOOTER STRIP (TRI-API v8 TICKER)
+   ============================================================ */
+.app-telemetry-footer {
+    width: 100%;
+    background: var(--color-surface);
+    border-top: var(--border-width) solid var(--border-color);
+    padding: 6px 16px;
+    font-size: 0.72rem;
+    font-family: var(--font-display);
+    position: relative;
+    z-index: 15;
+}
+
+.telemetry-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.telemetry-cluster {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.telemetry-badge {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+    padding: 2px 7px;
+    font-weight: 900;
+    font-size: 0.68rem;
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.telemetry-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+.telemetry-item b {
+    color: var(--color-text);
+}
+
+.tel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot-online {
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+}
+
+.dot-standby {
+    background: #f59e0b;
+}
+
+.telemetry-ticker-marquee {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.telemetry-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meta-tag {
+    font-weight: 800;
+    color: var(--color-text);
+}
+
+.meta-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 800;
+}
+
+.meta-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .telemetry-ticker-marquee {
+        display: none;
+    }
+}
