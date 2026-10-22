@@ -20,17 +20,17 @@ $pagina_atual = $pagina_atual ?? 'home';
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=9.5">
-    <link rel="stylesheet" href="css/v6_styles.css?v=9.5">
-    <link rel="stylesheet" href="css/spa.css?v=9.5">
+    <link rel="stylesheet" href="css/style.css?v=9.6">
+    <link rel="stylesheet" href="css/v6_styles.css?v=9.6">
+    <link rel="stylesheet" href="css/spa.css?v=9.6">
     <?php if (isset($css_pagina) && !empty($css_pagina)): ?>
         <?php foreach ($css_pagina as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>?v=9.5" data-page-css>
+            <link rel="stylesheet" href="<?= $css ?>?v=9.6" data-page-css>
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
 
-<body>
+<body data-page="<?= htmlspecialchars($pagina_atual) ?>">
     <header class="header">
         <div class="header-content">
             <a href="home" class="logo">

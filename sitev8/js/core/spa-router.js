@@ -153,6 +153,7 @@ const SpaRouter = (function () {
             } else {
                 document.body.classList.remove('fullscreen-mode');
             }
+            document.body.dataset.page = pageName;
 
             // Construir URL AJAX garantindo que index.php receba ?page=...&ajax=true
             const ajaxUrl = new URL(window.location.origin + BASE_PATH + 'index.php');
@@ -378,7 +379,7 @@ const SpaRouter = (function () {
         for (const href of cssFiles) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = href + '?v=9.5';
+            link.href = href + '?v=9.6';
             link.setAttribute('data-page-css', 'true');
             document.head.appendChild(link);
         }

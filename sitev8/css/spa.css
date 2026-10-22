@@ -347,7 +347,8 @@ body.fullscreen-mode .sidebar-fix {
     border-radius: 0;
 }
 
-.ost-micro-dock.hidden {
+.ost-micro-dock.hidden,
+body[data-page="radio"] .ost-micro-dock {
     display: none !important;
 }
 
