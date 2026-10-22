@@ -38,6 +38,12 @@ const OSTPlayer = {
     currentStation: 'random',
     typeFilter: 'ALL',
 
+    // Resiliência de Mídia & Circuit Breaker
+    consecutiveErrors: 0,
+    mediaErrorTimeout: null,
+    lastMediaErrorToast: 0,
+    activePlayPromise: null,
+
     progressTimer: null,
     STORAGE_KEY: 'animeengine_ost_state_v8',
 
@@ -229,8 +235,12 @@ const OSTPlayer = {
 
         this.videoEl.addEventListener('error', () => {
             if (this.currentTrack?.sourceType === 'animethemes') {
-                console.warn('[OSTPlayer] Erro no stream HTML5 WebM:', this.currentTrack.mediaUrl);
-                this.handleMediaError();
+                const mediaErr = this.videoEl.error;
+                if (!mediaErr || mediaErr.code === 1 || !this.videoEl.currentSrc) {
+                    return;
+                }
+                console.warn('[OSTPlayer] Erro real no stream HTML5 WebM (código ' + mediaErr.code + '):', this.currentTrack.mediaUrl);
+                this.handleMediaError(this.currentTrack);
             }
         });
     },
@@ -423,6 +433,10 @@ const OSTPlayer = {
         }
 
         this.currentTrack = track;
+        if (this.mediaErrorTimeout) {
+            clearTimeout(this.mediaErrorTimeout);
+            this.mediaErrorTimeout = null;
+        }
         this.isLoading = true;
         this.currentTime = 0;
         this.duration = 0;
@@ -453,9 +467,12 @@ const OSTPlayer = {
                     this.isPlaying = false;
                     if (err.name === 'NotAllowedError') {
                         console.info('[OSTPlayer] Autoplay bloqueado pelo navegador. Aguardando clique do usuário.');
+                    } else if (err.name === 'AbortError') {
+                        console.info('[OSTPlayer] Playback assíncrono cancelado por nova ação (AbortError ignorado).');
+                        return;
                     } else {
                         console.warn('[OSTPlayer] Falha ao iniciar vídeo WebM:', err);
-                        this.handleMediaError();
+                        this.handleMediaError(this.currentTrack);
                         return;
                     }
                 }
@@ -760,8 +777,42 @@ const OSTPlayer = {
         await this.next();
     },
 
-    async handleMediaError() {
+    async handleMediaError(failingTrack = null) {
         this.isLoading = false;
+        this.isPlaying = false;
+
+        // Se a faixa que falhou já não é a faixa ativa, ignorar
+        if (failingTrack && this.currentTrack && failingTrack.id && failingTrack.id !== this.currentTrack.id) {
+            return;
+        }
+
+        // 1. Tentar fallback de Áudio OGG (a.animethemes.moe) se o vídeo WebM falhou
+        if (this.currentTrack && this.currentTrack.audioUrl && this.videoEl && this.videoEl.src !== this.currentTrack.audioUrl) {
+            console.info('[OSTPlayer] Vídeo WebM indisponível, tentando stream de áudio OGG alternativo:', this.currentTrack.audioUrl);
+            this.videoEl.src = this.currentTrack.audioUrl;
+            try {
+                const p = this.videoEl.play();
+                if (p) {
+                    p.then(() => {
+                        this.isPlaying = true;
+                        this.isLoading = false;
+                        this.consecutiveErrors = 0;
+                        this.updateUI();
+                        this.emitState();
+                    }).catch(e => {
+                        if (e.name !== 'AbortError' && e.name !== 'NotAllowedError') {
+                            this.proceedMediaErrorSkip(failingTrack);
+                        }
+                    });
+                }
+                return;
+            } catch (_) { }
+        }
+
+        this.proceedMediaErrorSkip(failingTrack);
+    },
+
+    proceedMediaErrorSkip(failingTrack = null) {
         // Se a faixa tinha um YouTube ID de backup, acionar o YouTube
         if (this.currentTrack && this.currentTrack.youtubeId && this.currentTrack.sourceType !== 'youtube') {
             console.info('[OSTPlayer] Acionando fallback YouTube para:', this.currentTrack.songTitle);
@@ -773,11 +824,36 @@ const OSTPlayer = {
             return;
         }
 
-        if (typeof Common !== 'undefined') {
-            Common.showToast('⚠️ Mídia indisponível no servidor, sintonizando próxima faixa...');
+        // Circuit breaker: se acumular 3 falhas seguidas, pausar para evitar loop infinito de skips
+        this.consecutiveErrors = (this.consecutiveErrors || 0) + 1;
+        if (this.consecutiveErrors >= 3) {
+            console.warn('[OSTPlayer] Circuit breaker: 3 falhas consecutivas de mídia. Pausando fila.');
+            this.consecutiveErrors = 0;
+            this.isPlaying = false;
+            this.isLoading = false;
+            if (typeof Common !== 'undefined' && Common.showToast) {
+                Common.showToast('⚠️ Várias mídias indisponíveis no momento. Reprodução pausada.');
+            }
+            this.updateUI();
+            this.emitState();
+            return;
         }
 
-        setTimeout(() => {
+        // Debounce de Toast (máximo 1 toast a cada 4 segundos)
+        const now = Date.now();
+        if (!this.lastMediaErrorToast || (now - this.lastMediaErrorToast) > 4000) {
+            this.lastMediaErrorToast = now;
+            if (typeof Common !== 'undefined' && Common.showToast) {
+                Common.showToast('⚠️ Mídia indisponível no servidor, sintonizando próxima faixa...');
+            }
+        }
+
+        // Agendar salto para próxima faixa com timer protegido
+        if (this.mediaErrorTimeout) {
+            clearTimeout(this.mediaErrorTimeout);
+        }
+        this.mediaErrorTimeout = setTimeout(() => {
+            this.mediaErrorTimeout = null;
             if (this.queue.length > 1) {
                 this.next();
             }
@@ -847,7 +923,7 @@ const OSTPlayer = {
                 },
                 onError: () => {
                     this.stopYouTubeTimer();
-                    this.handleMediaError();
+                    this.handleMediaError(this.currentTrack);
                 }
             }
         });
@@ -1055,9 +1131,8 @@ const OSTPlayer = {
             if (saved.currentTrack) {
                 this.currentTrack = saved.currentTrack;
                 this.isPlaying = false;
-                if (this.videoEl && saved.currentTrack.sourceType === 'animethemes' && saved.currentTrack.mediaUrl) {
-                    this.videoEl.src = saved.currentTrack.mediaUrl;
-                }
+                // Não carregar videoEl.src aqui para evitar erros de rede falsos ao iniciar a página pausada
+                // O src será carregado quando o usuário der Play
                 const player = document.getElementById('ost-player');
                 player?.classList.add('active', 'minimized');
                 this.updateUI();
