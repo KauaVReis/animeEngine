@@ -1,0 +1,55 @@
+/**
+ * AnimeEngine v8 — Base Design Tokens
+ * Variables & Root Spacing / Dimensions
+ */
+
+:root,
+:root[data-theme="default"] {
+    /* Colors */
+    --color-bg: #f5f5f5;
+    --color-surface: #ffffff;
+    --color-black: #1a1a1a;
+    --color-white: #ffffff;
+    --color-on-primary: #ffffff;
+
+    /* Accent Colors */
+    --color-primary: #ff3366;
+    --color-secondary: #ffd700;
+    --color-blue: #3366ff;
+    --color-green: #33cc66;
+    --color-purple: #9966ff;
+
+    /* Text */
+    --color-text: #1a1a1a;
+    --color-text-muted: #666666;
+    --color-text-light: #999999;
+
+    /* Borders */
+    --border-width: 3px;
+    --border-color: #1a1a1a;
+
+    /* Shadows */
+    --shadow-neo: 4px 4px 0 var(--border-color);
+    --shadow-neo-hover: 6px 6px 0 var(--border-color);
+
+    /* Spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+
+    /* Typography */
+    --font-display: 'Archivo Black', sans-serif;
+    --font-body: 'Space Grotesk', sans-serif;
+
+    /* Layout */
+    --header-height: 70px;
+    --sidebar-width: 220px;
+    --bottom-nav-height: 60px;
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+}

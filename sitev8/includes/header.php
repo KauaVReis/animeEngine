@@ -20,6 +20,10 @@ $pagina_atual = $pagina_atual ?? 'home';
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/base/variables.css?v=10.2">
+    <link rel="stylesheet" href="css/base/reset.css?v=10.2">
+    <link rel="stylesheet" href="css/base/typography.css?v=10.2">
+    <link rel="stylesheet" href="css/components/buttons.css?v=10.2">
     <link rel="stylesheet" href="css/style.css?v=10.2">
     <link rel="stylesheet" href="css/v6_styles.css?v=10.2">
     <link rel="stylesheet" href="css/spa.css?v=10.2">
