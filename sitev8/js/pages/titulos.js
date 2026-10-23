@@ -1,15 +1,16 @@
 /**
- * AnimeEngine v7 - Galeria de Títulos
- * JS para buscar, exibir e equipar títulos
+ * AnimeEngine v8 - Galeria de Títulos (Aprimorado)
+ * Gerenciamento de títulos desbloqueados, preview ao vivo e equipar/desequipar instantâneo
  */
 
 const TitulosPage = {
     tituloAtivo: null,
+    todosTitulos: [],
 
     async init() {
-        console.log('👑 Inicializando Galeria de Títulos...');
+        console.log('👑 [TitulosPage] Inicializando Galeria de Títulos...');
         await this.loadTitulos();
-        console.log('✅ Galeria carregada!');
+        console.log('✅ [TitulosPage] Galeria carregada!');
     },
 
     async loadTitulos() {
@@ -18,76 +19,106 @@ const TitulosPage = {
             const data = await response.json();
 
             this.tituloAtivo = data.titulo_ativo;
+            this.todosTitulos = [];
 
-            // Renderizar cada categoria
-            for (const [tipo, titulos] of Object.entries(data.titulos)) {
-                const container = document.getElementById(`titulos-${tipo}`);
+            const categories = ['nivel', 'genero', 'radio', 'sazonal', 'secreto'];
+
+            for (const cat of categories) {
+                const container = document.getElementById(`titulos-${cat}`);
                 if (!container) continue;
 
+                const titulos = data.titulos?.[cat] || [];
+                this.todosTitulos.push(...titulos);
+
                 if (titulos.length === 0) {
-                    container.innerHTML = '<p class="empty-column-message">Nenhum título disponível nesta categoria.</p>';
+                    container.innerHTML = '<p class="empty-column-message">Nenhum título disponível nesta categoria ainda.</p>';
                     continue;
                 }
 
-                container.innerHTML = titulos.map(t => `
-                    <div class="title-card ${t.desbloqueado ? '' : 'locked'} ${t.id == this.tituloAtivo ? 'active' : ''}" 
-                         data-id="${t.id}" ${t.desbloqueado ? `onclick="TitulosPage.selectTitulo(${t.id})"` : ''}>
-                        
-                        <div class="title-status-indicator ${t.desbloqueado ? 'unlocked' : 'locked'}">
-                            ${t.desbloqueado ? '🔓 Desbloqueado' : '🔒 Bloqueado'}
+                container.innerHTML = titulos.map(t => {
+                    const isEquipped = (t.id == this.tituloAtivo);
+                    const isUnlocked = !!t.desbloqueado;
+
+                    return `
+                        <div class="title-card-v8 ${isUnlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'active-equipped' : ''}" 
+                             data-id="${t.id}" 
+                             style="--title-accent: ${t.cor || '#00ff41'};"
+                             ${isUnlocked ? `onclick="TitulosPage.selectTitulo(${t.id})"` : ''}
+                             title="${isUnlocked ? 'Clique para equipar este título' : 'Bloqueado: Requisito não concluído'}">
+                            
+                            <div class="title-badge-header">
+                                <span class="title-status-tag ${isUnlocked ? 'status-unlocked' : 'status-locked'}">
+                                    ${isUnlocked ? (isEquipped ? '✨ EQUIPADO' : '🔓 DESBLOQUEADO') : '🔒 BLOQUEADO'}
+                                </span>
+                                <span class="title-rarity-tag">${(t.raridade || 'comum').toUpperCase()}</span>
+                            </div>
+
+                            <div class="title-icon-box" style="background: ${isUnlocked ? t.cor : 'var(--border-color)'};">
+                                ${t.icone || '👑'}
+                            </div>
+
+                            <div class="title-main-name" style="color: ${isUnlocked ? t.cor : 'var(--color-text-muted)'};">
+                                ${t.nome}
+                            </div>
+
+                            <p class="title-card-desc">
+                                ${isUnlocked ? (t.descricao || 'Título conquistado!') : 'Requisito Secreto ou Nível Insuficiente...'}
+                            </p>
+
+                            <div class="title-card-footer">
+                                ${isUnlocked 
+                                    ? (isEquipped 
+                                        ? '<span class="label-active"><i class="fas fa-check-circle"></i> Em uso no perfil</span>' 
+                                        : '<button class="btn-equip-card">Equipar</button>') 
+                                    : '<span class="label-locked"><i class="fas fa-lock"></i> Bloqueado</span>'
+                                }
+                            </div>
                         </div>
-                        
-                        <div class="title-icon" style="background: ${t.desbloqueado ? t.cor : 'var(--border-color)'}">
-                            ${t.icone}
-                        </div>
-                        
-                        <div class="title-name" style="color: ${t.desbloqueado ? t.cor : 'var(--text-muted)'}">${t.nome}</div>
-                        
-                        <p class="title-desc">${t.desbloqueado ? t.descricao : 'Requisito Secreto...'}</p>
-                        
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
 
-            // Atualizar título ativo na seção principal
             this.updateActiveDisplay();
 
         } catch (e) {
             console.error('Erro ao carregar títulos:', e);
-            alert('Falha ao carregar a galeria de títulos.');
+            const activeCont = document.getElementById('active-title');
+            if (activeCont) activeCont.innerHTML = '<p class="empty-column-message">Erro de conexão ao carregar títulos.</p>';
         }
     },
 
     updateActiveDisplay() {
         const container = document.getElementById('active-title');
+        const unequipBtn = document.getElementById('btn-unequip-title');
         if (!container) return;
 
-        const activeCard = document.querySelector(`.title-card[data-id="${this.tituloAtivo}"]`);
+        const activeTitle = this.todosTitulos.find(t => t.id == this.tituloAtivo);
 
-        if (activeCard && this.tituloAtivo) {
-            const icon = activeCard.querySelector('.title-icon').textContent.trim();
-            const name = activeCard.querySelector('.title-name').textContent.trim();
-            const color = activeCard.querySelector('.title-name').style.color;
-
+        if (activeTitle && this.tituloAtivo) {
             container.innerHTML = `
-                <div class="active-title-badge" style="border-color: ${color}">
-                    <span class="active-title-icon" style="background: ${color}">${icon}</span>
-                    <span class="active-title-name" style="color: ${color}">${name}</span>
+                <div class="active-title-preview-pill" style="--accent: ${activeTitle.cor || '#ffd700'};">
+                    <span class="preview-icon" style="background: ${activeTitle.cor || '#ffd700'};">${activeTitle.icone || '👑'}</span>
+                    <div class="preview-text">
+                        <span class="preview-name" style="color: ${activeTitle.cor || '#ffd700'};">${activeTitle.nome}</span>
+                        <span class="preview-desc">${activeTitle.descricao || ''}</span>
+                    </div>
+                    <span class="preview-badge-status"><i class="fas fa-check"></i> EQUIPADO</span>
                 </div>
             `;
-            // Show unequip button
-            const btn = document.querySelector('[onclick="TitulosPage.removeTitulo()"]');
-            if (btn) btn.style.display = 'inline-block';
+            if (unequipBtn) unequipBtn.style.display = 'inline-flex';
         } else {
-            container.innerHTML = '<span class="no-title">Nenhum título selecionado</span>';
-            // Hide unequip button
-            const btn = document.querySelector('[onclick="TitulosPage.removeTitulo()"]');
-            if (btn) btn.style.display = 'none';
+            container.innerHTML = `
+                <div class="no-title-preview">
+                    <i class="fas fa-user-slash"></i>
+                    <span>Nenhum título equipado no momento. Selecione um dos títulos desbloqueados abaixo para exibir no seu perfil!</span>
+                </div>
+            `;
+            if (unequipBtn) unequipBtn.style.display = 'none';
         }
     },
 
     async selectTitulo(id) {
-        if (id == this.tituloAtivo) return; // Já está ativo
+        if (id == this.tituloAtivo) return;
 
         try {
             const response = await fetch('api/users/set_titulo.php', {
@@ -99,19 +130,23 @@ const TitulosPage = {
             const result = await response.json();
 
             if (result.success) {
-                // Atualizar UI Visualmente
-                document.querySelectorAll('.title-card').forEach(c => c.classList.remove('active'));
-                document.querySelector(`.title-card[data-id="${id}"]`)?.classList.add('active');
-
                 this.tituloAtivo = id;
+                document.querySelectorAll('.title-card-v8').forEach(c => {
+                    const cardId = c.getAttribute('data-id');
+                    if (cardId == id) {
+                        c.classList.add('active-equipped');
+                    } else {
+                        c.classList.remove('active-equipped');
+                    }
+                });
+
                 this.updateActiveDisplay();
 
-                // Animação de Sucesso (Confete)
                 if (window.createParticles) {
-                    createParticles(20, 'star', ['#ffd700', '#ffaa00', '#ffffff']);
+                    createParticles(25, 'star', ['#ffd700', '#ff3366', '#ffffff']);
                 }
             } else {
-                alert(result.error || 'Erro ao equipar o título.');
+                alert(result.message || 'Erro ao equipar o título.');
             }
         } catch (e) {
             console.error('Erro ao definir título:', e);
@@ -128,24 +163,19 @@ const TitulosPage = {
             const result = await response.json();
 
             if (result.success) {
-                document.querySelectorAll('.title-card').forEach(c => c.classList.remove('active'));
                 this.tituloAtivo = null;
+                document.querySelectorAll('.title-card-v8').forEach(c => c.classList.remove('active-equipped'));
                 this.updateActiveDisplay();
             } else {
-                alert(result.error || 'Erro ao desequipar o título.');
+                alert(result.message || 'Erro ao desequipar o título.');
             }
         } catch (e) {
             console.error('Erro ao remover título:', e);
-            alert('Falha ao desequipar o título. Verifique sua conexão.');
         }
     }
 };
 
 window.TitulosPage = TitulosPage;
-if (!window.__SPA_MANAGED_LOAD__) {
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        TitulosPage.init();
-    } else {
-        document.addEventListener('DOMContentLoaded', () => TitulosPage.init());
-    }
-}
+document.addEventListener('DOMContentLoaded', () => {
+    TitulosPage.init();
+});

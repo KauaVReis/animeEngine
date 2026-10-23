@@ -4,9 +4,9 @@
  * GET: Obter streak do usuário
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/auth.php';
-require_once '../../includes/streak.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/streak.php';
 
 header('Content-Type: application/json');
 

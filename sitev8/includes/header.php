@@ -30,13 +30,20 @@ $pagina_atual = $pagina_atual ?? 'home';
     <?php endif; ?>
 </head>
 
-<body data-page="<?= htmlspecialchars($pagina_atual) ?>">
+<body data-page="<?= htmlspecialchars($pagina_atual) ?>" class="<?= !empty($is_fullscreen) ? 'fullscreen-mode' : '' ?>">
+    <?php if (empty($is_fullscreen)): ?>
     <header class="header">
         <div class="header-content">
-            <a href="home" class="logo">
-                <span class="logo-text">ANIME.ENGINE</span>
-                <span class="logo-version">v8</span>
-            </a>
+            <div class="header-left">
+                <button class="hamburger-btn" id="desktop-menu-toggle" onclick="if(window.Common && Common.toggleSidebar) { Common.toggleSidebar(); } return false;" aria-label="Abrir Menu" title="Abrir Menu de Navegação">
+                    <i class="fas fa-bars"></i>
+                    <span class="hamburger-label desktop-only">MENU</span>
+                </button>
+                <a href="home" class="logo">
+                    <span class="logo-text">ANIME.ENGINE</span>
+                    <span class="logo-version">v8</span>
+                </a>
+            </div>
 
             <div class="search-container">
                 <input type="text" id="search-input" class="search-input" placeholder="Buscar anime..."
@@ -64,3 +71,4 @@ $pagina_atual = $pagina_atual ?? 'home';
             </div>
         </div>
     </header>
+    <?php endif; ?>

@@ -4,8 +4,8 @@
  * GET: Obter conquistas do usuário
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/auth.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/auth.php';
 
 header('Content-Type: application/json');
 
@@ -19,7 +19,7 @@ $conn = conectar();
 $usuario_id = getUsuarioId();
 
 // Buscar badges desbloqueados — PREPARED
-$result = secure_query($conn, "SELECT badge_id, desbloqueado_em FROM conquistas WHERE usuario_id = ?", "i", $usuario_id);
+$result = secure_query($conn, "SELECT badge_id, desbloqueado_em FROM usuarios_conquistas WHERE usuario_id = ?", "i", $usuario_id);
 
 $unlocked = [];
 while ($row = mysqli_fetch_assoc($result)) {

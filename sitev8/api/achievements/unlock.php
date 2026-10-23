@@ -4,9 +4,9 @@
  * POST: Desbloquear conquista
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/auth.php';
-require_once '../../includes/rate_limiter.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 
@@ -29,7 +29,7 @@ $conn = conectar();
 $usuario_id = getUsuarioId();
 
 // Verificar se já desbloqueou — PREPARED
-$result = secure_query($conn, "SELECT id FROM conquistas WHERE usuario_id = ? AND badge_id = ?", "is", $usuario_id, $badge_id);
+$result = secure_query($conn, "SELECT id FROM usuarios_conquistas WHERE usuario_id = ? AND badge_id = ?", "is", $usuario_id, $badge_id);
 
 if (mysqli_num_rows($result) > 0) {
     mysqli_close($conn);
@@ -37,7 +37,7 @@ if (mysqli_num_rows($result) > 0) {
 }
 
 // Desbloquear — PREPARED
-secure_query($conn, "INSERT INTO conquistas (usuario_id, badge_id) VALUES (?, ?)", "is", $usuario_id, $badge_id);
+secure_query($conn, "INSERT INTO usuarios_conquistas (usuario_id, badge_id) VALUES (?, ?)", "is", $usuario_id, $badge_id);
 
 // Adicionar XP ao usuário
 if ($xp > 0) {

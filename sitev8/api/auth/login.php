@@ -4,10 +4,10 @@
  * POST: Fazer login (Seguro)
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/auth.php';
-require_once '../../includes/streak.php';
-require_once '../../includes/rate_limiter.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/streak.php';
+require_once __DIR__ . '/../../includes/rate_limiter.php';
 
 // Headers
 header('Content-Type: application/json');

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AnimeEngine v8 — OSTPlayer (Motor Musical Global Unificado)
  * 
  * Arquitetura:
@@ -620,6 +620,19 @@ const OSTPlayer = {
         }
 
         this.seekToPercent(0);
+    },
+
+    seekTo(seconds) {
+        const sec = Math.max(0, Number(seconds) || 0);
+        if (this.videoEl) {
+            this.videoEl.currentTime = sec;
+            this.currentTime = sec;
+            this.updateProgressUI();
+        } else if (this.ytPlayer && this.ytReady && typeof this.ytPlayer.seekTo === 'function') {
+            this.ytPlayer.seekTo(sec, true);
+            this.currentTime = sec;
+            this.updateProgressUI();
+        }
     },
 
     seekToPercent(pct) {

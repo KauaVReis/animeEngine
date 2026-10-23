@@ -4,8 +4,8 @@
  * POST: Registrar novo usuário (Seguro)
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/rate_limiter.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/rate_limiter.php';
 
 // Headers
 header('Content-Type: application/json');

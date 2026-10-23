@@ -1278,15 +1278,35 @@ const Common = {
      * Toggle popup do menu "Mais" na bottom-nav
      */
     toggleBottomNavMore() {
-        const popup = document.getElementById('bottom-nav-popup');
-        if (popup) {
-            popup.classList.toggle('open');
-        }
+        this.toggleSidebar();
+    },
+
+    /**
+     * Toggle Sidebar Drawer (Neo-Brutalista PC e Mobile)
+     */
+    toggleSidebar(force) {
+        const sidebar = document.getElementById('main-sidebar') || document.querySelector('.sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar) return;
+
+        const isOpen = (typeof force === 'boolean') ? force : !sidebar.classList.contains('open');
+        sidebar.classList.toggle('open', isOpen);
+        if (backdrop) backdrop.classList.toggle('active', isOpen);
+        document.body.classList.toggle('sidebar-drawer-open', isOpen);
     }
 };
 
 // Expor globalmente
 window.Common = Common;
+
+// Fechar sidebar com tecla Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (window.Common && Common.toggleSidebar) {
+            Common.toggleSidebar(false);
+        }
+    }
+});
 
 // Inicializar quando DOM pronto
 document.addEventListener('DOMContentLoaded', () => {

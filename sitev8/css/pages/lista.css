@@ -1,19 +1,616 @@
 /**
- * AnimeEngine v8 — Lista/Favoritos/Assistindo CSS
- * Estilos compartilhados pelas páginas de lista
+ * AnimeEngine v8 — Kanban Biblioteca & Minha Lista CSS (Neo-Brutalista)
  */
 
-/* Tabela/Grid de lista - entrada suave */
-.list-item, .anime-list-card {
-    animation: listSlide 0.3s ease backwards;
+.kanban-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    width: 100%;
 }
 
-.list-item:nth-child(2), .anime-list-card:nth-child(2) { animation-delay: 0.03s; }
-.list-item:nth-child(3), .anime-list-card:nth-child(3) { animation-delay: 0.06s; }
-.list-item:nth-child(4), .anime-list-card:nth-child(4) { animation-delay: 0.09s; }
-.list-item:nth-child(5), .anime-list-card:nth-child(5) { animation-delay: 0.12s; }
+/* TOOLBAR & FILTROS */
+.kanban-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: var(--color-surface, #1e1e24);
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 4px 4px 0px var(--border-color, #000);
+    border-radius: 6px;
+    padding: 12px 18px;
+}
 
-@keyframes listSlide {
-    from { opacity: 0; transform: translateX(-8px); }
-    to { opacity: 1; transform: translateX(0); }
+.toolbar-search {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    align-items: center;
+}
+
+.toolbar-search i {
+    position: absolute;
+    left: 12px;
+    color: var(--color-primary, #ff3366);
+    font-size: 0.95rem;
+}
+
+.toolbar-search input {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    background: var(--color-bg, #121218);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 4px;
+    color: var(--color-text, #fff);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.toolbar-search input:focus {
+    outline: none;
+    border-color: var(--color-primary, #ff3366);
+}
+
+.toolbar-filters {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-muted, #9ca3af);
+}
+
+.filter-group select {
+    background: var(--color-bg, #121218);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 4px;
+    color: var(--color-text, #fff);
+    padding: 7px 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--color-primary, #ff3366);
+}
+
+/* KANBAN BOARD COM 5 COLUNAS */
+.kanban-board-v8 {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(240px, 1fr));
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 24px;
+    min-height: 520px;
+    align-items: flex-start;
+}
+
+.kanban-col {
+    background: var(--color-surface, #181820);
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 4px 4px 0px var(--border-color, #000);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    min-height: 480px;
+    overflow: hidden;
+}
+
+.kanban-col-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 3px solid var(--border-color, #000);
+    color: #fff;
+}
+
+.col-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.col-title-wrap h3 {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+
+.kanban-badge-count {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid #000;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+/* CORES DOS CABEÇALHOS DAS COLUNAS */
+.bg-plan { background: #d97706; }
+.bg-watching { background: #2563eb; }
+.bg-paused { background: #7c3aed; }
+.bg-completed { background: #059669; }
+.bg-dropped { background: #dc2626; }
+
+/* CONTAINER DAS CARDS */
+.kanban-cards-track {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    min-height: 380px;
+}
+
+/* CARDS KANBAN NEO */
+.kanban-card-neo {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 3px 3px 0px var(--border-color, #000);
+    border-radius: 6px;
+    display: flex;
+    gap: 10px;
+    padding: 8px;
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+}
+
+.kanban-card-neo:hover {
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0px var(--border-color, #000);
+    border-color: var(--color-primary, #ff3366);
+}
+
+.kanban-card-neo:active {
+    cursor: grabbing;
+}
+
+.card-cover-thumb {
+    position: relative;
+    width: 65px;
+    aspect-ratio: 2/3;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color, #000);
+}
+
+.card-cover-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-rating-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #9ca3af;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.card-rating-badge.has-score {
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.5);
+}
+
+.card-content-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-title-text {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text, #fff);
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin: 4px 0;
+}
+
+.card-progress-numbers {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted, #9ca3af);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.card-progress-numbers i {
+    font-size: 0.65rem;
+    color: var(--color-primary, #ff3366);
+}
+
+.btn-quick-plus {
+    background: var(--color-primary, #ff3366);
+    color: #fff;
+    border: 1px solid #000;
+    border-radius: 3px;
+    font-size: 0.72rem;
+    font-weight: 900;
+    padding: 2px 7px;
+    cursor: pointer;
+    box-shadow: 1px 1px 0px #000;
+    transition: all 0.1s ease;
+}
+
+.btn-quick-plus:hover {
+    transform: scale(1.08);
+}
+
+.btn-quick-plus:active {
+    transform: scale(0.95);
+}
+
+.card-quick-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    padding-top: 4px;
+}
+
+.btn-card-action {
+    background: transparent;
+    border: 1px solid var(--border-color, #333);
+    border-radius: 3px;
+    color: var(--color-text-muted, #9ca3af);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+}
+
+.btn-card-action:hover {
+    background: var(--color-surface, #1e1e24);
+    color: #fff;
+    border-color: #fff;
+}
+
+.btn-card-action.delete-act:hover {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+/* SORTABLE DRAG & DROP GHOSTS */
+.kanban-ghost {
+    opacity: 0.35;
+    background: #2563eb !important;
+    border: 2px dashed #fff !important;
+}
+
+.kanban-chosen {
+    background: #1e1e28 !important;
+}
+
+.kanban-drag {
+    transform: rotate(2deg) scale(1.03);
+    box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.7) !important;
+}
+
+.empty-column-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 30px 10px;
+    color: var(--color-text-muted, #666);
+    text-align: center;
+    border: 2px dashed rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.empty-col-icon {
+    font-size: 1.8rem;
+    opacity: 0.5;
+}
+
+.empty-column-box p {
+    font-size: 0.78rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+
+/* ==========================================================================
+   ASSISTINDO AGORA (MODO COMPACTO NEO-BRUTALISTA)
+   ========================================================================== */
+
+.watching-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.watching-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+}
+
+.watching-card-v8 {
+    background: var(--color-surface, #1e1e24);
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 4px 4px 0px var(--border-color, #000);
+    border-radius: 8px;
+    display: flex;
+    gap: 14px;
+    padding: 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.watching-card-v8:hover {
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0px var(--border-color, #000);
+}
+
+.watching-cover-wrap {
+    position: relative;
+    width: 85px;
+    aspect-ratio: 2/3;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--border-color, #000);
+    cursor: pointer;
+}
+
+.watching-cover-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.watching-cover-wrap:hover img {
+    transform: scale(1.06);
+}
+
+.watching-badge-rating {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #9ca3af;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.watching-badge-rating.has-score {
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.6);
+}
+
+.watching-body-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.watching-card-title {
+    margin: 0 0 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--color-text, #fff);
+    cursor: pointer;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.15s;
+}
+
+.watching-card-title:hover {
+    color: var(--color-primary, #ff3366);
+}
+
+.watching-progress-block {
+    margin: 6px 0;
+}
+
+.watching-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--color-text-muted, #9ca3af);
+    margin-bottom: 4px;
+}
+
+.progress-percent {
+    font-weight: 800;
+    color: var(--color-primary, #ff3366);
+}
+
+.watching-track-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--color-bg, #101015);
+    border: 1px solid var(--border-color, #000);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.watching-track-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #ff3366);
+    transition: width 0.3s ease;
+}
+
+.watching-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.episode-stepper {
+    display: flex;
+    align-items: center;
+    background: var(--color-bg, #121218);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.btn-step {
+    background: transparent;
+    border: none;
+    color: var(--color-text, #fff);
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: background 0.15s;
+}
+
+.btn-step:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-step-plus {
+    background: var(--color-primary, #ff3366);
+    color: #fff;
+    font-weight: 900;
+}
+
+.btn-step-plus:hover {
+    background: #e62055;
+}
+
+.step-display {
+    padding: 3px 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-left: 1px solid var(--border-color, #333);
+    border-right: 1px solid var(--border-color, #333);
+}
+
+.step-total {
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #888);
+}
+
+.watching-action-btns {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-tool {
+    background: var(--color-bg, #121218);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 4px;
+    color: var(--color-text, #fff);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 7px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-tool:hover {
+    border-color: #fff;
+    transform: translateY(-1px);
+}
+
+.btn-tool.finish:hover {
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
+}
+
+/* EMPTY STATE */
+.watching-empty-state {
+    background: var(--color-surface, #1e1e24);
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 6px 6px 0px var(--border-color, #000);
+    border-radius: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.empty-icon-box {
+    font-size: 3.5rem;
+    margin-bottom: 4px;
+}
+
+.empty-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--color-text, #fff);
+    margin: 0;
+}
+
+.empty-desc {
+    font-size: 0.92rem;
+    color: var(--color-text-muted, #9ca3af);
+    max-width: 440px;
+    margin: 0;
+}
+
+.empty-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
 }

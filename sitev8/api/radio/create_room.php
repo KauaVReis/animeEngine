@@ -73,8 +73,8 @@ if ($ativa) {
 $insertSala = secure_query(
     $conn,
     "INSERT INTO radio_salas 
-     (uuid, criador_id, nome, descricao, tipo, senha_hash, status, tema_visual, max_ouvintes, ouvintes_count, version, criado_em)
-     VALUES (?, ?, ?, ?, ?, ?, 'ativa', ?, ?, 1, NOW())",
+     (uuid, criador_id, nome, descricao, tipo, senha_hash, status, tema_visual, max_ouvintes, ouvintes_count, version)
+     VALUES (?, ?, ?, ?, ?, ?, 'ativa', ?, ?, 1, 1)",
     "sisssssi",
     $uuid,
     $userId,
@@ -130,6 +130,7 @@ mysqli_close($conn);
 echo json_encode([
     'success'   => true,
     'message'   => 'Sala criada com sucesso!',
+    'uuid'      => $uuid,
     'room_uuid' => $uuid,
     'room_id'   => $salaId,
     'nome'      => $nome,

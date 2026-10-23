@@ -4,8 +4,8 @@
  * GET: Obter metas da semana atual
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/auth.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/auth.php';
 
 header('Content-Type: application/json');
 
