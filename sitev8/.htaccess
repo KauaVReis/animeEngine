@@ -11,6 +11,10 @@ RewriteEngine On
 # ----- BLOQUEIO DE ACESSO DIRETO À PASTA views/ -----
 RewriteRule ^views/ - [F,L]
 
+# ----- BLOQUEIO DE ARQUIVOS SENSÍVEIS, TESTES E SCRIPTS DE SETUP -----
+RewriteRule ^(database\.sql|segredos_animeengine\.txt|setup_.*\.php|migrar\.php|test_.*\.php|.*\.sql)$ - [F,L]
+RewriteRule ^api/.*test_.*\.php$ - [F,L]
+
 # ----- FRONT CONTROLLER -----
 # Se o arquivo existir fisicamente, serve ele diretamente (CSS, JS, Imagens, etc)
 RewriteCond %{REQUEST_FILENAME} -f

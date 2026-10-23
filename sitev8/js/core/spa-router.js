@@ -348,13 +348,18 @@ const SpaRouter = (function () {
         const header = document.querySelector('.header');
         const sidebar = document.querySelector('.sidebar');
         const bottomNav = document.querySelector('.bottom-nav');
-        const mainContent = document.querySelector('.main-content');
+        const footer = document.querySelector('.app-telemetry-footer, .footer');
+        const mainContent = document.querySelector(CONFIG.contentSelector) || document.querySelector('.main-content');
+
+        document.body.classList.toggle('fullscreen-mode', !!fullscreen);
 
         if (fullscreen) {
             if (header) header.style.display = 'none';
             if (sidebar) sidebar.style.display = 'none';
             if (bottomNav) bottomNav.style.display = 'none';
+            if (footer) footer.style.display = 'none';
             if (mainContent) {
+                mainContent.classList.add('fullscreen-main');
                 mainContent.style.marginLeft = '0';
                 mainContent.style.marginTop = '0';
                 mainContent.style.padding = '0';
@@ -364,7 +369,9 @@ const SpaRouter = (function () {
             if (header) header.style.display = '';
             if (sidebar) sidebar.style.display = '';
             if (bottomNav) bottomNav.style.display = '';
+            if (footer) footer.style.display = '';
             if (mainContent) {
+                mainContent.classList.remove('fullscreen-main');
                 mainContent.style.marginLeft = '';
                 mainContent.style.marginTop = '';
                 mainContent.style.padding = '';
@@ -381,6 +388,7 @@ const SpaRouter = (function () {
             link.rel = 'stylesheet';
             link.href = href + '?v=10.2';
             link.setAttribute('data-page-css', 'true');
+            link.onerror = () => console.warn(`[SPA] Falha ao carregar CSS da página: ${href}`);
             document.head.appendChild(link);
         }
     }
