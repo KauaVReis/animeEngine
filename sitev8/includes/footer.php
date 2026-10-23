@@ -61,6 +61,7 @@
     <script src="js/ost-player.js?v=10.2"></script>
     <script src="js/core/spa-router.js?v=10.2"></script>
     <script src="js/common.js?v=10.2"></script>
+    <script src="js/app.js?v=10.2"></script>
     <script>
         // Random anime function (v8 - SPA navigation + API fallback resilience)
         async function goToRandomAnime() {

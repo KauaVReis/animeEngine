@@ -28,6 +28,7 @@ const SpaRouter = (function () {
     let isNavigating = false;
     let currentPage = null;
     let abortController = null;
+    let isInitialized = false;
 
     function createSkeleton() {
         return `
@@ -437,6 +438,9 @@ const SpaRouter = (function () {
     }
 
     function init() {
+        if (isInitialized) return;
+        isInitialized = true;
+
         const urlObj = new URL(window.location.href);
         currentPage = urlObj.searchParams.get('page');
 
