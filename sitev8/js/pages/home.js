@@ -361,17 +361,18 @@ const HomePage = {
 
         if (!pill || !src) return;
 
-        const isAnilistCooldown = sessionStorage.getItem('ae_anilist_cooldown');
+        const cdVal = Number(sessionStorage.getItem('ae_anilist_cooldown') || 0);
+        const isAnilistCooldown = cdVal > Date.now();
         if (isAnilistCooldown) {
             pill.textContent = 'FALLBACK';
             pill.className = 'command-status-pill fallback-pill';
-            src.textContent = 'AnimeThemes HD + Jikan v4';
-            if (desc) desc.textContent = 'AniList em cooldown temporário. Motor operando 100% resiliente.';
+            src.textContent = 'AnimeThemes HD (Resiliente)';
+            if (desc) desc.textContent = 'AniList em cooldown temporário. Motor operando via AnimeThemes HD.';
         } else {
             pill.textContent = 'ONLINE';
             pill.className = 'command-status-pill live-pill';
-            src.textContent = 'AniList ⇄ Themes ⇄ Jikan';
-            if (desc) desc.textContent = 'Tri-API com balanceamento e alta fidelidade.';
+            src.textContent = 'AniList GraphQL (Primária)';
+            if (desc) desc.textContent = 'Catálogo de alta fidelidade sincronizado diretamente com AniList GraphQL oficial.';
         }
     },
 

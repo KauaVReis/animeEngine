@@ -1259,13 +1259,14 @@ const Common = {
 
         // Atualizar status de circuit breaker das APIs
         const updateApiStatus = () => {
-            const isAnilistCooldown = sessionStorage.getItem('ae_anilist_cooldown');
+            const cdVal = Number(sessionStorage.getItem('ae_anilist_cooldown') || 0);
+            const isAnilistCooldown = cdVal > Date.now();
             const elAnilist = document.getElementById('tel-anilist');
             if (elAnilist) {
                 if (isAnilistCooldown) {
                     elAnilist.innerHTML = '<span class="tel-dot dot-standby"></span> ANILIST <b>RESERVA</b>';
                 } else {
-                    elAnilist.innerHTML = '<span class="tel-dot dot-online"></span> ANILIST <b>OK</b>';
+                    elAnilist.innerHTML = '<span class="tel-dot dot-online"></span> ANILIST <b>PRIMÁRIA (OK)</b>';
                 }
             }
         };

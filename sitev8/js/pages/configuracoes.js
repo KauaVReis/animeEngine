@@ -302,7 +302,8 @@ const ConfiguracoesPage = {
         if (elAnilist) {
             const t0 = performance.now();
             try {
-                const isCooldown = sessionStorage.getItem('ae_anilist_cooldown');
+                const cdVal = Number(sessionStorage.getItem('ae_anilist_cooldown') || 0);
+                const isCooldown = cdVal > Date.now();
                 if (isCooldown) {
                     elAnilist.textContent = 'COOLDOWN';
                     elAnilist.className = 'api-pill-status pill-standby';
@@ -311,13 +312,13 @@ const ConfiguracoesPage = {
                     const r = await fetch('https://graphql.anilist.co', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ query: '{ Media(id: 1) { id } }' })
+                        body: JSON.stringify({ query: '{ Page(page: 1, perPage: 1) { media(type: ANIME) { id } } }' })
                     });
                     const diff = Math.round(performance.now() - t0);
                     if (r.ok) {
-                        elAnilist.textContent = 'OK (200)';
+                        elAnilist.textContent = 'OK (PRIMÁRIA)';
                         elAnilist.className = 'api-pill-status pill-ok';
-                        latAnilist.textContent = `Latência: ${diff} ms`;
+                        latAnilist.textContent = `Latência: ${diff} ms (Online)`;
                     } else {
                         elAnilist.textContent = `AVISO (${r.status})`;
                         elAnilist.className = 'api-pill-status pill-standby';

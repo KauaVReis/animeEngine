@@ -28,8 +28,8 @@
     <footer class="app-telemetry-footer" id="app-telemetry-footer">
         <div class="telemetry-inner">
             <div class="telemetry-cluster">
-                <span class="telemetry-badge"><i class="fas fa-satellite-dish"></i> TRI-API v8</span>
-                <span class="telemetry-item" id="tel-anilist"><span class="tel-dot dot-online"></span> ANILIST <b>OK</b></span>
+                <span class="telemetry-badge"><i class="fas fa-satellite-dish"></i> DATA ENGINE v8</span>
+                <span class="telemetry-item" id="tel-anilist"><span class="tel-dot dot-online"></span> ANILIST <b>PRIMÁRIA</b></span>
                 <span class="telemetry-item" id="tel-animethemes"><span class="tel-dot dot-online"></span> ANIMETHEMES <b>OK (HD)</b></span>
                 <span class="telemetry-item" id="tel-jikan"><span class="tel-dot dot-standby"></span> JIKAN v4 <b>STANDBY</b></span>
             </div>

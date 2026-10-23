@@ -8,7 +8,14 @@ const API = {
     baseURL: 'https://graphql.anilist.co',
     jikanURL: 'https://api.jikan.moe/v4',
     animeThemesURL: 'https://api.animethemes.moe',
-    anilistCooldownUntil: Number(sessionStorage.getItem('ae_anilist_cooldown') || 0),
+    anilistCooldownUntil: (() => {
+        try {
+            const raw = Number(sessionStorage.getItem('ae_anilist_cooldown') || 0);
+            if (raw > Date.now()) return raw;
+            sessionStorage.removeItem('ae_anilist_cooldown');
+        } catch (_) {}
+        return 0;
+    })(),
     jikanCooldownUntil: Number(sessionStorage.getItem('ae_jikan_cooldown') || 0),
     activeProvider: 'anilist',
     _memCache: new Map(),
@@ -24,17 +31,22 @@ const API = {
     },
 
     isAnilistInCooldown() {
-        return Date.now() < this.anilistCooldownUntil;
+        const inCooldown = Date.now() < this.anilistCooldownUntil;
+        if (!inCooldown && this.anilistCooldownUntil > 0) {
+            this.anilistCooldownUntil = 0;
+            try { sessionStorage.removeItem('ae_anilist_cooldown'); } catch (_) {}
+        }
+        return inCooldown;
     },
 
     isJikanInCooldown() {
         return Date.now() < this.jikanCooldownUntil;
     },
 
-    _tripAnilist(ms = 300000) {
+    _tripAnilist(ms = 25000) {
         this.anilistCooldownUntil = Date.now() + ms;
         try { sessionStorage.setItem('ae_anilist_cooldown', String(this.anilistCooldownUntil)); } catch (_) {}
-        this._setProvider(this.isJikanInCooldown() ? 'animethemes' : 'jikan');
+        this._setProvider('animethemes');
     },
 
     _tripJikan(ms = 300000) {
@@ -45,18 +57,17 @@ const API = {
 
     getProviderStatus() {
         if (this.isAnilistInCooldown()) {
-            const p = this.isJikanInCooldown() ? 'animethemes' : 'jikan';
             return {
-                provider: p,
+                provider: 'animethemes',
                 mode: 'fallback',
-                label: p === 'jikan' ? 'JIKAN v4 + ANIMETHEMES' : 'ANIMETHEMES RESILIENT ENGINE',
+                label: 'ANIMETHEMES RESILIENT ENGINE (FALLBACK)',
                 cooldownRemaining: Math.max(0, Math.ceil((this.anilistCooldownUntil - Date.now()) / 1000))
             };
         }
         return {
             provider: 'anilist',
             mode: 'primary',
-            label: 'ANILIST GRAPHQL',
+            label: 'ANILIST GRAPHQL (PRIMÁRIA)',
             cooldownRemaining: 0
         };
     },
@@ -101,15 +112,15 @@ const API = {
     },
 
     /**
-     * Requisição GraphQL AniList com Circuit Breaker Rápido (2.2s)
+     * Requisição GraphQL AniList Primária com Timeout Confiável (8.0s) e Retry Automático
      */
-    async query(query, variables = {}) {
+    async query(query, variables = {}, retries = 1) {
         if (this.isAnilistInCooldown()) {
             throw new Error('ANILIST_CIRCUIT_OPEN');
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2200);
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
         let response;
         try {
@@ -122,15 +133,28 @@ const API = {
                 body: JSON.stringify({ query, variables }),
                 signal: controller.signal
             });
+            clearTimeout(timeoutId);
         } catch (networkErr) {
             clearTimeout(timeoutId);
-            this._tripAnilist(300000);
+            if (retries > 0) {
+                await this.delay(350);
+                return this.query(query, variables, retries - 1);
+            }
+            this._tripAnilist(25000);
             throw networkErr;
         }
-        clearTimeout(timeoutId);
 
-        if (response.status === 429 || response.status >= 500) {
-            this._tripAnilist(300000);
+        if (response.status === 429) {
+            this._tripAnilist(30000);
+            throw new Error(`AniList HTTP 429 (Rate Limit)`);
+        }
+
+        if (response.status >= 500) {
+            if (retries > 0) {
+                await this.delay(400);
+                return this.query(query, variables, retries - 1);
+            }
+            this._tripAnilist(25000);
             throw new Error(`AniList HTTP ${response.status}`);
         }
 
@@ -138,12 +162,12 @@ const API = {
         try {
             json = await response.json();
         } catch (parseErr) {
-            this._tripAnilist(300000);
-            throw new Error('AniList returned non-JSON response (outage)');
+            this._tripAnilist(25000);
+            throw new Error('AniList returned non-JSON response');
         }
 
         if (!response.ok || !json || !json.data) {
-            this._tripAnilist(300000);
+            this._tripAnilist(25000);
             throw new Error('Invalid GraphQL payload from AniList');
         }
 
@@ -543,6 +567,17 @@ const API = {
             const data = await this.query(query, { page, perPage });
             return Promise.all(data.Page.media.map(m => this.formatAnime(m)));
         } catch (err) {
+            console.warn('[API] Falha no AniList GraphQL, engajando fallback AnimeThemes HD:', err.message);
+            try {
+                const fallback = await this.fetchAnimeThemesFallback(
+                    `/anime?filter[year]=2024&sort=-year&page[size]=${perPage}&page[number]=${page}&include=images,resources,studios`
+                );
+                if (fallback.anime && fallback.anime.length > 0) {
+                    return Promise.all((fallback.anime || []).map(a => this.formatAnimeFromAnimeThemes(a, true)));
+                }
+            } catch (_) {}
+
+            // Último recurso de emergência caso AnimeThemes também falhe
             if (!this.isJikanInCooldown()) {
                 try {
                     const jikan = await this.fetchJikan(`/top/anime?filter=airing&page=${page}&limit=${Math.min(perPage, 25)}`);
@@ -551,10 +586,7 @@ const API = {
                     }
                 } catch (_) {}
             }
-            const fallback = await this.fetchAnimeThemesFallback(
-                `/anime?filter[year]=2024&sort=-year&page[size]=${perPage}&page[number]=${page}&include=images,resources,studios`
-            );
-            return Promise.all((fallback.anime || []).map(a => this.formatAnimeFromAnimeThemes(a, true)));
+            return [];
         }
     },
 
@@ -586,6 +618,22 @@ const API = {
             const data = await this.query(query, { page, perPage });
             return Promise.all(data.Page.media.map(m => this.formatAnime(m)));
         } catch (err) {
+            console.warn('[API] Falha no AniList GraphQL, engajando fallback AnimeThemes HD:', err.message);
+            try {
+                let fallback = await this.fetchAnimeThemesFallback(
+                    `/anime?filter[year]=2025&page[size]=${perPage}&page[number]=${page}&include=images,resources,studios`
+                );
+                if (!fallback.anime || fallback.anime.length === 0) {
+                    fallback = await this.fetchAnimeThemesFallback(
+                        `/anime?filter[year]=2024&filter[season]=Fall&page[size]=${perPage}&page[number]=${page}&include=images,resources,studios`
+                    );
+                }
+                if (fallback.anime && fallback.anime.length > 0) {
+                    return Promise.all((fallback.anime || []).map(a => this.formatAnimeFromAnimeThemes(a, true)));
+                }
+            } catch (_) {}
+
+            // Último recurso de emergência caso AnimeThemes também falhe
             if (!this.isJikanInCooldown()) {
                 try {
                     const jikan = await this.fetchJikan(`/seasons/now?page=${page}&limit=${Math.min(perPage, 25)}`);
@@ -594,15 +642,7 @@ const API = {
                     }
                 } catch (_) {}
             }
-            let fallback = await this.fetchAnimeThemesFallback(
-                `/anime?filter[year]=2025&page[size]=${perPage}&page[number]=${page}&include=images,resources,studios`
-            );
-            if (!fallback.anime || fallback.anime.length === 0) {
-                fallback = await this.fetchAnimeThemesFallback(
-                    `/anime?filter[year]=2024&filter[season]=Fall&page[size]=${perPage}&page[number]=${page}&include=images,resources,studios`
-                );
-            }
-            return Promise.all((fallback.anime || []).map(a => this.formatAnimeFromAnimeThemes(a, true)));
+            return [];
         }
     },
 

@@ -136,10 +136,10 @@
         <div class="command-card command-card-engine">
             <div class="command-card-top">
                 <span class="command-tag"><i class="fas fa-microchip"></i> MOTOR DE DADOS v8</span>
-                <span class="command-status-pill engine-pill" id="cmd-engine-pill">TRI-API</span>
+                <span class="command-status-pill engine-pill" id="cmd-engine-pill">ANILIST</span>
             </div>
-            <div class="command-card-title text-truncate" id="cmd-engine-source">AniList ⇄ Themes ⇄ Jikan</div>
-            <div class="command-card-sub truncate-2" id="cmd-engine-desc">Resiliência ativa com failover automático e cache</div>
+            <div class="command-card-title text-truncate" id="cmd-engine-source">AniList GraphQL (Primária)</div>
+            <div class="command-card-sub truncate-2" id="cmd-engine-desc">Catálogo de alta fidelidade sincronizado diretamente com AniList GraphQL</div>
             <div class="command-card-actions">
                 <a href="?page=calendario" class="btn btn-secondary btn-sm">
                     <i class="fas fa-calendar-alt"></i> Grade
