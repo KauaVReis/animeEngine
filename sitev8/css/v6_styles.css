@@ -1950,3 +1950,109 @@ body.focus-mode:hover .sidebar {
         padding: 30px 40px !important;
     }
 }
+
+
+/* ==========================================================================
+   GLOBAL CONTRAST & ACCESSIBILITY GUARANTEES (ACROSS ALL THEMES)
+   ========================================================================== */
+
+/* Garantia de contraste em inputs, dropdowns e selects em qualquer tema */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+    background-color: var(--color-bg) !important;
+    color: var(--color-text) !important;
+    border-color: var(--border-color) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-text-muted) !important;
+    opacity: 0.75;
+}
+
+select option {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+}
+
+/* Garantia de contraste absoluto em banners e cabeçalhos com cores fortes */
+.category-banner.bg-yellow,
+.kanban-col-header.bg-plan {
+    background-color: #f59e0b !important;
+    color: #000000 !important;
+}
+
+.category-banner.bg-yellow *,
+.kanban-col-header.bg-plan * {
+    color: #000000 !important;
+}
+
+.category-banner.bg-pink {
+    background-color: #ec4899 !important;
+    color: #ffffff !important;
+}
+.category-banner.bg-pink * {
+    color: #ffffff !important;
+}
+
+.category-banner.bg-purple,
+.kanban-col-header.bg-paused {
+    background-color: #8b5cf6 !important;
+    color: #ffffff !important;
+}
+.category-banner.bg-purple *,
+.kanban-col-header.bg-paused * {
+    color: #ffffff !important;
+}
+
+.category-banner.bg-blue,
+.kanban-col-header.bg-watching {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+.category-banner.bg-blue *,
+.kanban-col-header.bg-watching * {
+    color: #ffffff !important;
+}
+
+.kanban-col-header.bg-completed {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+}
+.kanban-col-header.bg-completed * {
+    color: #ffffff !important;
+}
+
+.kanban-col-header.bg-dropped {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+}
+.kanban-col-header.bg-dropped * {
+    color: #ffffff !important;
+}
+
+.category-banner.bg-dark {
+    background-color: #111827 !important;
+    color: #ffffff !important;
+}
+.category-banner.bg-dark * {
+    color: #ffffff !important;
+}
+
+/* Ajuste de tamanho e contraste do texto "Sua Nota" e badges na tela de detalhes */
+.rating-label,
+.details-rating-box .rating-label {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    color: var(--color-text) !important;
+    letter-spacing: 0.5px !important;
+}
+
+.rating-val-badge {
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    background: var(--color-bg) !important;
+    color: var(--color-primary) !important;
+    padding: 3px 8px !important;
+}

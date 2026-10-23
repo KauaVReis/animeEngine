@@ -529,7 +529,7 @@ const HomePage = {
             <div class="anime-of-day">
                 <div class="anime-of-day-header">
                     <div class="anime-of-day-badge">
-                        <i class="fas fa-sparkles"></i> DESTAQUE ESPECIAL DO DIA
+                        <i class="fas fa-star"></i> DESTAQUE ESPECIAL DO DIA
                     </div>
                     <div class="anime-of-day-date">
                         <i class="fas fa-calendar-day"></i> ${dateStr}

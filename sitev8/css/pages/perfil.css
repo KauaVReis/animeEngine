@@ -598,3 +598,639 @@
         grid-column: span 1;
     }
 }
+
+
+/* ==========================================================================
+   EDITAR PERFIL NEO-BRUTALISTA COM ANILIST
+   ========================================================================== */
+
+.edit-profile-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+}
+
+.edit-preview-card {
+    position: relative;
+    min-height: 220px;
+    background-size: cover;
+    background-position: center;
+    border: 4px solid var(--border-color, #000);
+    box-shadow: 6px 6px 0px var(--border-color, #000);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 24px;
+    transition: background-image 0.3s ease;
+}
+
+.edit-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(10, 10, 15, 0.95) 0%, rgba(10, 10, 15, 0.6) 60%, rgba(10, 10, 15, 0.3) 100%);
+}
+
+.edit-preview-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--color-primary, #ff3366);
+    color: #fff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border: 2px solid var(--border-color, #000);
+    border-radius: 4px;
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    z-index: 3;
+}
+
+.edit-preview-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.edit-preview-avatar-box {
+    position: relative;
+    width: 95px;
+    height: 95px;
+    background: var(--color-surface, #1e1e24);
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 3px 3px 0px var(--border-color, #000);
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.edit-preview-avatar-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-avatar-fallback {
+    font-size: 2.5rem;
+}
+
+.preview-status-pill {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: var(--color-bg, #0d0d12);
+    border: 2px solid var(--border-color, #000);
+    border-radius: 50%;
+    padding: 2px 5px;
+    font-size: 0.8rem;
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+}
+
+.edit-preview-info {
+    flex: 1;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.preview-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.preview-username {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.6rem;
+    color: #fff;
+    line-height: 1.1;
+    text-shadow: 2px 2px 0px #000;
+}
+
+.preview-bio {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 2px 0;
+    line-height: 1.35;
+    max-width: 600px;
+}
+
+.preview-waifu-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-surface, #1e1e24);
+    border: 2px solid var(--border-color, #000);
+    border-radius: 20px;
+    padding: 2px 10px 2px 4px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    width: fit-content;
+}
+
+.preview-waifu-pill img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* FORMULÁRIO */
+.edit-profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.form-section-card {
+    background: var(--color-surface, #1e1e24);
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 5px 5px 0px var(--border-color, #000);
+    border-radius: 8px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px dashed var(--border-color, #333);
+    padding-bottom: 10px;
+}
+
+.form-section-header h3 {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--color-text, #fff);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #9ca3af);
+    margin: -6px 0 6px;
+}
+
+/* ANILIST TOOLS */
+.anilist-card {
+    background: linear-gradient(135deg, #181926 0%, #201a35 100%);
+    border-color: #3b82f6;
+    box-shadow: 5px 5px 0px #3b82f6;
+}
+
+.anilist-status-badge {
+    background: #10b981;
+    color: #000;
+    font-weight: 900;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.anilist-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.anilist-tool-box {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--border-color, #000);
+    border-radius: 6px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tool-label {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--color-text, #fff);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tool-input-row {
+    display: flex;
+    gap: 8px;
+}
+
+.tool-input-row input {
+    flex: 1;
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    border-radius: 4px;
+    color: #fff;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+}
+
+.tool-input-row input:focus {
+    outline: none;
+    border-color: var(--color-primary, #ff3366);
+}
+
+.tool-hint {
+    font-size: 0.72rem;
+    color: var(--color-text-muted, #9ca3af);
+}
+
+.anilist-results-track {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.anilist-char-card {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    border-radius: 4px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s;
+}
+
+.anilist-char-card:hover {
+    border-color: #ec4899;
+    transform: translateY(-2px);
+}
+
+.anilist-char-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+.anilist-char-card .char-name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    color: var(--color-text, #ffffff);
+}
+
+.btn-pick-char {
+    background: var(--color-primary, #ff3366);
+    border: 1px solid #000;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.anilist-success-banner {
+    background: #10b981;
+    color: #000;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    border-radius: 4px;
+    grid-column: 1 / -1;
+}
+
+/* FORM GROUPS */
+.form-grid-two {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.form-group-neo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-neo label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--color-text, #fff);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group-neo input,
+.form-section-card textarea {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 4px;
+    color: var(--color-text, #fff) !important;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 10px 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group-neo input:focus,
+.form-section-card textarea:focus {
+    outline: none;
+    border-color: var(--color-primary, #ff3366);
+}
+
+.form-section-card textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.char-counter {
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #9ca3af);
+    font-weight: 700;
+}
+
+/* EMOJI PILL SELECTOR */
+.emoji-selector-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.emoji-pill-btn {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 20px;
+    padding: 6px 14px;
+    color: var(--color-text, #fff);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: all 0.15s ease;
+}
+
+.emoji-pill-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0px var(--border-color, #000);
+}
+
+.emoji-pill-btn.active {
+    background: var(--color-primary, #ff3366);
+    color: #fff;
+    box-shadow: 3px 3px 0px #000;
+    transform: none;
+}
+
+/* MOLDURA SELECTOR GRID */
+.moldura-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+}
+
+.moldura-item-card {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.moldura-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 0px var(--border-color, #000);
+}
+
+.moldura-item-card.active {
+    border-color: var(--color-primary, #ff3366);
+    box-shadow: 3px 3px 0px var(--color-primary, #ff3366);
+}
+
+.moldura-thumb-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.moldura-title {
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: var(--color-text, #ffffff);
+}
+
+.moldura-req-badge {
+    font-size: 0.68rem;
+    color: var(--color-text-muted, #888);
+}
+
+/* COR DO NOME */
+.cor-selector-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cor-option-btn {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 6px;
+    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--color-text, #ffffff);
+    transition: all 0.15s ease;
+}
+
+.cor-option-btn.active {
+    border-color: var(--color-primary, #ff3366);
+    box-shadow: 3px 3px 0px var(--border-color, #000);
+}
+
+.cor-sample {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid #000;
+}
+
+.cor-option-btn.cor-default .cor-sample { background: #ffffff; }
+.cor-option-btn.cor-gold .cor-sample { background: #ffd700; }
+.cor-option-btn.cor-purple .cor-sample { background: #a855f7; }
+.cor-option-btn.cor-red .cor-sample { background: #ef4444; }
+.cor-option-btn.cor-blue .cor-sample { background: #3b82f6; }
+.cor-option-btn.cor-green .cor-sample { background: #10b981; }
+.cor-option-btn.cor-rainbow .cor-sample { background: linear-gradient(45deg, red, yellow, green, cyan, blue, magenta); }
+
+/* BADGES SELECTOR */
+.badges-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.badge-item-neo {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease;
+}
+
+.badge-item-neo.unlocked {
+    cursor: pointer;
+}
+
+.badge-item-neo.unlocked:hover {
+    border-color: #ffd700;
+    transform: translateY(-1px);
+}
+
+.badge-item-neo.selected {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 3px 3px 0px #ffd700;
+}
+
+.badge-item-neo.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.badge-item-neo .badge-icon {
+    font-size: 1.4rem;
+}
+
+.badge-item-neo .badge-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-text, #ffffff);
+    flex: 1;
+}
+
+.badge-status-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--color-text-muted, #888);
+}
+
+.badge-item-neo.selected .badge-status-tag {
+    color: #ffd700;
+}
+
+/* TOGGLE PRIVACIDADE */
+.neo-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.neo-toggle-row input {
+    display: none;
+}
+
+.toggle-track {
+    width: 44px;
+    height: 24px;
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 2px 2px 0px var(--border-color, #000);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.2s ease;
+}
+
+.toggle-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #888;
+    border-radius: 50%;
+    transition: transform 0.2s ease, background 0.2s;
+}
+
+.neo-toggle-row input:checked + .toggle-track {
+    background: var(--color-primary, #ff3366);
+}
+
+.neo-toggle-row input:checked + .toggle-track .toggle-knob {
+    transform: translateX(20px);
+    background: #fff;
+}
+
+.toggle-text {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-text, #fff);
+}
+
+/* ACTIONS BAR */
+.edit-profile-actions-bar {
+    position: sticky;
+    bottom: 20px;
+    z-index: 99;
+}
+
+.edit-profile-actions-bar .btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 5px 5px 0px var(--border-color, #000);
+}

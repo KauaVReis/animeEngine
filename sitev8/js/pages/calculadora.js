@@ -1,22 +1,29 @@
 /**
- * AnimeEngine v6 - Calculadora Page
- * Progress bar e lógica exatamente como no v4
- * Contador global contínuo: percorre todos animes sequencialmente
+ * AnimeEngine v8 - Calculadora Page
+ * Planejador de Maratona & Simulador de Progresso com AniList + AnimeData
  */
 
 const CalculadoraPage = {
     stack: [],
-    globalEp: 0,  // Contador GLOBAL (soma de todos animes)
+    globalEp: 0,
     settings: {
         epsPerDay: 3,
         skipFillers: false,
-        speedrun: false
+        speedrun: false,
+        weekendsOnly: false,
+        calcMode: 'pace', // 'pace' ou 'deadline'
+        targetDeadline: null
     },
     debounceTimer: null,
     isDragging: false,
+    radarRaf: null,
 
     // Elementos DOM
     elements: {
+        globalEpInput: null,
+        progressBar: null,
+        progressContainer: null,
+        progressPercent: null,
         btnMinus: null,
         btnPlus: null,
         radarCanvas: null,
@@ -24,14 +31,13 @@ const CalculadoraPage = {
         timelineContainer: null
     },
 
-
-
-    radarRaf: null,
-
+    /**
+     * Inicialização da página
+     */
     init() {
-        console.log('🧮 Loading Calculadora Page...');
+        console.log('🧮 Loading Calculadora Page v8...');
 
-        // Carregar elementos DOM
+        // Mapear elementos DOM
         this.elements.globalEpInput = document.getElementById('global-ep-input');
         this.elements.progressBar = document.getElementById('progress-bar');
         this.elements.progressContainer = document.getElementById('progress-container');
@@ -57,8 +63,357 @@ const CalculadoraPage = {
         this.calculate();
         this.initRadarAnimation();
 
-        console.log('✅ Calculadora Page loaded!');
+        console.log('✅ Calculadora Page v8 pronta!');
     },
+
+    /**
+     * Limpeza ao desmontar
+     */
+    destroy() {
+        if (this.radarRaf) {
+            cancelAnimationFrame(this.radarRaf);
+            this.radarRaf = null;
+        }
+    },
+
+    // ========================================
+    // IMPORTAÇÃO DE BACKLOG / LISTAS
+    // ========================================
+
+    /**
+     * Normalizar objeto de anime para a stack
+     */
+    normalizeAnimeForStack(item) {
+        if (!item) return null;
+        
+        let title = 'Anime';
+        if (typeof item.title === 'object' && item.title !== null) {
+            title = item.title.romaji || item.title.english || item.title.userPreferred || item.title.native || 'Anime';
+        } else if (item.title || item.titulo) {
+            title = item.title || item.titulo;
+        }
+
+        let image = 'img/placeholder.jpg';
+        if (item.coverImage && typeof item.coverImage === 'object') {
+            image = item.coverImage.large || item.coverImage.medium || image;
+        } else if (item.image || item.imagem) {
+            image = item.image || item.imagem;
+        }
+
+        const episodes = parseInt(item.episodes || item.episodios || 12) || 12;
+        const progress = parseInt(item.progress || item.progresso || 0) || 0;
+        const id = parseInt(item.id || item.anime_id || Date.now());
+
+        return {
+            id,
+            title,
+            image,
+            episodes,
+            currentEp: progress
+        };
+    },
+
+    /**
+     * Importar animes da lista "Assistindo" (Watching)
+     */
+    async importFromWatching() {
+        let items = [];
+        if (typeof Storage !== 'undefined' && Storage.getList) {
+            items = Storage.getList('watching') || [];
+        }
+
+        // Tentar API do backend se a lista local estiver vazia
+        if (items.length === 0) {
+            try {
+                const res = await fetch('api/lists/get.php');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.watching) items = data.watching;
+                }
+            } catch (e) {}
+        }
+
+        if (!items || items.length === 0) {
+            Common.showNotification('Nenhum anime na lista "Assistindo". Adicione animes primeiro!', 'warning');
+            return;
+        }
+
+        let addedCount = 0;
+        items.forEach(rawItem => {
+            const anime = this.normalizeAnimeForStack(rawItem);
+            if (anime && !this.stack.some(s => s.id === anime.id)) {
+                this.stack.push(anime);
+                addedCount++;
+            }
+        });
+
+        if (addedCount > 0) {
+            this.renderStack();
+            this.saveStack();
+            this.updateIdleState();
+            this.calculate();
+            Common.showNotification(`📥 ${addedCount} animes importados de "Assistindo"!`, 'success');
+        } else {
+            Common.showNotification('Todos os animes da lista "Assistindo" já estão na stack.', 'info');
+        }
+    },
+
+    /**
+     * Importar animes da lista "Planejados" (Plan to Watch)
+     */
+    async importFromPlanToWatch() {
+        let items = [];
+        if (typeof Storage !== 'undefined' && Storage.getList) {
+            items = Storage.getList('planToWatch') || [];
+        }
+
+        if (items.length === 0) {
+            try {
+                const res = await fetch('api/lists/get.php');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.planToWatch) items = data.planToWatch;
+                }
+            } catch (e) {}
+        }
+
+        if (!items || items.length === 0) {
+            Common.showNotification('Nenhum anime na lista "Planejados".', 'warning');
+            return;
+        }
+
+        let addedCount = 0;
+        items.forEach(rawItem => {
+            const anime = this.normalizeAnimeForStack(rawItem);
+            if (anime && !this.stack.some(s => s.id === anime.id)) {
+                this.stack.push(anime);
+                addedCount++;
+            }
+        });
+
+        if (addedCount > 0) {
+            this.renderStack();
+            this.saveStack();
+            this.updateIdleState();
+            this.calculate();
+            Common.showNotification(`📋 ${addedCount} animes importados de "Planejados"!`, 'success');
+        } else {
+            Common.showNotification('Todos os animes planejados já estão na stack.', 'info');
+        }
+    },
+
+    /**
+     * Limpar stack com confirmação
+     */
+    clearStackPrompt() {
+        if (this.stack.length === 0) {
+            Common.showNotification('A stack já está vazia.', 'info');
+            return;
+        }
+
+        if (confirm('Tem certeza de que deseja esvaziar a stack da calculadora?')) {
+            this.stack = [];
+            this.globalEp = 0;
+            this.renderStack();
+            this.saveStack();
+            this.updateIdleState();
+            this.calculate();
+            Common.showNotification('🗑️ Stack esvaziada com sucesso.', 'info');
+        }
+    },
+
+    // ========================================
+    // PROJETOS / SNAPSHOTS SALVOS
+    // ========================================
+
+    promptSaveSnapshot() {
+        if (this.stack.length === 0) {
+            Common.showNotification('Adicione animes à stack antes de salvar um projeto!', 'warning');
+            return;
+        }
+
+        const name = prompt('Nome do Projeto de Maratona (ex: Big Three, Temporada de Outono):');
+        if (!name || !name.trim()) return;
+
+        const projects = Storage.load('calcProjects', []);
+        const newProject = {
+            id: 'proj_' + Date.now(),
+            name: name.trim(),
+            date: new Date().toLocaleDateString('pt-BR'),
+            stack: this.stack,
+            globalEp: this.globalEp,
+            settings: this.settings
+        };
+
+        projects.push(newProject);
+        Storage.save('calcProjects', projects);
+        Common.showNotification(`💾 Projeto "${newProject.name}" salvo com sucesso!`, 'success');
+    },
+
+    showProjectsModal() {
+        const projects = Storage.load('calcProjects', []);
+        if (projects.length === 0) {
+            Common.showModal('MEUS PROJETOS DE MARATONA', `
+                <div style="padding: 20px; text-align: center; color: var(--color-text-muted);">
+                    <i class="fas fa-folder-open" style="font-size: 2.5rem; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+                    <p>Nenhum projeto salvo ainda.</p>
+                    <p style="font-size: 0.8rem;">Monte uma lista de animes e clique em "Salvar Projeto" para guardá-la.</p>
+                </div>
+            `);
+            return;
+        }
+
+        let html = `<div class="calc-projects-modal" style="max-height: 400px; overflow-y: auto;">`;
+        projects.forEach((proj, idx) => {
+            const totalEps = proj.stack.reduce((acc, a) => acc + (a.episodes || 0), 0);
+            html += `
+                <div style="background: var(--color-surface); border: 2px solid var(--border-color); padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="color: var(--color-primary); font-size: 1rem; display: block;">${proj.name}</strong>
+                        <span style="font-size: 0.75rem; color: var(--color-text-muted);">${proj.stack.length} animes • ${totalEps} eps • Salvo em ${proj.date}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="CalculadoraPage.loadProjectSnapshot(${idx})">
+                            Carregar
+                        </button>
+                        <button class="btn btn-secondary" style="padding: 6px 10px; font-size: 0.75rem; border-color: #ef4444; color: #ef4444;" onclick="CalculadoraPage.deleteProjectSnapshot(${idx})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+
+        Common.showModal('PROJETOS DE MARATONA SALVOS', html);
+    },
+
+    loadProjectSnapshot(index) {
+        const projects = Storage.load('calcProjects', []);
+        const proj = projects[index];
+        if (!proj) return;
+
+        this.stack = proj.stack || [];
+        this.globalEp = proj.globalEp || 0;
+        if (proj.settings) this.settings = { ...this.settings, ...proj.settings };
+
+        this.renderStack();
+        this.saveStack();
+        this.saveSettings();
+        this.updateIdleState();
+        this.calculate();
+
+        if (Common.closeModal) Common.closeModal();
+        Common.showNotification(`📂 Projeto "${proj.name}" carregado!`, 'success');
+    },
+
+    deleteProjectSnapshot(index) {
+        const projects = Storage.load('calcProjects', []);
+        if (confirm(`Excluir o projeto "${projects[index].name}"?`)) {
+            projects.splice(index, 1);
+            Storage.save('calcProjects', projects);
+            this.showProjectsModal();
+            Common.showNotification('Projeto excluído.', 'info');
+        }
+    },
+
+    // ========================================
+    // MODOS: PACE VS REVERSE DEADLINE
+    // ========================================
+
+    setMode(mode) {
+        this.settings.calcMode = mode;
+        const btnPace = document.getElementById('tab-mode-pace');
+        const btnDeadline = document.getElementById('tab-mode-deadline');
+        const panelPace = document.getElementById('panel-pace');
+        const panelDeadline = document.getElementById('panel-deadline');
+
+        if (mode === 'pace') {
+            btnPace.classList.add('active');
+            btnDeadline.classList.remove('active');
+            panelPace.classList.add('active');
+            panelDeadline.classList.remove('active');
+        } else {
+            btnPace.classList.remove('active');
+            btnDeadline.classList.add('active');
+            panelPace.classList.remove('active');
+            panelDeadline.classList.add('active');
+
+            // Inicializar data default (ex: 30 dias a frente) se ainda não setada
+            if (!this.settings.targetDeadline) {
+                this.setDeadlineDays(30);
+            }
+        }
+
+        this.saveSettings();
+        this.calculate();
+    },
+
+    setPacePreset(eps) {
+        this.settings.epsPerDay = eps;
+        document.getElementById('pace-slider').value = eps;
+        document.getElementById('pace-display').textContent = eps;
+
+        // Atualizar classes ativas dos presets
+        document.querySelectorAll('.pace-preset-btn').forEach(btn => {
+            const match = btn.textContent.includes(`(${eps})`);
+            btn.classList.toggle('active', match);
+        });
+
+        this.saveSettings();
+        this.calculate();
+        Common.showNotification(`Velocidade ajustada para ${eps} eps/dia!`, 'info');
+    },
+
+    setDeadlineDays(days) {
+        const target = new Date();
+        target.setDate(target.getDate() + days);
+        const yyyy = target.getFullYear();
+        const mm = String(target.getMonth() + 1).padStart(2, '0');
+        const dd = String(target.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+
+        const input = document.getElementById('calc-deadline-input');
+        if (input) input.value = dateStr;
+
+        this.settings.targetDeadline = dateStr;
+        this.onDeadlineChange();
+    },
+
+    onDeadlineChange() {
+        const input = document.getElementById('calc-deadline-input');
+        if (!input || !input.value) return;
+
+        this.settings.targetDeadline = input.value;
+        const targetDate = new Date(input.value + 'T23:59:59');
+        const today = new Date();
+        const diffMs = targetDate - today;
+        const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+        const totalStackEps = this.getTotalStackEps();
+        const remainingEps = Math.max(0, totalStackEps - this.globalEp);
+
+        // Calcular ritmo necessário
+        const requiredPace = Math.ceil(remainingEps / diffDays);
+        const badge = document.getElementById('deadline-required-pace');
+        if (badge) {
+            badge.textContent = `${requiredPace} eps/dia (${diffDays} dias)`;
+        }
+
+        // Aplicar o ritmo calculado
+        this.settings.epsPerDay = Math.max(1, Math.min(48, requiredPace));
+        const slider = document.getElementById('pace-slider');
+        if (slider) slider.value = Math.min(24, this.settings.epsPerDay);
+        const display = document.getElementById('pace-display');
+        if (display) display.textContent = this.settings.epsPerDay;
+
+        this.saveSettings();
+        this.calculate();
+    },
+
+    // ========================================
+    // RADAR WIDGET ANIMATION
+    // ========================================
 
     initRadarAnimation() {
         if (this.radarRaf) cancelAnimationFrame(this.radarRaf);
@@ -123,14 +478,31 @@ const CalculadoraPage = {
         }
     },
 
+    // ========================================
+    // CONFIG & SETTINGS STORAGE
+    // ========================================
+
     loadSettings() {
         const saved = Storage.load('calcSettings');
         if (saved) {
             this.settings = { ...this.settings, ...saved };
-            document.getElementById('pace-slider').value = this.settings.epsPerDay;
-            document.getElementById('pace-display').textContent = this.settings.epsPerDay;
-            document.getElementById('toggle-fillers').checked = this.settings.skipFillers;
-            document.getElementById('toggle-speedrun').checked = this.settings.speedrun;
+            const slider = document.getElementById('pace-slider');
+            if (slider) slider.value = this.settings.epsPerDay;
+            const display = document.getElementById('pace-display');
+            if (display) display.textContent = this.settings.epsPerDay;
+
+            const tFillers = document.getElementById('toggle-fillers');
+            if (tFillers) tFillers.checked = this.settings.skipFillers;
+
+            const tSpeedrun = document.getElementById('toggle-speedrun');
+            if (tSpeedrun) tSpeedrun.checked = this.settings.speedrun;
+
+            const tWeekends = document.getElementById('toggle-weekends');
+            if (tWeekends) tWeekends.checked = this.settings.weekendsOnly || false;
+
+            if (this.settings.calcMode === 'deadline') {
+                this.setMode('deadline');
+            }
         }
     },
 
@@ -142,48 +514,59 @@ const CalculadoraPage = {
         const slider = document.getElementById('pace-slider');
         const display = document.getElementById('pace-display');
 
-        slider.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value);
-            display.textContent = value;
-            this.settings.epsPerDay = value;
-            this.saveSettings();
-            this.calculate();
-        });
+        if (slider) {
+            slider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                display.textContent = value;
+                this.settings.epsPerDay = value;
+                this.saveSettings();
+                this.calculate();
+            });
+        }
     },
 
-    // Total de eps de toda a stack
     getTotalStackEps() {
         return this.stack.reduce((acc, a) => acc + (a.episodes || 0), 0);
     },
 
     setupEpisodeControls() {
-        // Input de episódio global
-        this.elements.globalEpInput.addEventListener('change', (e) => {
-            const value = parseInt(e.target.value) || 0;
-            this.setGlobalEpisode(value);
-        });
+        if (this.elements.globalEpInput) {
+            this.elements.globalEpInput.addEventListener('change', (e) => {
+                const value = parseInt(e.target.value) || 0;
+                this.setGlobalEpisode(value);
+            });
 
-        this.elements.globalEpInput.addEventListener('input', (e) => {
-            const value = parseInt(e.target.value) || 0;
-            this.setGlobalEpisode(value);
-        });
+            this.elements.globalEpInput.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value) || 0;
+                this.setGlobalEpisode(value);
+            });
+        }
 
-        // Botões +/-
-        this.elements.btnMinus.addEventListener('click', () => {
-            this.setGlobalEpisode(Math.max(0, this.globalEp - 1));
-        });
+        if (this.elements.btnMinus) {
+            this.elements.btnMinus.addEventListener('click', () => {
+                this.setGlobalEpisode(Math.max(0, this.globalEp - 1));
+            });
+        }
 
-        this.elements.btnPlus.addEventListener('click', () => {
-            this.setGlobalEpisode(this.globalEp + 1);
-        });
+        if (this.elements.btnPlus) {
+            this.elements.btnPlus.addEventListener('click', () => {
+                this.setGlobalEpisode(this.globalEp + 1);
+            });
+        }
     },
 
     toggleOption(option) {
-        const input = document.getElementById(`toggle-${option === 'skipFillers' ? 'fillers' : 'speedrun'}`);
-        input.checked = !input.checked;
-        this.settings[option] = input.checked;
-        this.saveSettings();
-        this.calculate();
+        let inputId = 'toggle-fillers';
+        if (option === 'speedrun') inputId = 'toggle-speedrun';
+        if (option === 'weekendsOnly') inputId = 'toggle-weekends';
+
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.checked = !input.checked;
+            this.settings[option] = input.checked;
+            this.saveSettings();
+            this.calculate();
+        }
     },
 
     loadStack() {
@@ -193,9 +576,8 @@ const CalculadoraPage = {
             this.renderStack();
             this.updateIdleState();
         }
-        // Carregar posição global salva
         const savedEp = Storage.load('calcGlobalEp');
-        if (savedEp) {
+        if (savedEp !== null && savedEp !== undefined) {
             this.globalEp = savedEp;
         }
     },
@@ -208,11 +590,14 @@ const CalculadoraPage = {
     // ========================================
     // IDLE STATE
     // ========================================
+
     updateIdleState() {
         const idle = document.getElementById('calc-idle');
+        if (!idle) return;
+
         if (this.stack.length === 0) {
             idle.classList.remove('hidden');
-            this.elements.globalEpInput.value = 0;
+            if (this.elements.globalEpInput) this.elements.globalEpInput.value = 0;
         } else {
             idle.classList.add('hidden');
             this.renderHero();
@@ -222,8 +607,11 @@ const CalculadoraPage = {
     // ========================================
     // SEARCH
     // ========================================
+
     setupSearch() {
         const input = document.getElementById('calc-search');
+        if (!input) return;
+
         input.addEventListener('input', (e) => {
             const query = e.target.value.trim();
 
@@ -231,14 +619,13 @@ const CalculadoraPage = {
             const secretThemes = ['benevaMode', 'parafaMode', 'migueliMode', 'kauaMode', 'ruanMode', 'johnMode', 'bonfinMode', 'arcadeMode', 'zenMode', 'goldMode', 'xpMode', 'sakuraMode', 'cyberHacker', 'vaporwaveMode', 'vestaMode', 'hollowMode', 'blueprintMode', 'pirraMode', 'mobyMode'];
             const matchedTheme = secretThemes.find(t => t.toLowerCase() === query.toLowerCase());
 
-            if (matchedTheme) {
+            if (matchedTheme && typeof Themes !== 'undefined' && Themes.unlock) {
                 if (Themes.unlock(matchedTheme)) {
                     Common.showNotification(`🔓 Tema secreto desbloqueado: ${Themes.themes[matchedTheme].name}!`, 'success');
                     input.value = '';
                     this.hideResults();
-                    // Adicionar XP por descobrir segredo
-                    Storage.addXP(50);
-                    Common.updateLevelBadge();
+                    if (Storage.addXP) Storage.addXP(50);
+                    if (Common.updateLevelBadge) Common.updateLevelBadge();
                     return;
                 }
             }
@@ -255,89 +642,89 @@ const CalculadoraPage = {
 
     async search(query) {
         const container = document.getElementById('calc-results');
+        if (!container) return;
         container.innerHTML = '<div class="loader"></div>';
         container.style.display = 'block';
 
         try {
-            const results = await API.searchAnime(query, 1, 5);
+            const results = await API.searchAnime(query, 1, 6);
             this.renderSearchResults(results);
         } catch (error) {
-            container.innerHTML = '<p class="error-message">Erro na busca</p>';
+            container.innerHTML = '<p class="error-message">Erro na busca de animes</p>';
         }
     },
 
     renderSearchResults(animes) {
         const container = document.getElementById('calc-results');
+        if (!container) return;
 
         if (!animes || animes.length === 0) {
-            container.innerHTML = '<p class="empty-message">Nenhum resultado</p>';
+            container.innerHTML = '<p class="empty-message">Nenhum resultado encontrado</p>';
             return;
         }
 
         container.innerHTML = animes.map(anime => {
-            // const formatted = API.formatAnime(anime);
             const formatted = anime;
+            const img = formatted.image || (formatted.coverImage && formatted.coverImage.large) || 'img/placeholder.jpg';
+            const eps = formatted.episodes || '?';
             return `
                 <div class="calc-result-item" onclick="CalculadoraPage.addToStack(${formatted.id})">
-                    <img src="${formatted.image}" alt="${formatted.title}">
+                    <img src="${img}" alt="${formatted.title}" onerror="this.src='img/placeholder.jpg'">
                     <div class="calc-result-info">
                         <p class="calc-result-title">${formatted.title}</p>
-                        <p class="calc-result-meta">${formatted.episodes || '?'} eps</p>
+                        <p class="calc-result-meta">${eps} eps</p>
                     </div>
-                    <button class="btn-add"><i class="fas fa-plus"></i></button>
+                    <button class="btn-add" type="button"><i class="fas fa-plus"></i></button>
                 </div>
             `;
         }).join('');
     },
 
     hideResults() {
-        document.getElementById('calc-results').style.display = 'none';
+        const el = document.getElementById('calc-results');
+        if (el) el.style.display = 'none';
     },
 
     // ========================================
-    // STACK
+    // STACK MANAGEMENT
     // ========================================
+
     async addToStack(animeId) {
         if (this.stack.find(a => a.id === animeId)) {
-            Common.showNotification('Anime já está na stack', 'error');
+            Common.showNotification('Anime já está na stack!', 'warning');
             return;
         }
 
         try {
             const data = await API.getAnimeById(animeId);
-            // const anime = API.formatAnime(data);
-            const anime = data;
+            const anime = this.normalizeAnimeForStack(data);
 
-            this.stack.push({
-                ...anime
-            });
+            this.stack.push(anime);
 
             this.renderStack();
             this.saveStack();
             this.updateIdleState();
             this.calculate();
             this.hideResults();
-            document.getElementById('calc-search').value = '';
+            const searchInput = document.getElementById('calc-search');
+            if (searchInput) searchInput.value = '';
 
-            Common.showNotification(`"${anime.title}" adicionado!`);
+            Common.showNotification(`"${anime.title}" adicionado!`, 'success');
         } catch (error) {
-            Common.showNotification('Erro ao adicionar anime', 'error');
+            Common.showNotification('Erro ao carregar detalhes do anime', 'error');
         }
     },
 
     removeFromStack(index) {
-        // Recalcular globalEp se necessário (descontar eps do anime removido)
         let cumulative = 0;
         for (let i = 0; i < index; i++) {
             cumulative += this.stack[i].episodes || 0;
         }
         const removedAnimeEps = this.stack[index].episodes || 0;
 
-        // Se globalEp estava além deste anime, descontar os eps dele
         if (this.globalEp > cumulative + removedAnimeEps) {
             this.globalEp -= removedAnimeEps;
         } else if (this.globalEp > cumulative) {
-            // Se estava no meio do anime removido, voltar pro início dele
             this.globalEp = cumulative;
         }
 
@@ -354,59 +741,55 @@ const CalculadoraPage = {
         const countEl = document.getElementById('stack-count');
         const totalEl = document.getElementById('stack-total-eps');
 
-        countEl.textContent = this.stack.length;
+        if (countEl) countEl.textContent = this.stack.length;
 
         const totalEps = this.getTotalStackEps();
-        totalEl.textContent = totalEps;
+        if (totalEl) totalEl.textContent = totalEps;
+
+        if (!container) return;
 
         if (this.stack.length === 0) {
-            container.innerHTML = '<p class="empty-message">Adicione animes para calcular</p>';
+            container.innerHTML = '<p class="empty-message">Adicione animes para calcular a maratona</p>';
             return;
         }
 
-        // Calcular qual anime está ativo e progresso de cada um
         let cumulative = 0;
         container.innerHTML = this.stack.map((anime, index) => {
             const animeEps = anime.episodes || 0;
             const startEp = cumulative;
             const endEp = cumulative + animeEps;
 
-            // Calcular progresso deste anime baseado no globalEp
             let animeProgress = 0;
             let isActive = false;
             let isCompleted = false;
 
             if (this.globalEp >= endEp) {
-                // Anime completo
                 animeProgress = animeEps;
                 isCompleted = true;
             } else if (this.globalEp > startEp) {
-                // Anime em progresso (ativo)
                 animeProgress = this.globalEp - startEp;
                 isActive = true;
             }
 
             cumulative = endEp;
-
             const statusClass = isCompleted ? 'completed' : (isActive ? 'active' : '');
 
-            // Buscar dados de filler usando AnimeData
             let fillerInfo = '';
             if (typeof AnimeData !== 'undefined') {
                 const data = AnimeData.formatAnimeInfo(anime.title);
-                if (data.found && data.fillerCount > 0) {
-                    fillerInfo = `<span class="filler-badge">${data.fillerCount} fillers (${data.fillerPercent}%)</span>`;
+                if (data && data.found && data.fillerCount > 0) {
+                    fillerInfo = `<span class="filler-badge" title="${data.fillerCount} fillers identificados">${data.fillerCount} fillers (${data.fillerPercent}%)</span>`;
                 }
             }
 
             return `
                 <div class="stack-item ${statusClass}">
-                    <img src="${anime.image}" alt="${anime.title}">
+                    <img src="${anime.image}" alt="${anime.title}" onerror="this.src='img/placeholder.jpg'">
                     <div class="stack-item-info">
                         <p class="stack-item-title">${anime.title}</p>
                         <p class="stack-item-meta">${animeProgress}/${animeEps} eps ${isCompleted ? '✅' : ''} ${fillerInfo}</p>
                     </div>
-                    <button class="btn-remove" onclick="event.stopPropagation(); CalculadoraPage.removeFromStack(${index})">
+                    <button class="btn-remove" type="button" onclick="event.stopPropagation(); CalculadoraPage.removeFromStack(${index})" title="Remover da stack">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -415,8 +798,9 @@ const CalculadoraPage = {
     },
 
     // ========================================
-    // HERO DISPLAY - Mostra anime ativo atual
+    // HERO DISPLAY
     // ========================================
+
     getCurrentAnime() {
         let cumulative = 0;
         for (let i = 0; i < this.stack.length; i++) {
@@ -432,7 +816,6 @@ const CalculadoraPage = {
             }
             cumulative += animeEps;
         }
-        // Se passou de todos, retorna o último
         if (this.stack.length > 0) {
             const lastAnime = this.stack[this.stack.length - 1];
             return {
@@ -453,18 +836,23 @@ const CalculadoraPage = {
 
         const totalStackEps = this.getTotalStackEps();
 
-        document.getElementById('calc-hero-img').src = current.anime.image;
-        document.getElementById('calc-hero-title').textContent = current.anime.title;
-        document.getElementById('calc-hero-progress').textContent = `${this.globalEp} / ${totalStackEps}`;
-        this.elements.globalEpInput.value = this.globalEp;
-        this.elements.globalEpInput.max = totalStackEps;
+        const imgEl = document.getElementById('calc-hero-img');
+        if (imgEl) imgEl.src = current.anime.image;
+
+        const titleEl = document.getElementById('calc-hero-title');
+        if (titleEl) titleEl.textContent = current.anime.title;
+
+        const progEl = document.getElementById('calc-hero-progress');
+        if (progEl) progEl.textContent = `${this.globalEp} / ${totalStackEps}`;
+
+        if (this.elements.globalEpInput) {
+            this.elements.globalEpInput.value = this.globalEp;
+            this.elements.globalEpInput.max = totalStackEps;
+        }
 
         this.updateProgressBar();
     },
 
-    // ========================================
-    // GLOBAL EPISODE - Contador contínuo v4
-    // ========================================
     setGlobalEpisode(value) {
         if (this.stack.length === 0) return;
 
@@ -473,7 +861,6 @@ const CalculadoraPage = {
 
         this.globalEp = newValue;
 
-        // Atualizar Hero (imagem, título e progresso)
         this.renderHero();
         this.updateProgressBar();
         this.renderStack();
@@ -500,9 +887,6 @@ const CalculadoraPage = {
         }
     },
 
-    // ========================================
-    // DRAGGABLE PROGRESS BAR - Estilo v4
-    // ========================================
     setupProgressBarDrag() {
         const container = this.elements.progressContainer;
         if (!container) return;
@@ -521,7 +905,6 @@ const CalculadoraPage = {
             this.setGlobalEpisode(newEp);
         };
 
-        // Mouse events
         container.addEventListener('mousedown', (e) => {
             this.isDragging = true;
             updateProgressFromPosition(e.clientX);
@@ -538,7 +921,6 @@ const CalculadoraPage = {
             this.isDragging = false;
         });
 
-        // Touch events para mobile
         container.addEventListener('touchstart', (e) => {
             this.isDragging = true;
             if (e.touches.length > 0) {
@@ -557,39 +939,36 @@ const CalculadoraPage = {
             this.isDragging = false;
         });
 
-        // Click para pular para posição
         container.addEventListener('click', (e) => {
             updateProgressFromPosition(e.clientX);
         });
     },
 
     // ========================================
-    // CALCULATE
+    // CÁLCULO PRINCIPAL
     // ========================================
+
     calculate() {
         const totalStackEps = this.getTotalStackEps();
         let remainingEps = totalStackEps - this.globalEp;
-        let savedEps = 0;
+        let savedFillerEps = 0;
 
-        // Calcular fillers restantes se configurado
+        // Desconto de Fillers
         if (this.settings.skipFillers) {
             let cumulative = 0;
             this.stack.forEach(anime => {
                 const animeEps = anime.episodes || 0;
                 const startEp = cumulative;
 
-                // Tentar encontrar dados de filler usando o módulo central AnimeData
                 if (typeof AnimeData !== 'undefined') {
                     const data = AnimeData.getAnimeData(anime.title);
-
                     if (data && data.fillerRanges) {
                         data.fillerRanges.forEach(range => {
                             for (let i = range[0]; i <= range[1]; i++) {
-                                // Só contar fillers que ainda não foram assistidos
                                 const globalFillerEp = startEp + i;
                                 if (globalFillerEp > this.globalEp && i <= animeEps) {
                                     remainingEps--;
-                                    savedEps++;
+                                    savedFillerEps++;
                                 }
                             }
                         });
@@ -601,58 +980,84 @@ const CalculadoraPage = {
 
         remainingEps = Math.max(0, remainingEps);
 
-        // Duração por episódio (20 min no speedrun, 24 normal)
+        // Duração por episódio (20m speedrun, 24m normal)
         const epDuration = this.settings.speedrun ? 20 : 24;
         const totalMinutes = remainingEps * epDuration;
         const totalHours = Math.round(totalMinutes / 60);
 
-        // SPEEDRUN LOGIC: No speedrun, você ganha 20% de tempo extra por dia (24/20 = 1.2x)
-        const paceMultiplier = this.settings.speedrun ? 1.2 : 1;
-        const effectiveEpsPerDay = this.settings.epsPerDay * paceMultiplier;
+        // Economia de tempo
+        const fillerHoursSaved = Math.round((savedFillerEps * 24) / 60);
+        const speedrunHoursSaved = this.settings.speedrun ? Math.round((remainingEps * 4) / 60) : 0;
+        const totalHoursSaved = fillerHoursSaved + speedrunHoursSaved;
 
-        const daysNeeded = Math.ceil(remainingEps / effectiveEpsPerDay);
+        // Ritmo diário e previsão
+        const pace = Math.max(1, this.settings.epsPerDay || 3);
+        let daysNeeded = Math.ceil(remainingEps / pace);
+
+        // Se maratona é apenas nos finais de semana (2 dias por semana)
+        if (this.settings.weekendsOnly) {
+            const weeksNeeded = Math.ceil(remainingEps / (pace * 2));
+            daysNeeded = weeksNeeded * 7;
+        }
+
         const finishDate = new Date();
         finishDate.setDate(finishDate.getDate() + daysNeeded);
 
-        // Update UI - Results
-        document.getElementById('result-remaining').textContent = remainingEps;
-        document.getElementById('result-hours').textContent = totalHours;
+        // Tempo gasto por dia
+        const dailyMinutes = pace * epDuration;
+        const dailyHoursStr = `~${Math.floor(dailyMinutes / 60)}h${String(dailyMinutes % 60).padStart(2, '0')}`;
 
-        // Saved indicator
-        const savedEl = document.getElementById('calc-saved');
-        if (savedEps > 0 || this.settings.speedrun) {
-            savedEl.classList.add('show');
-            let savedText = '';
-            if (savedEps > 0) savedText += `SAVED ${Math.round(savedEps * 24 / 60)}h (FILLER)`;
-            if (this.settings.speedrun) savedText += (savedText ? ' + ' : '') + '4m/ep (SPEEDRUN)';
-            savedEl.querySelector('.saved-badge').textContent = savedText;
-        } else {
-            savedEl.classList.remove('show');
+        // Atualizar UI - Resultados
+        const remEl = document.getElementById('result-remaining');
+        if (remEl) remEl.textContent = remainingEps;
+
+        const hoursEl = document.getElementById('result-hours');
+        if (hoursEl) hoursEl.textContent = totalHours;
+
+        const dailyTimeEl = document.getElementById('result-daily-time');
+        if (dailyTimeEl) dailyTimeEl.textContent = dailyHoursStr;
+
+        // Atualizar Savings Breakdown Box
+        const fillerSavingEl = document.getElementById('saving-filler-val');
+        if (fillerSavingEl) fillerSavingEl.textContent = `${savedFillerEps} eps (~${fillerHoursSaved}h)`;
+
+        const speedrunSavingEl = document.getElementById('saving-speedrun-val');
+        if (speedrunSavingEl) speedrunSavingEl.textContent = this.settings.speedrun ? `4m/ep (~${speedrunHoursSaved}h economizadas)` : 'Desativado';
+
+        const totalSavingEl = document.getElementById('saving-total-val');
+        if (totalSavingEl) {
+            totalSavingEl.textContent = totalHoursSaved > 0 
+                ? `${totalHoursSaved} horas economizadas no total! 🎉` 
+                : 'Ative "Pular Fillers" ou "Speedrun" para economizar horas';
         }
 
-        // Calendar
-        if (daysNeeded > 0) {
-            const options = { day: 'numeric', month: 'short' };
-            document.getElementById('calc-finish-date').textContent = finishDate.toLocaleDateString('pt-BR', options).toUpperCase();
-            document.getElementById('calc-days-left').textContent = `${daysNeeded} dias restantes`;
+        // Atualizar Calendário Previsão
+        const dateEl = document.getElementById('calc-finish-date');
+        const daysLeftEl = document.getElementById('calc-days-left');
+
+        if (daysNeeded > 0 && remainingEps > 0) {
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            if (dateEl) dateEl.textContent = finishDate.toLocaleDateString('pt-BR', options).toUpperCase();
+            if (daysLeftEl) daysLeftEl.textContent = `${daysNeeded} dias de maratona`;
         } else {
-            document.getElementById('calc-finish-date').textContent = 'HOJE! 🎉';
-            document.getElementById('calc-days-left').textContent = 'Concluído!';
+            if (dateEl) dateEl.textContent = 'CONCLUÍDO! 🎉';
+            if (daysLeftEl) daysLeftEl.textContent = 'Stack 100% assistida!';
         }
 
-        // Radar Update - Based on total stack filler
-        const totalFillers = savedEps;
-        const fillerPercent = totalStackEps > 0 ? (totalFillers / totalStackEps) * 100 : 0;
+        // Radar Widget
+        const fillerPercent = totalStackEps > 0 ? (savedFillerEps / totalStackEps) * 100 : 0;
         this.updateRadar(fillerPercent);
 
-        // Timeline Update
+        // Timeline Interativa
         this.renderTimeline(remainingEps);
     },
 
-
     renderTimeline(remainingEps) {
+        const container = this.elements.timelineContainer;
+        if (!container) return;
+
         if (this.stack.length === 0 || remainingEps <= 0) {
-            this.elements.timelineContainer.innerHTML = '<div class="timeline-empty">Adicione animes para ver o cronograma</div>';
+            container.innerHTML = '<div class="timeline-empty">Adicione animes para ver o cronograma dia a dia</div>';
             return;
         }
 
@@ -660,14 +1065,12 @@ const CalculadoraPage = {
         const totalDays = Math.ceil(remainingEps / pace);
         let html = '';
 
-        // Pegar todos os episódios que faltam em uma lista linear
         let pendingEpsList = [];
         let cumulative = 0;
         this.stack.forEach(anime => {
             const animeEps = anime.episodes || 0;
             const startEp = cumulative;
 
-            // Dados de filler
             let fillerRanges = [];
             if (typeof AnimeData !== 'undefined') {
                 const data = AnimeData.getAnimeData(anime.title);
@@ -677,7 +1080,6 @@ const CalculadoraPage = {
             for (let i = 1; i <= animeEps; i++) {
                 const globalEpPos = startEp + i;
                 if (globalEpPos > this.globalEp) {
-                    // Verificar se é filler e se deve pular
                     const isFiller = fillerRanges.some(r => i >= r[0] && i <= r[1]);
                     if (this.settings.skipFillers && isFiller) continue;
 
@@ -692,11 +1094,22 @@ const CalculadoraPage = {
         });
 
         const today = new Date();
-        for (let d = 0; d < Math.min(totalDays, 45); d++) { // Aumentado limite para 45 dias
-            const currentDate = new Date(today);
-            currentDate.setDate(today.getDate() + d);
-            const dateStr = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
+        let currentDayOffset = 0;
 
+        for (let d = 0; d < Math.min(totalDays, 45); d++) {
+            const currentDate = new Date(today);
+            
+            if (this.settings.weekendsOnly) {
+                // Pular dias de semana se weekendsOnly estiver ativo
+                while (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+                    currentDayOffset++;
+                    currentDate.setDate(today.getDate() + currentDayOffset);
+                }
+            } else {
+                currentDate.setDate(today.getDate() + d);
+            }
+
+            const dateStr = currentDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
             const dayEps = pendingEpsList.slice(d * pace, (d + 1) * pace);
             if (dayEps.length === 0) break;
 
@@ -704,7 +1117,7 @@ const CalculadoraPage = {
                 <div class="timeline-day">
                     <div class="td-header">
                         <span class="td-date">${dateStr}</span>
-                        <span class="td-index">DAY ${d + 1}</span>
+                        <span class="td-index">DIA ${d + 1}</span>
                     </div>
                     <div class="td-eps-list">
                         ${dayEps.map(item => `
@@ -716,31 +1129,35 @@ const CalculadoraPage = {
                     </div>
                 </div>
             `;
+
+            if (this.settings.weekendsOnly) {
+                currentDayOffset++;
+            }
         }
 
         if (totalDays > 45) {
-            html += `<div class="timeline-day" style="display:flex; align-items:center; justify-content:center; border:none; opacity:0.5; flex: 0 0 100px;">... +${totalDays - 45}d</div>`;
+            html += `<div class="timeline-day" style="display:flex; align-items:center; justify-content:center; border:none; opacity:0.6; flex: 0 0 100px;">... +${totalDays - 45}d</div>`;
         }
 
-        this.elements.timelineContainer.innerHTML = html;
+        container.innerHTML = html;
     },
 
     showFillersModal() {
         if (this.stack.length === 0) {
-            if (typeof Common !== 'undefined') Common.showNotification('STACK VAZIA. Adicione animes para escanear!', 'error');
+            Common.showNotification('Stack vazia. Adicione animes para escanear!', 'warning');
             return;
         }
 
-        let content = `<div class="filler-scan-log">
-            <p style="margin:0 0 15px 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; opacity: 0.7;">[SYSTEM] INITIATING DEEP FILLER SCAN...</p>`;
+        let content = `<div class="filler-scan-log" style="color: var(--color-text);">
+            <p style="margin:0 0 15px 0; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; opacity: 0.8; font-family: monospace;">[SISTEMA] INICIANDO VARREDURA PROFUNDA DE FILLERS...</p>`;
 
         let totalFound = 0;
         let cumulative = 0;
 
         this.stack.forEach(anime => {
-            content += `<div style="margin-bottom: 25px;">
-                <h4 style="color: var(--color-primary); margin: 0 0 10px 0; text-transform: uppercase; font-size: 0.8rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-crosshairs"></i> TARGET: ${anime.title}
+            content += `<div style="margin-bottom: 20px;">
+                <h4 style="color: var(--color-primary); margin: 0 0 8px 0; text-transform: uppercase; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-crosshairs"></i> ALVO: ${anime.title}
                 </h4>`;
 
             let hasFillers = false;
@@ -748,7 +1165,7 @@ const CalculadoraPage = {
                 const data = AnimeData.getAnimeData(anime.title);
                 if (data && data.fillerRanges && data.fillerRanges.length > 0) {
                     hasFillers = true;
-                    content += `<div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+                    content += `<div style="display: flex; flex-wrap: wrap; gap: 6px;">`;
 
                     data.fillerRanges.forEach(range => {
                         const start = range[0];
@@ -756,7 +1173,6 @@ const CalculadoraPage = {
                         const count = (end - start) + 1;
                         totalFound += count;
 
-                        // Determinar o status atual
                         const globalStart = cumulative + start;
                         const globalEnd = cumulative + end;
                         let statusClass = '';
@@ -768,90 +1184,106 @@ const CalculadoraPage = {
                         }
 
                         const label = start === end ? `EP ${start}` : `EP ${start}-${end}`;
-                        content += `<span class="filler-badge-item ${statusClass}" title="Total: ${count} episódios">${label}</span>`;
+                        content += `<span class="filler-badge-item ${statusClass}" title="${count} episódios" style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #ef4444; padding: 2px 8px; font-size: 0.75rem; font-weight: 700;">${label}</span>`;
                     });
                     content += `</div>`;
                 }
             }
 
             if (!hasFillers) {
-                content += `<p style="margin:0; opacity: 0.3; font-size: 0.75rem; font-style: italic;">Status: CLEAR (No filler anomalies detected)</p>`;
+                content += `<p style="margin:0; opacity: 0.5; font-size: 0.75rem; font-style: italic;">Status: CANÔNICO (Nenhuma anomalia filler detectada)</p>`;
             }
             content += `</div>`;
             cumulative += (anime.episodes || 0);
         });
 
-        content += `<p style="margin:20px 0 0 0; border-top: 1px dashed var(--border-color); padding-top: 15px; font-weight: 800; color: var(--color-primary);">
-            [SYSTEM] SCAN COMPLETE. TOTAL ANOMALIES IDENTIFIED: ${totalFound} EPS
+        content += `<p style="margin:20px 0 0 0; border-top: 1px dashed var(--border-color); padding-top: 12px; font-weight: 800; color: var(--color-primary);">
+            [VARREDURA CONCLUÍDA] TOTAL DE FILLERS DETECTADOS: ${totalFound} EPISÓDIOS
         </p></div>`;
 
-        if (typeof Common !== 'undefined' && Common.showModal) {
-            Common.showModal('DEEP FILLER SCAN LOGS', content);
-        } else {
-            alert("Scanner Logs: " + totalFound + " fillers found.");
-        }
+        Common.showModal('LOGS DO RADAR DE FILLERS', content);
     },
 
     copyForWhatsApp() {
-        if (this.stack.length === 0) return;
+        if (this.stack.length === 0) {
+            Common.showNotification('Adicione animes antes de compartilhar!', 'warning');
+            return;
+        }
 
         const totalEps = this.getTotalStackEps();
-        const remaining = document.getElementById('result-remaining').textContent;
-        const hours = document.getElementById('result-hours').textContent;
-        const finishDate = document.getElementById('calc-finish-date').textContent;
+        const remaining = document.getElementById('result-remaining') ? document.getElementById('result-remaining').textContent : '0';
+        const hours = document.getElementById('result-hours') ? document.getElementById('result-hours').textContent : '0';
+        const finishDate = document.getElementById('calc-finish-date') ? document.getElementById('calc-finish-date').textContent : '...';
         const activeAnime = this.getCurrentAnime();
 
-        let text = `🚀 *MINHA MISSÃO ANIMEENGINE* 🚀\n\n`;
-        text += `📺 *Assistindo:* ${activeAnime ? activeAnime.anime.title : 'Nenhum'}\n`;
-        text += `📊 *Progresso:* ${this.globalEp} / ${totalEps} eps\n`;
+        let text = `🚀 *MINHA MISSÃO DE ANIME NO ANIMEENGINE v8* 🚀\n\n`;
+        text += `📺 *Anime Atual:* ${activeAnime ? activeAnime.anime.title : 'Em andamento'}\n`;
+        text += `📊 *Progresso:* ${this.globalEp} / ${totalEps} episódios\n`;
         text += `⏳ *Faltam:* ${remaining} episódios\n`;
-        text += `⏰ *Tempo:* ~${hours} horas\n`;
-        text += `🏁 *Previsão:* ${finishDate}\n\n`;
-        text += `Calculado via *ANIME.ENGINE v7*`;
+        text += `⏰ *Tempo Restante:* ~${hours} horas\n`;
+        text += `🏁 *Previsão de Término:* ${finishDate}\n`;
+        text += `⚡ *Ritmo:* ${this.settings.epsPerDay} eps/dia\n\n`;
+        text += `Calculado via *AnimeEngine v8*`;
 
         navigator.clipboard.writeText(text).then(() => {
-            Common.showNotification('📋 Resumo copiado para o WhatsApp!', 'success');
-        }).catch(err => {
-            Common.showNotification('Erro ao copiar', 'error');
+            Common.showNotification('📋 Resumo da missão copiado para o WhatsApp!', 'success');
+        }).catch(() => {
+            Common.showNotification('Erro ao copiar resumo', 'error');
         });
     },
 
     shareMarathonCard() {
-        // Por enquanto, mostra um modal estilizado com o resumo "Premium"
         const activeAnime = this.getCurrentAnime();
-        if (!activeAnime) return;
+        if (!activeAnime) {
+            Common.showNotification('Adicione animes para gerar o cartão!', 'warning');
+            return;
+        }
+
+        const totalEps = this.getTotalStackEps();
+        const remaining = document.getElementById('result-remaining') ? document.getElementById('result-remaining').textContent : '0';
+        const hours = document.getElementById('result-hours') ? document.getElementById('result-hours').textContent : '0';
+        const finishDate = document.getElementById('calc-finish-date') ? document.getElementById('calc-finish-date').textContent : '...';
+        const dailyTime = document.getElementById('result-daily-time') ? document.getElementById('result-daily-time').textContent : '~1h00';
 
         const content = `
-            <div class="marathon-card-preview" style="background: #0d0d0d; border: 2px solid #ff6600; padding: 20px; color: #fff;">
-                <div style="display: flex; gap: 20px;">
-                    <img src="${activeAnime.anime.image}" style="width: 100px; border: 1px solid #ff6600;">
+            <div class="marathon-card-canvas-wrap">
+                <div class="marathon-card-header">
+                    <img src="${activeAnime.anime.image}" class="marathon-card-cover" onerror="this.src='img/placeholder.jpg'">
                     <div>
-                        <h2 style="color: #ff6600; margin: 0;">MARATHON DATA</h2>
-                        <h3 style="margin: 5px 0;">${activeAnime.anime.title}</h3>
-                        <p style="font-family: monospace; opacity: 0.8;">SCANNING PROGRESS: ${this.globalEp}/${this.getTotalStackEps()}</p>
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--color-primary); letter-spacing: 1px;">ANIMEENGINE MARATHON PASS</div>
+                        <h3 style="margin: 4px 0 6px 0; font-size: 1.15rem; color: #ffffff;">${activeAnime.anime.title}</h3>
+                        <p style="margin:0; font-size: 0.75rem; color: #aaaaaa;">Stack com ${this.stack.length} título(s) • ${this.globalEp}/${totalEps} eps assistidos</p>
                     </div>
                 </div>
-                <div style="margin-top: 20px; border-top: 1px dashed #333; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>
-                        <span style="font-size: 10px; display: block; opacity: 0.6;">REMAINING</span>
-                        <span style="font-size: 20px; font-weight: bold;">${document.getElementById('result-remaining').textContent} EPS</span>
+
+                <div class="marathon-card-body">
+                    <div class="marathon-card-stat">
+                        <div class="marathon-card-stat-label">EPISÓDIOS RESTANTES</div>
+                        <div class="marathon-card-stat-val">${remaining} <span style="font-size:0.7rem; color:#888;">EPS</span></div>
                     </div>
-                    <div>
-                        <span style="font-size: 10px; display: block; opacity: 0.6;">FINISH DATE</span>
-                        <span style="font-size: 20px; font-weight: bold; color: #00f2ff;">${document.getElementById('calc-finish-date').textContent}</span>
+                    <div class="marathon-card-stat">
+                        <div class="marathon-card-stat-label">TEMPO DE TELA</div>
+                        <div class="marathon-card-stat-val" style="color: #00f2ff;">~${hours}h</div>
                     </div>
+                    <div class="marathon-card-stat">
+                        <div class="marathon-card-stat-label">DEDICAÇÃO DIÁRIA</div>
+                        <div class="marathon-card-stat-val" style="color: #eab308;">${dailyTime}</div>
+                    </div>
+                    <div class="marathon-card-stat">
+                        <div class="marathon-card-stat-label">DATA ESTIMADA</div>
+                        <div class="marathon-card-stat-val" style="color: #10b981; font-size: 0.95rem;">${finishDate}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="CalculadoraPage.copyForWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> Copiar Texto Formatado
+                    </button>
                 </div>
             </div>
-            <button class="btn" style="width: 100%; margin-top: 15px;" onclick="CalculadoraPage.copyForWhatsApp()">COPIAR RESUMO TEXTUAL</button>
         `;
 
-        // Assumindo que o sistema v7 tem uma função de modal global
-        if (typeof Common !== 'undefined' && Common.showModal) {
-            Common.showModal('MARATHON COMMAND CARD', content);
-        } else {
-            // Em caso de erro, apenas copia para o WhatsApp como fallback
-            this.copyForWhatsApp();
-        }
+        Common.showModal('CARTÃO DA MISSÃO DE MARATONA', content);
     }
 };
 

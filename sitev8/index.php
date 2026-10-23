@@ -113,6 +113,7 @@ $scripts_por_pagina = [
     'tierlist'      => ['https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js', 'js/pages/tierlist.js'],
     'titulos'       => ['js/pages/titulos.js'],
     'perfil'        => ['https://cdn.jsdelivr.net/npm/chart.js', 'js/pages/perfil.js'],
+    'editar_perfil' => ['js/pages/editar_perfil.js'],
     'configuracoes' => ['js/pages/configuracoes.js'],
 ];
 

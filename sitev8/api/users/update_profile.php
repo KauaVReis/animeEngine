@@ -2,13 +2,14 @@
 /**
  * AnimeEngine v8 - Update Profile API (Seguro)
  * POST: Atualizar informações do perfil
+ * 100% Prepared Statements (mysqli + bind_param, ZERO PDO)
  */
 
 require_once __DIR__ . '/../../includes/database.php';
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/rate_limiter.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido', 405);
@@ -31,6 +32,22 @@ if (isset($data['bio'])) {
     $sets[] = "bio = ?";
     $types .= "s";
     $params[] = substr($data['bio'], 0, 500);
+}
+
+// Avatar (URL)
+if (isset($data['avatar'])) {
+    $avatar = filter_var($data['avatar'], FILTER_VALIDATE_URL) ? $data['avatar'] : '';
+    $sets[] = "avatar = ?";
+    $types .= "s";
+    $params[] = $avatar;
+}
+
+// Banner (URL)
+if (isset($data['banner'])) {
+    $banner = filter_var($data['banner'], FILTER_VALIDATE_URL) ? $data['banner'] : '';
+    $sets[] = "banner = ?";
+    $types .= "s";
+    $params[] = $banner;
 }
 
 // Status emoji (validado contra whitelist)
@@ -101,6 +118,7 @@ if (isset($data['redes_sociais']) && is_array($data['redes_sociais'])) {
 }
 
 if (empty($sets)) {
+    mysqli_close($conn);
     jsonError('Nada para atualizar');
 }
 
@@ -113,7 +131,7 @@ $stmt = secure_query($conn, $sql, $types, ...$params);
 
 if ($stmt) {
     mysqli_close($conn);
-    jsonSuccess('Perfil atualizado!');
+    jsonSuccess('Perfil atualizado com sucesso!');
 } else {
     mysqli_close($conn);
     jsonError('Erro ao atualizar perfil');

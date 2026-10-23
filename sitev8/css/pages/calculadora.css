@@ -1,12 +1,359 @@
 /**
  * AnimeEngine v8 — Calculadora CSS
+ * Neo-Brutalist styling, high-contrast guarantees and responsive layout
  */
 
-.calculator-container {
+.calculator-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: var(--space-lg, 24px);
     animation: calcFade 0.4s ease;
 }
 
 @keyframes calcFade {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- QUICK IMPORT TOOLBAR --- */
+.calc-quick-import-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 0.8fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.btn-calc-import {
+    background: var(--color-surface, #1e1e24);
+    color: var(--color-text, #ffffff);
+    border: 2px solid var(--border-color, #ff6600);
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 2px 2px 0 var(--border-color, #ff6600);
+    transition: all 0.15s ease;
+}
+
+.btn-calc-import:hover {
+    background: var(--color-primary, #ff6600);
+    color: #ffffff;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 #000000;
+}
+
+.btn-calc-clear {
+    border-color: #ef4444;
+    box-shadow: 2px 2px 0 #ef4444;
+}
+
+.btn-calc-clear:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+/* Snapshots / Project Presets */
+.calc-snapshot-tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.btn-calc-snapshot {
+    background: var(--color-bg, #101015);
+    color: var(--color-text-muted, #a0a0a0);
+    border: 1px dashed var(--border-color, #ff6600);
+    padding: 6px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.btn-calc-snapshot:hover {
+    color: var(--color-text, #ffffff);
+    border-style: solid;
+    border-color: var(--color-primary, #ff6600);
+}
+
+/* --- PACE MODE TABS --- */
+.calc-mode-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border-color, #333333);
+    padding-bottom: 10px;
+}
+
+.calc-mode-btn {
+    flex: 1;
+    background: var(--color-surface, #1e1e24);
+    color: var(--color-text-muted, #a0a0a0);
+    border: 2px solid var(--border-color, #333333);
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+}
+
+.calc-mode-btn.active {
+    background: var(--color-primary, #ff6600);
+    color: #ffffff;
+    border-color: var(--color-primary, #ff6600);
+    box-shadow: 3px 3px 0 #000000;
+    transform: translate(-1px, -1px);
+}
+
+.calc-subpanel {
+    display: none;
+}
+
+.calc-subpanel.active {
+    display: block;
+    animation: calcSubFade 0.25s ease;
+}
+
+@keyframes calcSubFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- PACE PRESETS --- */
+.calc-pace-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+    margin-bottom: 16px;
+}
+
+.pace-preset-btn {
+    background: var(--color-bg, #101015);
+    color: var(--color-text, #ffffff);
+    border: 2px solid var(--border-color, #444444);
+    padding: 8px 6px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+
+.pace-preset-btn:hover {
+    border-color: var(--color-primary, #ff6600);
+    color: var(--color-primary, #ff6600);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--border-color, #ff6600);
+}
+
+.pace-preset-btn.active {
+    background: var(--color-primary, #ff6600);
+    color: #ffffff;
+    border-color: var(--color-primary, #ff6600);
+    box-shadow: 2px 2px 0 #000000;
+}
+
+/* --- DEADLINE FORM (REVERSE CALCULATOR) --- */
+.deadline-form {
+    background: var(--color-bg, #101015);
+    border: 2px solid var(--border-color, #444444);
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.deadline-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-text-muted, #aaaaaa);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.deadline-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.calc-date-input {
+    background: var(--color-surface, #1e1e24);
+    color: var(--color-text, #ffffff);
+    border: 2px solid var(--border-color, #ff6600);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 2px 2px 0 #000000;
+    min-width: 170px;
+}
+
+.deadline-badge {
+    background: var(--color-primary, #ff6600);
+    color: #ffffff;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 2px 2px 0 #000000;
+}
+
+.deadline-quick-dates {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.btn-deadline-chip {
+    background: var(--color-surface, #1e1e24);
+    color: var(--color-text, #ffffff);
+    border: 1px solid var(--border-color, #555555);
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-deadline-chip:hover {
+    border-color: var(--color-primary, #ff6600);
+    color: var(--color-primary, #ff6600);
+}
+
+/* --- TOGGLES EXTRA --- */
+.toggle-icon-yellow {
+    color: #eab308;
+}
+
+/* --- SAVINGS BREAKDOWN BOX --- */
+.calc-savings-box {
+    background: var(--color-bg, #101015);
+    border: 2px dashed var(--border-color, #444444);
+    padding: 12px 16px;
+    margin: 16px 0;
+}
+
+.savings-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #10b981;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+    padding-bottom: 6px;
+}
+
+.savings-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.78rem;
+}
+
+.saving-item {
+    display: flex;
+    justify-content: space-between;
+    color: var(--color-text-muted, #999999);
+}
+
+.saving-value {
+    color: var(--color-text, #ffffff);
+    font-weight: 700;
+}
+
+.saving-total-row {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color, #333333);
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #10b981;
+    font-weight: 800;
+}
+
+/* --- MARATHON CARD MODAL STYLING --- */
+.marathon-card-canvas-wrap {
+    background: #0d0d12;
+    border: 3px solid var(--border-color, #ff6600);
+    box-shadow: 6px 6px 0 #000000;
+    padding: 24px;
+    color: #ffffff;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.marathon-card-header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    border-bottom: 2px solid rgba(255, 102, 0, 0.4);
+    padding-bottom: 16px;
+}
+
+.marathon-card-cover {
+    width: 80px;
+    height: 110px;
+    object-fit: cover;
+    border: 2px solid var(--border-color, #ff6600);
+    box-shadow: 3px 3px 0 #000000;
+}
+
+.marathon-card-body {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.marathon-card-stat {
+    background: #181820;
+    border: 1px solid #333340;
+    padding: 10px;
+}
+
+.marathon-card-stat-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #888899;
+    text-transform: uppercase;
+}
+
+.marathon-card-stat-val {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--color-primary, #ff6600);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .calculator-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .calc-pace-presets {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
