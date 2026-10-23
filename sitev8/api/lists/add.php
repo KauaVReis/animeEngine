@@ -4,10 +4,10 @@
  * POST: Adicionar anime à lista do usuário
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/auth.php';
-require_once '../../includes/atividade.php';
-require_once '../../includes/rate_limiter.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/atividade.php';
+require_once __DIR__ . '/../../includes/rate_limiter.php';
 
 header('Content-Type: application/json');
 

@@ -1,16 +1,301 @@
 /**
- * AnimeEngine v8 — Titulos CSS
+ * AnimeEngine v8 — Galeria de Títulos CSS (Neo-Brutalista)
  */
 
-.titles-grid .title-card {
-    animation: titlePop 0.3s ease backwards;
+.titles-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: 100%;
 }
 
-.titles-grid .title-card:nth-child(2) { animation-delay: 0.05s; }
-.titles-grid .title-card:nth-child(3) { animation-delay: 0.10s; }
-.titles-grid .title-card:nth-child(4) { animation-delay: 0.15s; }
+/* DESTAQUE HERO DO TÍTULO ATIVO */
+.active-title-board-v8 {
+    background: var(--color-surface, #1e1e24);
+    border: 4px solid var(--border-color, #000);
+    box-shadow: 6px 6px 0px var(--border-color, #000);
+    border-radius: 8px;
+    overflow: hidden;
+}
 
-@keyframes titlePop {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+.active-title-header-v8 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--color-bg, #0d0d12);
+    border-bottom: 3px solid var(--border-color, #000);
+}
+
+.active-title-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--color-text, #fff);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.5px;
+}
+
+.active-title-display-box-v8 {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.active-title-preview-pill {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--color-bg, #121218);
+    border: 3px solid var(--accent, #ffd700);
+    box-shadow: 5px 5px 0px var(--accent, #ffd700);
+    border-radius: 40px;
+    padding: 10px 24px 10px 12px;
+    max-width: 600px;
+}
+
+.preview-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    border: 2px solid #000;
+    flex-shrink: 0;
+}
+
+.preview-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.preview-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.preview-desc {
+    font-size: 0.82rem;
+    color: var(--color-text-muted, #9ca3af);
+}
+
+.preview-badge-status {
+    background: #10b981;
+    color: #000;
+    font-weight: 900;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: auto;
+}
+
+.no-title-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--color-text-muted, #888);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.no-title-preview i {
+    font-size: 1.6rem;
+}
+
+/* CATEGORIAS EM GRID */
+.titles-categories-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+.title-category-card {
+    background: var(--color-surface, #1e1e24);
+    border: 3px solid var(--border-color, #000);
+    box-shadow: 5px 5px 0px var(--border-color, #000);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.category-banner {
+    padding: 16px 20px;
+    border-bottom: 3px solid var(--border-color, #000);
+    color: #000;
+}
+
+.category-banner.bg-yellow { background: #f59e0b; }
+.category-banner.bg-pink { background: #ec4899; }
+.category-banner.bg-purple { background: #8b5cf6; color: #fff; }
+.category-banner.bg-blue { background: #3b82f6; color: #fff; }
+.category-banner.bg-dark { background: #1f2937; color: #fff; }
+
+.cat-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cat-icon {
+    font-size: 1.4rem;
+}
+
+.cat-header-title h3 {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.category-banner p {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    opacity: 0.9;
+    font-weight: 600;
+}
+
+/* TRACK GRID DOS TÍTULOS */
+.titles-track-grid {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 16px;
+}
+
+.title-card-v8 {
+    background: var(--color-bg, #121218);
+    border: 2px solid var(--border-color, #000);
+    box-shadow: 3px 3px 0px var(--border-color, #000);
+    border-radius: 6px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+    user-select: none;
+    position: relative;
+}
+
+.title-card-v8.unlocked {
+    cursor: pointer;
+}
+
+.title-card-v8.unlocked:hover {
+    border-color: var(--title-accent, #00ff41);
+    transform: translateY(-3px);
+    box-shadow: 5px 5px 0px var(--title-accent, #00ff41);
+}
+
+.title-card-v8.active-equipped {
+    border: 3px solid var(--title-accent, #ffd700);
+    box-shadow: 5px 5px 0px var(--title-accent, #ffd700);
+}
+
+.title-card-v8.locked {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+    cursor: not-allowed;
+}
+
+.title-badge-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.65rem;
+    font-weight: 800;
+}
+
+.title-status-tag {
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.status-unlocked {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.status-locked {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.title-rarity-tag {
+    color: var(--title-accent, #888);
+    letter-spacing: 0.5px;
+}
+
+.title-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border: 2px solid #000;
+    margin: 4px 0;
+}
+
+.title-main-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.title-card-desc {
+    font-size: 0.78rem;
+    color: var(--color-text-muted, #9ca3af);
+    margin: 0;
+    line-height: 1.35;
+    min-height: 32px;
+}
+
+.title-card-footer {
+    margin-top: auto;
+    padding-top: 8px;
+    width: 100%;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.btn-equip-card {
+    width: 100%;
+    background: var(--color-primary, #ff3366);
+    color: #fff;
+    border: 2px solid #000;
+    border-radius: 4px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px #000;
+    transition: all 0.1s ease;
+}
+
+.btn-equip-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0px #000;
+}
+
+.label-active {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #10b981;
+}
+
+.label-locked {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted, #777);
 }

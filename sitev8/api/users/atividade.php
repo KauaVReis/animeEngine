@@ -4,9 +4,9 @@
  * GET: Obter atividades recentes do usuário
  */
 
-require_once '../../includes/database.php';
-require_once '../../includes/auth.php';
-require_once '../../includes/atividade.php';
+require_once __DIR__ . '/../../includes/database.php';
+require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/atividade.php';
 
 header('Content-Type: application/json');
 

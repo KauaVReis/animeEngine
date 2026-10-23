@@ -1,88 +1,58 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Inicializa fetches imediatos (topo do perfil)
-    loadStatsAndAchievements();
-    loadAffinity();
+/**
+ * AnimeEngine v8 - Perfil Page (Aprimorado)
+ * Gerencia perfil do usuário, resumo, conquistas, atividades e mural de recados.
+ */
 
-    // Inicializa Lazy Loading para listas mais abaixo
-    setupLazyLoad();
+document.addEventListener('DOMContentLoaded', () => {
+    PerfilPage.init();
 });
 
 async function loadStatsAndAchievements() {
-    // Stats e Streak podem carregar juntos
-    Promise.all([
-        fetch('api/users/stats.php').then(r => r.json()),
-        fetch('api/users/streak.php').then(r => r.json())
-    ]).then(([stats, streakData]) => {
-        document.getElementById('profile-stats').innerHTML = `
-            <div class="profile-stat-card">
-                <div class="profile-stat-value">${stats.totalAnimes}</div>
-                <div class="profile-stat-label">Animes</div>
-            </div>
-            <div class="profile-stat-card">
-                <div class="profile-stat-value">${stats.completed}</div>
-                <div class="profile-stat-label">Completos</div>
-            </div>
-            <div class="profile-stat-card streak-card">
-                <div class="profile-stat-value">🔥 ${streakData.streak_atual || 0}</div>
-                <div class="profile-stat-label">Streak Dias</div>
-                <div class="streak-max">Recorde: ${streakData.streak_max || 0}</div>
-            </div>
-            <div class="profile-stat-card">
-                <div class="profile-stat-value">${stats.achievements}</div>
-                <div class="profile-stat-label">Conquistas</div>
-            </div>`;
+    try {
+        const [stats, streakData] = await Promise.all([
+            fetch('api/users/stats.php').then(r => r.json()),
+            fetch('api/users/streak.php').then(r => r.json()).catch(() => ({}))
+        ]);
 
-        // Desenhar Gráfico Radar de Gêneros
-        if (stats.genres && Object.keys(stats.genres).length > 0) {
-            const ctx = document.getElementById('genres-radar-chart').getContext('2d');
-            const computedStyle = getComputedStyle(document.body);
-            const primaryColor = computedStyle.getPropertyValue('--color-primary').trim() || '#00ff41';
-            const textColor = computedStyle.getPropertyValue('--color-text').trim() || '#f0f0f5';
+        const elTotal = document.getElementById('stat-total-animes');
+        const elCompleted = document.getElementById('stat-completed');
+        const elHours = document.getElementById('stat-hours');
+        const elAch = document.getElementById('stat-achievements');
 
-            // Definir cor transparente a partir do hex (RGB estimation)
-            // Se primaryColor for hex puro ou var(), simplificamos usando uma cor base padrão pros gráficos
-            const primaryRgb = '168, 85, 247'; // Fallback genérico, vamos usar borderColor com primaryColor puro
+        if (elTotal) elTotal.textContent = stats.totalAnimes ?? 0;
+        if (elCompleted) elCompleted.textContent = stats.completed ?? 0;
+        if (elHours) elHours.textContent = (stats.totalHours ?? 0) + 'h';
+        if (elAch) elAch.textContent = stats.achievements ?? 0;
 
-            new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: Object.keys(stats.genres),
-                    datasets: [{
-                        label: 'Animes Assistidos',
-                        data: Object.values(stats.genres),
-                        backgroundColor: 'rgba(' + (primaryColor === '#00ff41' ? '0, 255, 65' : '168, 85, 247') + ', 0.2)',
-                        borderColor: primaryColor,
-                        pointBackgroundColor: primaryColor,
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: primaryColor,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            pointLabels: { color: textColor, font: { size: 12 } },
-                            ticks: { display: false }
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        } else {
-            document.getElementById('genres-radar-chart').outerHTML = '<p class="empty-message">Nenhum gênero registrado ainda.</p>';
+        const legacyStats = document.getElementById('profile-stats');
+        if (legacyStats) {
+            legacyStats.innerHTML = `
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value">${stats.totalAnimes || 0}</div>
+                    <div class="profile-stat-label">Animes</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value">${stats.completed || 0}</div>
+                    <div class="profile-stat-label">Completos</div>
+                </div>
+                <div class="profile-stat-card streak-card">
+                    <div class="profile-stat-value">🔥 ${streakData?.streak_atual || 0}</div>
+                    <div class="profile-stat-label">Streak Dias</div>
+                </div>
+                <div class="profile-stat-card">
+                    <div class="profile-stat-value">${stats.achievements || 0}</div>
+                    <div class="profile-stat-label">Conquistas</div>
+                </div>`;
         }
-    }).catch(e => console.error("Erro stats:", e));
 
-    // Load achievements independently
-    loadAchievements();
+        loadAchievements();
+    } catch (e) {
+        console.error("Erro stats perfil:", e);
+    }
 }
 
 async function loadAffinity() {
-    if (viewingOwn) return;
+    if (typeof viewingOwn !== 'undefined' && viewingOwn) return;
     try {
         const affRes = await fetch(`api/users/affinity.php?user_id=${profileUserId}`);
         const affinity = await affRes.json();
@@ -111,14 +81,14 @@ async function loadAffinity() {
                     const sharedGrid = document.getElementById('shared-animes');
                     if (sharedGrid && affinity.shared_animes) {
                         sharedGrid.innerHTML = affinity.shared_animes.map(anime => `
-                                <div class="shared-anime-card" onclick="Common.navigate('?page=detalhes&id=${anime.id}')">
-                                    <img src="${anime.imagem}" alt="${anime.titulo}">
-                                    <div class="shared-scores">
-                                        <span class="my-score">V: ${anime.my_score || '-'}</span>
-                                        <span class="their-score">E: ${anime.their_score || '-'}</span>
-                                    </div>
+                            <div class="shared-anime-card" onclick="if(window.Common) Common.navigate('detalhes?id=${anime.id}')">
+                                <img src="${anime.imagem}" alt="${anime.titulo}">
+                                <div class="shared-scores">
+                                    <span class="my-score">V: ${anime.my_score || '-'}</span>
+                                    <span class="their-score">E: ${anime.their_score || '-'}</span>
                                 </div>
-                            `).join('');
+                            </div>
+                        `).join('');
                         sharedGrid.style.display = 'flex';
                         sharedGrid.style.gap = '10px';
                         sharedGrid.style.overflowX = 'auto';
@@ -136,8 +106,10 @@ async function loadRecentActivity() {
         const actRes = await fetch(`api/users/atividade.php?user_id=${profileUserId}`);
         const activities = await actRes.json();
         const actContainer = document.getElementById('activity-feed');
-        if (activities.length === 0) {
-            actContainer.innerHTML = '<p class="empty-message">Nenhuma atividade ainda</p>';
+        if (!actContainer) return;
+
+        if (!Array.isArray(activities) || activities.length === 0) {
+            actContainer.innerHTML = '<p class="empty-message">Nenhuma atividade recente registrada.</p>';
         } else {
             actContainer.innerHTML = activities.slice(0, 10).map(a => `
                 <div class="activity-item">
@@ -159,40 +131,44 @@ async function loadListsAndFavorites() {
         const completed = data.lists?.completed || [];
         const favorites = data.lists?.favorites || [];
 
-        if (favorites.length > 0) {
-            document.getElementById('vip-favorites-section').style.display = 'block';
-            document.getElementById('vip-favorites-grid').innerHTML = favorites.slice(0, 5).map(anime => `
-                    <div class="vip-favorite-card" onclick="Common.navigate('?page=detalhes&id=${anime.anime_id}')">
-                        <img src="${anime.imagem}" alt="${anime.titulo}">
-                        <div class="vip-favorite-overlay">
-                            <span class="vip-favorite-title">${anime.titulo}</span>
-                        </div>
-                    </div>
-                `).join('');
-        }
-
-        const container = document.getElementById('completed-animes');
-        if (completed.length === 0) {
-            container.innerHTML = '<p>Nenhum anime completo ainda</p>';
-        } else {
-            container.innerHTML = completed.slice(0, 12).map(anime => `
-                <div class="completed-anime-card" onclick="Common.navigate('?page=detalhes&id=${anime.anime_id}')">
+        const favSec = document.getElementById('vip-favorites-section');
+        const favGrid = document.getElementById('vip-favorites-grid');
+        if (favSec && favGrid && favorites.length > 0) {
+            favSec.style.display = 'block';
+            favGrid.innerHTML = favorites.slice(0, 6).map(anime => `
+                <div class="vip-favorite-card" onclick="if(window.Common) Common.navigate('detalhes?id=${anime.anime_id}')">
                     <img src="${anime.imagem}" alt="${anime.titulo}">
-                    ${anime.nota ? `<div class="anime-rating">⭐ ${anime.nota}</div>` : ''}
+                    <div class="vip-favorite-overlay">
+                        <span class="vip-favorite-title">${anime.titulo}</span>
+                    </div>
                 </div>
             `).join('');
         }
+
+        const compContainer = document.getElementById('completed-animes');
+        if (compContainer) {
+            if (completed.length === 0) {
+                compContainer.innerHTML = '<p class="empty-message">Nenhum anime completo ainda.</p>';
+            } else {
+                compContainer.innerHTML = completed.slice(0, 12).map(anime => `
+                    <div class="completed-anime-card" onclick="if(window.Common) Common.navigate('detalhes?id=${anime.anime_id}')">
+                        <img src="${anime.imagem}" alt="${anime.titulo}">
+                        ${anime.nota ? `<div class="anime-rating">⭐ ${anime.nota}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+        }
     } catch (e) {
-        document.getElementById('completed-animes').innerHTML = '<p>Erro ao carregar</p>';
+        const c = document.getElementById('completed-animes');
+        if (c) c.innerHTML = '<p class="empty-message">Sem registros de animes completos.</p>';
     }
 }
 
-// Usando IntersectionObserver para Lazy Load das listas
 function setupLazyLoad() {
     const activitySection = document.getElementById('activity-feed');
     const listsSection = document.getElementById('completed-animes');
 
-    const observer = new IntersectionObserver((entries, observer) => {
+    const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 if (entry.target.id === 'activity-feed') {
@@ -200,7 +176,7 @@ function setupLazyLoad() {
                 } else if (entry.target.id === 'completed-animes') {
                     loadListsAndFavorites();
                 }
-                observer.unobserve(entry.target);
+                obs.unobserve(entry.target);
             }
         });
     }, { rootMargin: '100px' });
@@ -228,54 +204,38 @@ async function loadAchievements() {
             { id: "theme_changer", name: "Estilista", description: "Mude o tema", icon: "🎨", xp: 10 }
         ];
 
-        document.getElementById('achievements-summary').textContent =
-            `${unlockedIds.length} de ${allBadges.length} conquistas`;
+        const sumEl = document.getElementById('achievements-summary');
+        if (sumEl) sumEl.textContent = `${unlockedIds.length} de ${allBadges.length} conquistas desbloqueadas`;
 
-        document.getElementById('achievements-grid').innerHTML = allBadges.map(badge => {
-            const isUnlocked = unlockedIds.includes(badge.id);
-            return `
-                <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
-                    <div class="achievement-icon">${badge.icon}</div>
-                    <div class="achievement-info">
-                        <div class="achievement-name">${badge.name}</div>
-                        <div class="achievement-desc">${badge.description}</div>
-                        <div class="achievement-xp">+${badge.xp} XP</div>
+        const gridEl = document.getElementById('achievements-grid');
+        if (gridEl) {
+            gridEl.innerHTML = allBadges.map(badge => {
+                const isUnlocked = unlockedIds.includes(badge.id);
+                return `
+                    <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+                        <div class="achievement-icon">${badge.icon}</div>
+                        <div class="achievement-info">
+                            <div class="achievement-name">${badge.name}</div>
+                            <div class="achievement-desc">${badge.description}</div>
+                            <div class="achievement-xp">+${badge.xp} XP</div>
+                        </div>
+                        <div class="achievement-status">${isUnlocked ? '✅' : '🔒'}</div>
                     </div>
-                    <div class="achievement-status">${isUnlocked ? '✅' : '🔒'}</div>
-                </div>
-            `;
-        }).join('');
+                `;
+            }).join('');
+        }
     } catch (e) {
-        document.getElementById('achievements-grid').innerHTML = '<p>Erro</p>';
+        const gridEl = document.getElementById('achievements-grid');
+        if (gridEl) gridEl.innerHTML = '<p class="empty-message">Nenhuma conquista carregada</p>';
     }
 }
 
-// === SOCIAL FEATURES ===
+// === SOCIAL & MURAL DE COMENTÁRIOS ===
 let isFollowing = false;
 
-// Carregar seguidores e status
-async function loadSocialData() {
-    try {
-        // Contar seguidores
-        const countRes = await fetch(`api/users/comentarios.php?perfil_id=${profileUserId}`);
-
-        // TODO: endpoint para contar seguidores
-        // Por enquanto, apenas carregar comentários
-
-    } catch (e) { console.error(e); }
-
-    // Carregar comentários
-    await loadComments();
-}
-
-// Check if following
-async function checkFollowStatus() {
-    // Load and check follow status from API if needed
-}
-
-// Toggle follow
 async function toggleFollow() {
     const btn = document.getElementById('follow-btn');
+    if (!btn) return;
     const action = isFollowing ? 'unfollow' : 'follow';
 
     try {
@@ -284,13 +244,10 @@ async function toggleFollow() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: profileUserId, action })
         });
-
         const result = await response.json();
 
         if (result.success) {
             isFollowing = !isFollowing;
-            document.getElementById('followers-num').textContent = result.seguidores;
-
             if (isFollowing) {
                 btn.classList.add('following');
                 btn.innerHTML = '<i class="fas fa-user-check"></i> Seguindo';
@@ -300,20 +257,19 @@ async function toggleFollow() {
             }
         }
     } catch (e) {
-        console.error('Erro:', e);
+        console.error('Erro follow:', e);
     }
 }
 
-// Load comments
 async function loadComments() {
     try {
         const response = await fetch(`api/users/comentarios.php?perfil_id=${profileUserId}`);
         const comments = await response.json();
-
         const container = document.getElementById('comments-list');
+        if (!container) return;
 
-        if (comments.length === 0) {
-            container.innerHTML = '<p class="empty-message">Nenhum comentário ainda. Seja o primeiro!</p>';
+        if (!Array.isArray(comments) || comments.length === 0) {
+            container.innerHTML = '<p class="empty-message">Nenhum recado ainda. Seja o primeiro a escrever!</p>';
         } else {
             container.innerHTML = comments.map(c => `
                 <div class="comment-item">
@@ -322,10 +278,10 @@ async function loadComments() {
                     </div>
                     <div class="comment-content">
                         <div class="comment-header">
-                            <span class="comment-author" onclick="Common.navigate('?page=perfil&user=${c.autor_username}')">
+                            <span class="comment-author" onclick="if(window.Common) Common.navigate('perfil?user=${c.autor_username}')">
                                 ${c.autor_username}
                             </span>
-                            ${c.titulo_nome ? `<span class="comment-title-badge" style="color: ${c.titulo_cor}; border-color: ${c.titulo_cor}; background: rgba(0,0,0,0.5)">${c.titulo_icone} ${c.titulo_nome}</span>` : ''}
+                            ${c.titulo_nome ? `<span class="comment-title-badge" style="color: ${c.titulo_cor}; border-color: ${c.titulo_cor};">${c.titulo_icone} ${c.titulo_nome}</span>` : ''}
                             <span class="comment-time">${formatTime(c.criado_em)}</span>
                         </div>
                         <div class="comment-text">${escapeHtml(c.conteudo)}</div>
@@ -334,44 +290,43 @@ async function loadComments() {
             `).join('');
         }
     } catch (e) {
-        document.getElementById('comments-list').innerHTML = '<p>Erro ao carregar comentários</p>';
+        const container = document.getElementById('comments-list');
+        if (container) container.innerHTML = '<p class="empty-message">Sem recados no momento.</p>';
     }
 }
 
-// Submit comment
-const commentForm = document.getElementById('comment-form');
-if (commentForm) {
-    commentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+function bindCommentForm() {
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm && !commentForm.dataset.bound) {
+        commentForm.dataset.bound = 'true';
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('comment-input');
+            const conteudo = input ? input.value.trim() : '';
+            if (!conteudo) return;
 
-        const input = document.getElementById('comment-input');
-        const conteudo = input.value.trim();
-
-        if (!conteudo) return;
-
-        try {
-            const response = await fetch('api/users/comentarios.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ perfil_id: profileUserId, conteudo })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                input.value = '';
-                await loadComments();
-            } else {
-                alert(result.message || 'Erro ao adicionar comentário');
+            try {
+                const response = await fetch('api/users/comentarios.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ perfil_id: profileUserId, conteudo })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    input.value = '';
+                    await loadComments();
+                } else {
+                    alert(result.message || 'Erro ao publicar recado');
+                }
+            } catch (err) {
+                console.error('Erro ao enviar comentário:', err);
             }
-        } catch (e) {
-            console.error('Erro:', e);
-        }
-    });
+        });
+    }
 }
 
-// Helpers
 function formatTime(datetime) {
+    if (!datetime) return '';
     const d = new Date(datetime);
     const now = new Date();
     const diffInSeconds = Math.floor((now - d) / 1000);
@@ -380,22 +335,21 @@ function formatTime(datetime) {
     if (diffInSeconds < 3600) return `há ${Math.floor(diffInSeconds / 60)} min`;
     if (diffInSeconds < 86400) return `há ${Math.floor(diffInSeconds / 3600)} h`;
     if (diffInSeconds < 2592000) return `há ${Math.floor(diffInSeconds / 86400)} dias`;
-
     return d.toLocaleDateString('pt-BR');
 }
 
 function escapeHtml(str) {
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = str || '';
     return div.innerHTML;
 }
 
-// Init social
-loadComments();
-
 window.PerfilPage = {
     init() {
-        if (typeof loadProfileData === 'function') loadProfileData();
-        if (typeof loadComments === 'function') loadComments();
+        loadStatsAndAchievements();
+        loadAffinity();
+        setupLazyLoad();
+        loadComments();
+        bindCommentForm();
     }
 };

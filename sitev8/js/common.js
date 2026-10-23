@@ -124,8 +124,12 @@ const Common = {
     setupSearch() {
         const input = document.getElementById('search-input');
         const btn = document.querySelector('.search-btn');
-
+        if (input && input.dataset.searchBound === 'true') {
+            this.createMobileSearchToggle();
+            return;
+        }
         if (input) {
+            input.dataset.searchBound = 'true';
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && input.value.trim()) {
                     this.doSearch(input.value.trim());
@@ -176,29 +180,15 @@ const Common = {
      * Buscar sugestões na AniList
      */
     async fetchSearchSuggestions(query) {
-        const gql = `
-            query ($search: String) {
-                Page(page: 1, perPage: 5) {
-                    media(search: $search, type: ANIME, sort: POPULARITY_DESC, isAdult: false) {
-                        id
-                        title { romaji }
-                        coverImage { medium }
-                        format
-                        seasonYear
-                    }
-                }
-            }
-        `;
-
         try {
-            const response = await fetch('https://graphql.anilist.co', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: gql, variables: { search: query } })
-            });
-
-            const data = await response.json();
-            const results = data.data?.Page?.media || [];
+            const items = await API.searchAnime(query, 1, 5);
+            const results = (items || []).map(a => ({
+                id: a.id,
+                title: { romaji: a.title },
+                coverImage: { medium: a.image },
+                format: a.format || 'TV',
+                seasonYear: a.year || ''
+            }));
             this.renderSearchSuggestions(results);
         } catch (e) {
             console.error('Erro na busca live:', e);
@@ -894,6 +884,9 @@ const Common = {
                     <button class="settings-tab ${activeTab === 'general' ? 'active' : ''}" data-tab-id="general" onclick="Common.switchSettingsTab('general')">
                         <i class="fas fa-cog"></i> Geral
                     </button>
+                    <button class="settings-tab ${activeTab === 'audio' ? 'active' : ''}" data-tab-id="audio" onclick="Common.switchSettingsTab('audio')">
+                        <i class="fas fa-volume-up"></i> Áudio
+                    </button>
                     <button class="settings-tab ${activeTab === 'content' ? 'active' : ''}" data-tab-id="content" onclick="Common.switchSettingsTab('content')">
                         <i class="fas fa-shield-alt"></i> Conteúdo
                     </button>
@@ -1012,6 +1005,30 @@ const Common = {
                             <option value="en" ${settings.language === 'en' ? 'selected' : ''}>🇺🇸 English</option>
                             <option value="es" ${settings.language === 'es' ? 'selected' : ''}>🇪🇸 Español</option>
                         </select>
+                    </div>
+                `;
+
+            case 'audio':
+                return `
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">🔊 Áudio & Rádio v8</h4>
+                        <div class="settings-option">
+                            <div class="settings-option-info">
+                                <span class="settings-option-name">Mini-Player Micro-Dock</span>
+                                <span class="settings-option-desc">Manter mini-player persistente visível no rodapé</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" checked onchange="const d = document.getElementById('ost-micro-dock'); if (d) d.classList.toggle('hidden', !this.checked);">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="settings-option">
+                            <div class="settings-option-info">
+                                <span class="settings-option-name">Volume Inicial Padrão</span>
+                                <span class="settings-option-desc">Volume padrão ao iniciar reproduções</span>
+                            </div>
+                            <input type="range" min="0" max="1" step="0.05" value="${localStorage.getItem('ost_volume') || '0.7'}" onchange="localStorage.setItem('ost_volume', this.value); if(window.OSTPlayer) OSTPlayer.setVolume(this.value);" style="width: 130px; accent-color: var(--color-primary);">
+                        </div>
                     </div>
                 `;
 
@@ -1197,23 +1214,106 @@ const Common = {
     },
 
     /**
+     * Setup da Fita de Telemetria das APIs e Player Global
+     */
+    setupTelemetryListener() {
+        window.addEventListener('ost:stateChange', (e) => {
+            const track = e.detail?.currentTrack;
+            const isPlaying = e.detail?.isPlaying;
+            const marquee = document.getElementById('tel-marquee-text');
+            if (marquee && track) {
+                if (isPlaying) {
+                    marquee.innerHTML = `🎵 TOCANDO AGORA: <b>${track.songTitle}</b> (${track.themeLabel || 'OP'}) — <i>${track.animeTitle}</i>`;
+                } else {
+                    marquee.innerHTML = `⏸️ EM PAUSA: <b>${track.songTitle}</b> — <i>${track.animeTitle}</i>`;
+                }
+            }
+
+            // Atualizar Micro-Dock Player Neo-Brutalista (Discreto & Persistente)
+            const microDock = document.getElementById('ost-micro-dock');
+            if (microDock && track) {
+                microDock.style.display = 'inline-flex';
+                microDock.classList.toggle('paused', !isPlaying);
+
+                const songEl = document.getElementById('ost-micro-song');
+                if (songEl) songEl.textContent = track.songTitle || 'Trilha Sonora';
+
+                const animeEl = document.getElementById('ost-micro-anime');
+                if (animeEl) animeEl.textContent = track.animeTitle || 'Rádio AnimeEngine';
+
+                const playIcon = document.getElementById('ost-micro-play-icon');
+                if (playIcon) {
+                    playIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+                }
+
+                const thumbEl = document.getElementById('ost-micro-thumb');
+                if (thumbEl) {
+                    if (track.coverImage || track.animeImage) {
+                        thumbEl.innerHTML = `<img src="${track.coverImage || track.animeImage}" alt="Capa" />`;
+                    } else {
+                        thumbEl.innerHTML = isPlaying ? '<span class="ost-micro-eq"><span></span><span></span><span></span></span>' : '<i class="fas fa-music"></i>';
+                    }
+                }
+            }
+        });
+
+        // Atualizar status de circuit breaker das APIs
+        const updateApiStatus = () => {
+            const cdVal = Number(sessionStorage.getItem('ae_anilist_cooldown') || 0);
+            const isAnilistCooldown = cdVal > Date.now();
+            const elAnilist = document.getElementById('tel-anilist');
+            if (elAnilist) {
+                if (isAnilistCooldown) {
+                    elAnilist.innerHTML = '<span class="tel-dot dot-standby"></span> ANILIST <b>RESERVA</b>';
+                } else {
+                    elAnilist.innerHTML = '<span class="tel-dot dot-online"></span> ANILIST <b>PRIMÁRIA (OK)</b>';
+                }
+            }
+        };
+
+        setInterval(updateApiStatus, 5000);
+        updateApiStatus();
+    },
+
+    /**
      * Toggle popup do menu "Mais" na bottom-nav
      */
     toggleBottomNavMore() {
-        const popup = document.getElementById('bottom-nav-popup');
-        if (popup) {
-            popup.classList.toggle('open');
-        }
+        this.toggleSidebar();
+    },
+
+    /**
+     * Toggle Sidebar Drawer (Neo-Brutalista PC e Mobile)
+     */
+    toggleSidebar(force) {
+        const sidebar = document.getElementById('main-sidebar') || document.querySelector('.sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar) return;
+
+        const isOpen = (typeof force === 'boolean') ? force : !sidebar.classList.contains('open');
+        sidebar.classList.toggle('open', isOpen);
+        if (backdrop) backdrop.classList.toggle('active', isOpen);
+        document.body.classList.toggle('sidebar-drawer-open', isOpen);
     }
 };
 
 // Expor globalmente
 window.Common = Common;
 
+// Fechar sidebar com tecla Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (window.Common && Common.toggleSidebar) {
+            Common.toggleSidebar(false);
+        }
+    }
+});
+
 // Inicializar quando DOM pronto
 document.addEventListener('DOMContentLoaded', () => {
     Common.init();
     Common.setupScrollReveal();
+    Common.setupTelemetryListener();
 });
 
 

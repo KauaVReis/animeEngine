@@ -74,7 +74,7 @@ function getUsuarioLogado() {
     
     $result = secure_query(
         $conn,
-        "SELECT id, username, email, avatar, xp, nivel, tema, idioma, sfw, particulas 
+        "SELECT id, uuid, username, email, avatar, banner, bio, xp, nivel, role, status, tema, idioma, sfw, particulas, status_emoji, moldura, badges_exibidos, perfil_publico, cor_nome, streak_atual, streak_max, titulo_ativo 
          FROM usuarios WHERE id = ?",
         "i",
         $id

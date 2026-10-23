@@ -20,23 +20,30 @@ $pagina_atual = $pagina_atual ?? 'home';
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;700&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=9.0">
-    <link rel="stylesheet" href="css/v6_styles.css?v=9.0">
-    <link rel="stylesheet" href="css/spa.css?v=9.0">
+    <link rel="stylesheet" href="css/style.css?v=10.2">
+    <link rel="stylesheet" href="css/v6_styles.css?v=10.2">
+    <link rel="stylesheet" href="css/spa.css?v=10.2">
     <?php if (isset($css_pagina) && !empty($css_pagina)): ?>
         <?php foreach ($css_pagina as $css): ?>
-            <link rel="stylesheet" href="<?= $css ?>?v=9.0" data-page-css>
+            <link rel="stylesheet" href="<?= $css ?>?v=10.2" data-page-css>
         <?php endforeach; ?>
     <?php endif; ?>
 </head>
 
-<body>
+<body data-page="<?= htmlspecialchars($pagina_atual) ?>" class="<?= !empty($is_fullscreen) ? 'fullscreen-mode' : '' ?>">
+    <?php if (empty($is_fullscreen)): ?>
     <header class="header">
         <div class="header-content">
-            <a href="home" class="logo">
-                <span class="logo-text">ANIME.ENGINE</span>
-                <span class="logo-version">v8</span>
-            </a>
+            <div class="header-left">
+                <button class="hamburger-btn" id="desktop-menu-toggle" onclick="if(window.Common && Common.toggleSidebar) { Common.toggleSidebar(); } return false;" aria-label="Abrir Menu" title="Abrir Menu de Navegação">
+                    <i class="fas fa-bars"></i>
+                    <span class="hamburger-label desktop-only">MENU</span>
+                </button>
+                <a href="home" class="logo">
+                    <span class="logo-text">ANIME.ENGINE</span>
+                    <span class="logo-version">v8</span>
+                </a>
+            </div>
 
             <div class="search-container">
                 <input type="text" id="search-input" class="search-input" placeholder="Buscar anime..."
@@ -64,3 +71,4 @@ $pagina_atual = $pagina_atual ?? 'home';
             </div>
         </div>
     </header>
+    <?php endif; ?>

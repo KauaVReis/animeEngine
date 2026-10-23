@@ -9,11 +9,13 @@
  * 3. TODAS as queries passam por prepared statements
  */
 
+date_default_timezone_set('America/Sao_Paulo');
+
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('DB_NAME', 'animeengine_v7');
-define('DB_PORT', '3308');
+define('DB_NAME', 'animeengine_v8');
+define('DB_PORT', (int)(getenv('DB_PORT') ?: 3306));
 
 // ============================================================
 // CONEXÃO
@@ -24,9 +26,21 @@ define('DB_PORT', '3308');
  */
 function conectar()
 {
-    $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
+    $driver = new mysqli_driver();
+    $driver->report_mode = MYSQLI_REPORT_OFF;
+
+    $ports = array_unique([(int)DB_PORT, 3306, 3308]);
+    $conn = false;
+
+    foreach ($ports as $port) {
+        $conn = @mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME, $port);
+        if ($conn) {
+            break;
+        }
+    }
 
     if (!$conn) {
+        http_response_code(500);
         die(json_encode([
             'error' => true,
             'message' => 'Erro de conexão com o banco de dados'
@@ -34,6 +48,7 @@ function conectar()
     }
 
     mysqli_set_charset($conn, 'utf8mb4');
+    @mysqli_query($conn, "SET time_zone = '-03:00'");
 
     return $conn;
 }
@@ -119,6 +134,38 @@ function affected_rows_stmt($stmt)
         return mysqli_stmt_affected_rows($stmt);
     }
     return 0;
+}
+
+/**
+ * Executa query parametrizada e retorna o primeiro registro como array associativo (ou null)
+ * ZERO PDO - usa apenas mysqli + bind_param
+ */
+function secure_fetch_one($conn, string $sql, string $types = '', ...$params): ?array
+{
+    $result = secure_query($conn, $sql, $types, ...$params);
+    if ($result instanceof mysqli_result) {
+        $row = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
+        return $row ?: null;
+    }
+    return null;
+}
+
+/**
+ * Executa query parametrizada e retorna todos os registros como lista de arrays associativos
+ * ZERO PDO - usa apenas mysqli + bind_param
+ */
+function secure_fetch_all($conn, string $sql, string $types = '', ...$params): array
+{
+    $result = secure_query($conn, $sql, $types, ...$params);
+    $rows = [];
+    if ($result instanceof mysqli_result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+    return $rows;
 }
 
 // ============================================================

@@ -215,3 +215,315 @@ body.fullscreen-mode .sidebar-fix {
         display: none;
     }
 }
+
+/* ============================================================
+   TELEMETRY FOOTER STRIP (TRI-API v8 TICKER)
+   ============================================================ */
+.app-telemetry-footer {
+    width: 100%;
+    background: var(--color-surface);
+    border-top: var(--border-width) solid var(--border-color);
+    padding: 6px 16px;
+    font-size: 0.72rem;
+    font-family: var(--font-display);
+    position: relative;
+    z-index: 15;
+}
+
+.telemetry-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.telemetry-cluster {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.telemetry-badge {
+    background: var(--color-primary);
+    color: var(--color-on-primary, #000);
+    padding: 2px 7px;
+    font-weight: 900;
+    font-size: 0.68rem;
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.telemetry-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+}
+
+.telemetry-item b {
+    color: var(--color-text);
+}
+
+.tel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot-online {
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+}
+
+.dot-standby {
+    background: #f59e0b;
+}
+
+.telemetry-ticker-marquee {
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.telemetry-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.meta-tag {
+    font-weight: 800;
+    color: var(--color-text);
+}
+
+.meta-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 800;
+}
+
+.meta-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .app-telemetry-footer {
+        max-width: 100vw;
+        overflow: hidden;
+        padding: 6px 12px;
+        box-sizing: border-box;
+    }
+
+    .telemetry-inner {
+        justify-content: center;
+        gap: 6px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .telemetry-cluster {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.65rem;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .telemetry-item#tel-jikan {
+        display: none;
+    }
+
+    .telemetry-ticker-marquee {
+        display: none;
+    }
+}
+
+
+/* ============================================================
+   MICRO-DOCK PLAYER NEO-BRUTALISTA (DISCRETO & PERSISTENTE)
+   ============================================================ */
+.ost-micro-dock {
+    position: fixed;
+    bottom: 24px;
+    right: 96px; /* Deslocado para a esquerda para não sobrepor o botão flutuante de configurações (.settings-btn) */
+    height: 44px;
+    max-width: 330px;
+    background: var(--color-surface);
+    border: 2px solid var(--border-color);
+    box-shadow: 3px 3px 0 var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px 0 6px;
+    z-index: 1045;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease;
+    user-select: none;
+    border-radius: 0;
+}
+
+.ost-micro-dock.hidden,
+body[data-page="radio"] .ost-micro-dock {
+    display: none !important;
+}
+
+.ost-micro-dock:hover {
+    box-shadow: 4px 4px 0 var(--border-color);
+    transform: translate(-1px, -1px);
+}
+
+.ost-micro-thumb {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--border-color);
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--color-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.ost-micro-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ost-micro-info {
+    flex: 1;
+    min-width: 0;
+    max-width: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.15;
+    cursor: pointer;
+}
+
+.ost-micro-song {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ost-micro-anime {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ost-micro-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.ost-micro-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1.5px solid var(--border-color);
+    box-shadow: 1.5px 1.5px 0 var(--border-color);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: transform 0.1s, background 0.1s;
+    padding: 0;
+}
+
+.ost-micro-btn:hover {
+    background: var(--color-surface);
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0 var(--border-color);
+}
+
+.ost-micro-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0 0 0;
+}
+
+.ost-micro-btn.play-btn {
+    background: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--border-color);
+}
+
+.ost-micro-btn.play-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Equalizer mini animation when playing */
+.ost-micro-eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 1.5px;
+    height: 10px;
+    margin-right: 2px;
+}
+
+.ost-micro-eq span {
+    width: 2px;
+    height: 100%;
+    background: var(--color-primary);
+    animation: microEq 0.8s ease-in-out infinite alternate;
+}
+
+.ost-micro-eq span:nth-child(2) { animation-delay: 0.2s; }
+.ost-micro-eq span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes microEq {
+    0% { height: 2px; }
+    100% { height: 10px; }
+}
+
+.ost-micro-dock.paused .ost-micro-eq span {
+    animation-play-state: paused;
+    height: 2px;
+}
+
+@media (max-width: 640px) {
+    .ost-micro-dock {
+        bottom: 70px; /* Above bottom nav */
+        left: 10px;
+        right: auto;
+        max-width: calc(100vw - 76px);
+        height: 42px;
+        z-index: 1045;
+    }
+    .ost-micro-info {
+        max-width: 120px;
+    }
+    .settings-btn {
+        width: 48px !important;
+        height: 48px !important;
+        bottom: 68px !important;
+        right: 12px !important;
+        z-index: 1050 !important;
+    }
+}
