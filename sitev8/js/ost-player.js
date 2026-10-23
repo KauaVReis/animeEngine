@@ -62,7 +62,7 @@ const OSTPlayer = {
 
         // Ao sair da página de rádio via SPA, devolver o palco de vídeo para o dock global
         window.addEventListener('spa:beforeNavigate', (e) => {
-            if (e.detail?.from === 'radio') {
+            if (this.isDockedInRadio || e.detail?.from === 'radio') {
                 this.undockStage();
             }
         });
